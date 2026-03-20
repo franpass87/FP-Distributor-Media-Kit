@@ -71,8 +71,9 @@ final class RegistrationHandler {
 			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'email_exists', wp_get_referer() ?: home_url() ) );
 			exit;
 		}
-		if ( strlen( $password ) < 8 ) {
-			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'password_short', wp_get_referer() ?: home_url() ) );
+		$pwd_error = self::validate_password( $password );
+		if ( $pwd_error !== null ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_error', $pwd_error, wp_get_referer() ?: home_url() ) );
 			exit;
 		}
 
@@ -95,5 +96,26 @@ final class RegistrationHandler {
 		$redirect = wp_get_referer() ?: home_url( '/' );
 		wp_safe_redirect( add_query_arg( 'fp_dmk_registered', '1', $redirect ) );
 		exit;
+	}
+
+	/**
+	 * Valida password: min 8 caratteri, maiuscola, minuscola, numero.
+	 *
+	 * @return string|null Codice errore o null se valida.
+	 */
+	private static function validate_password( string $password ): ?string {
+		if ( strlen( $password ) < 8 ) {
+			return 'password_short';
+		}
+		if ( ! preg_match( '/[A-Z]/', $password ) ) {
+			return 'password_no_upper';
+		}
+		if ( ! preg_match( '/[a-z]/', $password ) ) {
+			return 'password_no_lower';
+		}
+		if ( ! preg_match( '/[0-9]/', $password ) ) {
+			return 'password_no_number';
+		}
+		return null;
 	}
 }

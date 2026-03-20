@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.0] - 2025-03-20
+
+### Added
+
+- Validazione password forte: maiuscola, minuscola, numero (oltre a min 8 caratteri)
+- Hint password in registrazione: "Minimo 8 caratteri, con maiuscola, minuscola e numero"
+- Link "Non hai un account? Registrati" nella pagina login
+- Link "Hai già un account? Accedi" nella pagina registrazione
+- Hint "Riceverai un'email per reimpostare la password..." sotto il form login
+- Filtri Media Kit: dropdown categoria e lingua con form GET
+- Pagina admin "Log download" con tabella e pulsante Esporta CSV
+- Export CSV log download (separatore ;, fino a 50000 record)
+- Cron giornaliero pulizia log: opzione "Pulizia log download (giorni)" in Impostazioni
+- Accessibilità: `role="alert"` su messaggi errore, `aria-describedby` e `aria-required` sui campi
+
+### Changed
+
+- Messaggio card asset senza file: "Nessun file associato" (coerenza terminologica)
+- TrackingService: nuovi metodi `get_all_for_export()` e `purge_older_than_days()`
+
 ## [1.3.0] - 2025-03-20
 
 ### Added

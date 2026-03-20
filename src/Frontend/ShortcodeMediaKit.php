@@ -28,6 +28,12 @@ final class ShortcodeMediaKit {
 
 		$filter_cat = isset( $atts['category'] ) ? sanitize_text_field( $atts['category'] ) : '';
 		$filter_lang = isset( $atts['language'] ) ? sanitize_text_field( $atts['language'] ) : '';
+		if ( $filter_cat === '' && isset( $_GET['fp_dmk_cat'] ) ) {
+			$filter_cat = sanitize_text_field( wp_unslash( $_GET['fp_dmk_cat'] ) );
+		}
+		if ( $filter_lang === '' && isset( $_GET['fp_dmk_lang'] ) ) {
+			$filter_lang = sanitize_text_field( wp_unslash( $_GET['fp_dmk_lang'] ) );
+		}
 
 		$query_args = [
 			'post_type'      => AssetManager::CPT,
@@ -73,6 +79,10 @@ final class ShortcodeMediaKit {
 			$by_category[ $cat_slug ]['items'][] = $post;
 		}
 
+		$current_url = get_permalink();
+		$terms = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => true ] );
+		$terms = is_array( $terms ) ? $terms : [];
+
 		$html = '<div class="fpdmk-media-kit">';
 		$html .= '<div class="fpdmk-media-kit-header">';
 		$html .= '<h2 class="fpdmk-media-kit-title">' . esc_html__( 'Media Kit', 'fp-dmk' ) . '</h2>';
@@ -81,6 +91,28 @@ final class ShortcodeMediaKit {
 		$html .= '<a href="' . esc_url( wp_logout_url( get_permalink() ) ) . '" class="fpdmk-btn fpdmk-btn-secondary">' . esc_html__( 'Esci', 'fp-dmk' ) . '</a>';
 		$html .= '</div>';
 		$html .= '</div>';
+
+		$html .= '<form method="get" action="' . esc_url( $current_url ) . '" class="fpdmk-filters">';
+		$html .= '<div class="fpdmk-filters-inner">';
+		$html .= '<label for="fp_dmk_filter_cat" class="screen-reader-text">' . esc_html__( 'Filtra per categoria', 'fp-dmk' ) . '</label>';
+		$html .= '<select id="fp_dmk_filter_cat" name="fp_dmk_cat" class="fpdmk-select">';
+		$html .= '<option value="">' . esc_html__( 'Tutte le categorie', 'fp-dmk' ) . '</option>';
+		foreach ( $terms as $term ) {
+			if ( $term instanceof \WP_Term ) {
+				$html .= '<option value="' . esc_attr( $term->slug ) . '"' . selected( $filter_cat, $term->slug, false ) . '>' . esc_html( $term->name ) . '</option>';
+			}
+		}
+		$html .= '</select>';
+		$html .= '<label for="fp_dmk_filter_lang" class="screen-reader-text">' . esc_html__( 'Filtra per lingua', 'fp-dmk' ) . '</label>';
+		$html .= '<select id="fp_dmk_filter_lang" name="fp_dmk_lang" class="fpdmk-select">';
+		$html .= '<option value="">' . esc_html__( 'Tutte le lingue', 'fp-dmk' ) . '</option>';
+		foreach ( AssetManager::LANGUAGES as $code => $label ) {
+			$html .= '<option value="' . esc_attr( $code ) . '"' . selected( $filter_lang, $code, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		$html .= '</select>';
+		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-secondary">' . esc_html__( 'Filtra', 'fp-dmk' ) . '</button>';
+		$html .= '</div>';
+		$html .= '</form>';
 
 		foreach ( $by_category as $cat_slug => $cat_data ) {
 			$html .= '<section class="fpdmk-section">';
@@ -128,7 +160,7 @@ final class ShortcodeMediaKit {
 			);
 			$html .= '<a href="' . esc_url( $url ) . '" class="fpdmk-btn fpdmk-btn-primary fpdmk-btn-download">' . esc_html__( 'Scarica', 'fp-dmk' ) . '</a>';
 		} else {
-			$html .= '<span class="fpdmk-card-no-file">' . esc_html__( 'File non disponibile', 'fp-dmk' ) . '</span>';
+			$html .= '<span class="fpdmk-card-no-file">' . esc_html__( 'Nessun file associato', 'fp-dmk' ) . '</span>';
 		}
 		$html .= '</div>';
 		$html .= '</div>';

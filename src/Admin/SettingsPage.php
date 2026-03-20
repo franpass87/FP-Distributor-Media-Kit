@@ -20,6 +20,7 @@ final class SettingsPage {
 		'email_from'     => '',
 		'email_from_name'=> '',
 		'auto_notify'    => false,
+		'purge_days'     => 0,
 		// Aspetto frontend
 		'btn_primary'        => '#667eea',
 		'btn_primary_end'    => '#764ba2',
@@ -67,6 +68,7 @@ final class SettingsPage {
 		$opts['email_from'] = isset( $_POST['email_from'] ) ? sanitize_email( wp_unslash( $_POST['email_from'] ) ) : '';
 		$opts['email_from_name'] = isset( $_POST['email_from_name'] ) ? sanitize_text_field( wp_unslash( $_POST['email_from_name'] ) ) : '';
 		$opts['auto_notify'] = ! empty( $_POST['auto_notify'] );
+		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
 		// Aspetto
 		$hex = static fn( string $k ) => isset( $_POST[ $k ] ) ? ( self::sanitize_hex( (string) wp_unslash( $_POST[ $k ] ) ) ?: self::DEFAULTS[ $k ] ) : self::DEFAULTS[ $k ];
 		$opts['btn_primary'] = $hex( 'btn_primary' );
@@ -87,6 +89,8 @@ final class SettingsPage {
 		update_option( 'fp_dmk_register_page', $opts['register_page'] );
 		update_option( 'fp_dmk_email_from', $opts['email_from'] ?: get_bloginfo( 'admin_email' ) );
 		update_option( 'fp_dmk_email_from_name', $opts['email_from_name'] ?: get_bloginfo( 'name' ) );
+		update_option( 'fp_dmk_purge_days', $opts['purge_days'] );
+		\FP\DistributorMediaKit\Cron\PurgeDownloadsCron::maybe_schedule();
 
 		wp_safe_redirect( add_query_arg( 'fp_dmk_saved', '1', wp_get_referer() ?: admin_url( 'admin.php?page=fp-dmk-settings' ) ) );
 		exit;
@@ -199,6 +203,11 @@ final class SettingsPage {
 								<input type="checkbox" name="auto_notify" value="1" <?php checked( $opts['auto_notify'] ); ?>>
 								<span class="fpdmk-toggle-slider"></span>
 							</label>
+						</div>
+						<div class="fpdmk-field">
+							<label for="purge_days"><?php esc_html_e( 'Pulizia log download (giorni)', 'fp-dmk' ); ?></label>
+							<input type="number" id="purge_days" name="purge_days" min="0" max="3650" value="<?php echo esc_attr( $opts['purge_days'] ?? 0 ); ?>">
+							<span class="fpdmk-hint"><?php esc_html_e( 'Elimina i record più vecchi di N giorni. 0 = nessuna pulizia automatica.', 'fp-dmk' ); ?></span>
 						</div>
 					</div>
 				</div>

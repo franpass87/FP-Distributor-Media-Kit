@@ -5,9 +5,11 @@ declare( strict_types=1 );
 namespace FP\DistributorMediaKit\Core;
 
 use FP\DistributorMediaKit\Admin\AssetManager;
+use FP\DistributorMediaKit\Admin\DownloadsLogPage;
 use FP\DistributorMediaKit\Admin\NotifyUsersPage;
 use FP\DistributorMediaKit\Admin\SettingsPage;
 use FP\DistributorMediaKit\Admin\UserApprovalPage;
+use FP\DistributorMediaKit\Cron\PurgeDownloadsCron;
 use FP\DistributorMediaKit\Download\ProxyController;
 use FP\DistributorMediaKit\Frontend\RestrictedContent;
 use FP\DistributorMediaKit\Frontend\ShortcodeLogin;
@@ -52,7 +54,11 @@ final class Plugin {
 			new UserApprovalPage();
 			new SettingsPage();
 			new NotifyUsersPage();
+			new DownloadsLogPage();
 		}
+
+		// Cron pulizia log
+		PurgeDownloadsCron::init();
 
 		// User registration (AJAX / POST)
 		RegistrationHandler::init();

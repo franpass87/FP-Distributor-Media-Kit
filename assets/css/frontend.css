@@ -156,6 +156,30 @@
     margin-top: 12px;
 }
 
+.fpdmk-filters {
+    margin-bottom: 2rem;
+}
+
+.fpdmk-filters-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.fpdmk-select {
+    padding: 10px 14px;
+    border: 2px solid var(--fpdmk-input-border, #e5e7eb);
+    border-radius: var(--fpdmk-radius, 8px);
+    font-size: 15px;
+    min-width: 160px;
+}
+
+.fpdmk-hint-reset {
+    margin-top: 16px;
+    font-size: 13px;
+}
+
 .fpdmk-section {
     margin-bottom: 2.5rem;
     background: var(--fpdmk-section-bg, transparent);
