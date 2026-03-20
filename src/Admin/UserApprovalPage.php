@@ -108,7 +108,7 @@ final class UserApprovalPage {
 				<span class="fpdmk-page-header-badge">v<?php echo esc_html( FP_DMK_VERSION ); ?></span>
 			</div>
 
-			<?php if ( isset( $_GET['fp_dmk_approved'] ) ) : ?>
+			<?php if ( isset( $_GET['fp_dmk_approved'] ) && sanitize_text_field( wp_unslash( $_GET['fp_dmk_approved'] ) ) === '1' ) : ?>
 				<div class="fpdmk-alert fpdmk-alert-success">
 					<span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Utente approvato con successo.', 'fp-dmk' ); ?>
 				</div>

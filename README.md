@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -23,8 +23,9 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 
 1. Carica la cartella `FP-Distributor-Media-Kit` in `wp-content/plugins/`
 2. Attiva il plugin dalla schermata Plugin
-3. Vai in **FP Media Kit → Impostazioni** per configurare le pagine
+3. Vai in **FP Media Kit → Impostazioni** per configurare pagine e aspetto
 4. Crea le pagine necessarie e inserisci gli shortcode
+5. Personalizza colori e stili nella sezione **Aspetto** (bottoni, card, sfondi)
 
 ## Shortcode
 

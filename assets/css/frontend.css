@@ -1,5 +1,6 @@
 /**
  * FP Distributor Media Kit — Frontend (shortcode, login, media kit)
+ * Usa variabili CSS personalizzabili da Impostazioni → Aspetto
  */
 
 .fpdmk-register-wrap,
@@ -15,7 +16,7 @@
 
 .fpdmk-message {
     padding: 14px 18px;
-    border-radius: 8px;
+    border-radius: var(--fpdmk-radius, 8px);
     margin-bottom: 20px;
 }
 
@@ -39,24 +40,44 @@
 .fpdmk-input {
     width: 100%;
     padding: 12px 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
+    border: 2px solid var(--fpdmk-input-border, #e5e7eb);
+    border-radius: var(--fpdmk-radius, 8px);
     font-size: 16px;
 }
 
 .fpdmk-input:focus {
-    border-color: #667eea;
+    border-color: var(--fpdmk-input-focus, #667eea);
     outline: none;
 }
 
-.fpdmk-field-submit { margin-top: 24px; }
+.fpdmk-field-submit {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.fpdmk-link {
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.fpdmk-link-muted {
+    color: #6b7280;
+}
+
+.fpdmk-link-muted:hover {
+    color: var(--fpdmk-input-focus, #667eea);
+    text-decoration: underline;
+}
 
 .fpdmk-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: var(--fpdmk-radius, 8px);
     font-weight: 600;
     font-size: 16px;
     text-decoration: none;
@@ -66,7 +87,7 @@
 }
 
 .fpdmk-btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--fpdmk-btn-primary, #667eea) 0%, var(--fpdmk-btn-primary-end, #764ba2) 100%);
     color: white;
 }
 
@@ -76,12 +97,12 @@
 }
 
 .fpdmk-btn-secondary {
-    background: #e5e7eb;
+    background: var(--fpdmk-btn-secondary, #e5e7eb);
     color: #1f2937;
 }
 
 .fpdmk-btn-secondary:hover {
-    background: #d1d5db;
+    background: var(--fpdmk-btn-secondary-hover, #d1d5db);
 }
 
 /* Media Kit grid */
@@ -106,6 +127,7 @@
 
 .fpdmk-section {
     margin-bottom: 2.5rem;
+    background: var(--fpdmk-section-bg, transparent);
 }
 
 .fpdmk-section-title {
@@ -113,7 +135,7 @@
     font-weight: 600;
     margin: 0 0 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--fpdmk-card-border, #e5e7eb);
 }
 
 .fpdmk-cards {
@@ -123,9 +145,9 @@
 }
 
 .fpdmk-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    background: var(--fpdmk-card-bg, #fff);
+    border: 1px solid var(--fpdmk-card-border, #e5e7eb);
+    border-radius: var(--fpdmk-card-radius, 12px);
     padding: 20px;
     transition: box-shadow 0.2s ease;
 }

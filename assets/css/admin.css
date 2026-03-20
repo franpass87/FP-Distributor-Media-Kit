@@ -7,6 +7,8 @@
     --fpdms-primary: #667eea;
     --fpdms-primary-dark: #764ba2;
     --fpdms-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --fpdms-secondary: #11998e;
+    --fpdms-gradient-secondary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     --fpdms-success: #10b981;
     --fpdms-success-bg: #d1fae5;
     --fpdms-warning: #f59e0b;
@@ -22,6 +24,7 @@
     --fpdms-bg-white: #ffffff;
     --fpdms-bg-light: #f9fafb;
     --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
@@ -197,11 +200,11 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 .fpdmk-btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
 
 .fpdmk-btn-success {
-    background: #11998e;
+    background: var(--fpdms-gradient-secondary);
     color: white;
 }
 
-.fpdmk-btn-success:hover { background: #0d7a73; color: white; }
+.fpdmk-btn-success:hover { opacity: 0.92; transform: translateY(-1px); }
 
 .fpdmk-btn-secondary {
     background: var(--fpdms-border);

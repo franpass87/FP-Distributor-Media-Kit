@@ -12,7 +12,7 @@ namespace FP\DistributorMediaKit\Frontend;
 final class ShortcodeRegister {
 
 	public static function render( array $atts ): string {
-		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
+		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
 		if ( is_user_logged_in() ) {
 			return '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Sei già registrato.', 'fp-dmk' ) . '</p>';

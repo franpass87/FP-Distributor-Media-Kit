@@ -14,7 +14,7 @@ use FP\DistributorMediaKit\User\ApprovalService;
 final class ShortcodeLogin {
 
 	public static function render( array $atts ): string {
-		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
+		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
 		if ( is_user_logged_in() ) {
 			$user_id = get_current_user_id();
@@ -52,15 +52,19 @@ final class ShortcodeLogin {
 		$html .= '<input type="hidden" name="fp_dmk_login" value="1">';
 		$html .= '<input type="hidden" name="redirect_to" value="' . esc_attr( $redirect ) . '">';
 		$html .= '<div class="fpdmk-field">';
-		$html .= '<label for="fp_dmk_login_email">' . esc_html__( 'Email', 'fp-dmk' ) . '</label>';
-		$html .= '<input type="email" id="fp_dmk_login_email" name="log" class="fpdmk-input" required placeholder="' . esc_attr__( 'email@esempio.it', 'fp-dmk' ) . '">';
+		$html .= '<label for="fp_dmk_login_email">' . esc_html__( 'Email o username', 'fp-dmk' ) . '</label>';
+		$html .= '<input type="text" id="fp_dmk_login_email" name="log" class="fpdmk-input" required placeholder="' . esc_attr__( 'email@esempio.it o username', 'fp-dmk' ) . '" autocomplete="username">';
 		$html .= '</div>';
 		$html .= '<div class="fpdmk-field">';
 		$html .= '<label for="fp_dmk_login_password">' . esc_html__( 'Password', 'fp-dmk' ) . '</label>';
-		$html .= '<input type="password" id="fp_dmk_login_password" name="pwd" class="fpdmk-input" required>';
+		$html .= '<input type="password" id="fp_dmk_login_password" name="pwd" class="fpdmk-input" required autocomplete="current-password">';
 		$html .= '</div>';
+		$login_page_id = (int) get_option( 'fp_dmk_login_page', 0 );
+		$lost_password_redirect = $login_page_id > 0 ? get_permalink( $login_page_id ) : home_url( '/' );
+		$lost_password_url = wp_lostpassword_url( $lost_password_redirect );
 		$html .= '<div class="fpdmk-field fpdmk-field-submit">';
 		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-primary">' . esc_html__( 'Accedi', 'fp-dmk' ) . '</button>';
+		$html .= ' <a href="' . esc_url( $lost_password_url ) . '" class="fpdmk-link fpdmk-link-muted">' . esc_html__( 'Password dimenticata?', 'fp-dmk' ) . '</a>';
 		$html .= '</div>';
 		$html .= '</form>';
 		$html .= '</div>';

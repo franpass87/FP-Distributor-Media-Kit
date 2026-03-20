@@ -42,9 +42,7 @@ final class RegistrationHandler {
 			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'invalid', wp_get_referer() ?: $redirect ) );
 			exit;
 		}
-		// Solo i distributori registrati hanno fp_dmk_approved; se è 0, blocca
-		$meta = get_user_meta( $user->ID, ApprovalService::META_KEY, true );
-		if ( $meta === ApprovalService::STATUS_PENDING ) {
+		if ( ! ApprovalService::is_approved( $user->ID ) ) {
 			wp_logout();
 			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'not_approved', wp_get_referer() ?: $redirect ) );
 			exit;

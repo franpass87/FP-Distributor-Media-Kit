@@ -16,7 +16,7 @@ use FP\DistributorMediaKit\User\ApprovalService;
 final class ShortcodeMediaKit {
 
 	public static function render( array $atts ): string {
-		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
+		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
 		if ( ! is_user_logged_in() ) {
 			return '<p class="fpdmk-message fpdmk-message-error">' . esc_html__( 'Effettua l\'accesso per visualizzare il Media Kit.', 'fp-dmk' ) . '</p>';

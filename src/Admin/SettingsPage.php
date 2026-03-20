@@ -20,10 +20,32 @@ final class SettingsPage {
 		'email_from'     => '',
 		'email_from_name'=> '',
 		'auto_notify'    => false,
+		// Aspetto frontend
+		'btn_primary'        => '#667eea',
+		'btn_primary_end'    => '#764ba2',
+		'btn_secondary'      => '#e5e7eb',
+		'btn_secondary_hover'=> '#d1d5db',
+		'card_bg'            => '#ffffff',
+		'card_border'        => '#e5e7eb',
+		'section_bg'         => '',
+		'input_border'       => '#e5e7eb',
+		'input_focus'        => '#667eea',
+		'border_radius'      => '8',
+		'card_radius'        => '12',
 	];
 
 	public function __construct() {
 		add_action( 'admin_init', [ $this, 'handle_save' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_color_picker' ] );
+	}
+
+	public function enqueue_color_picker( string $hook ): void {
+		$on_settings = ( strpos( $hook, 'fp-dmk-settings' ) !== false ) || ( isset( $_GET['page'] ) && sanitize_text_field( wp_unslash( $_GET['page'] ) ) === 'fp-dmk-settings' );
+		if ( ! $on_settings ) {
+			return;
+		}
+		wp_enqueue_style( 'wp-color-picker' );
+		wp_enqueue_script( 'wp-color-picker' );
 	}
 
 	public function handle_save(): void {
@@ -45,6 +67,19 @@ final class SettingsPage {
 		$opts['email_from'] = isset( $_POST['email_from'] ) ? sanitize_email( wp_unslash( $_POST['email_from'] ) ) : '';
 		$opts['email_from_name'] = isset( $_POST['email_from_name'] ) ? sanitize_text_field( wp_unslash( $_POST['email_from_name'] ) ) : '';
 		$opts['auto_notify'] = ! empty( $_POST['auto_notify'] );
+		// Aspetto
+		$hex = static fn( string $k ) => isset( $_POST[ $k ] ) ? ( self::sanitize_hex( (string) wp_unslash( $_POST[ $k ] ) ) ?: self::DEFAULTS[ $k ] ) : self::DEFAULTS[ $k ];
+		$opts['btn_primary'] = $hex( 'btn_primary' );
+		$opts['btn_primary_end'] = $hex( 'btn_primary_end' );
+		$opts['btn_secondary'] = $hex( 'btn_secondary' );
+		$opts['btn_secondary_hover'] = $hex( 'btn_secondary_hover' );
+		$opts['card_bg'] = $hex( 'card_bg' );
+		$opts['card_border'] = $hex( 'card_border' );
+		$opts['section_bg'] = isset( $_POST['section_bg'] ) ? self::sanitize_hex( (string) wp_unslash( $_POST['section_bg'] ) ) : '';
+		$opts['input_border'] = $hex( 'input_border' );
+		$opts['input_focus'] = $hex( 'input_focus' );
+		$opts['border_radius'] = isset( $_POST['border_radius'] ) ? absint( $_POST['border_radius'] ) : 8;
+		$opts['card_radius'] = isset( $_POST['card_radius'] ) ? absint( $_POST['card_radius'] ) : 12;
 
 		update_option( self::OPTION_KEY, $opts );
 		update_option( 'fp_dmk_media_kit_page', $opts['media_kit_page'] );
@@ -55,6 +90,17 @@ final class SettingsPage {
 
 		wp_safe_redirect( add_query_arg( 'fp_dmk_saved', '1', wp_get_referer() ?: admin_url( 'admin.php?page=fp-dmk-settings' ) ) );
 		exit;
+	}
+
+	private static function sanitize_hex( string $v ): string {
+		$v = trim( $v );
+		if ( $v === '' || $v === 'transparent' ) {
+			return '';
+		}
+		if ( preg_match( '/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $v ) ) {
+			return $v;
+		}
+		return '';
 	}
 
 	public static function render(): void {
@@ -74,7 +120,7 @@ final class SettingsPage {
 				<span class="fpdmk-page-header-badge">v<?php echo esc_html( FP_DMK_VERSION ); ?></span>
 			</div>
 
-			<?php if ( isset( $_GET['fp_dmk_saved'] ) ) : ?>
+			<?php if ( isset( $_GET['fp_dmk_saved'] ) && sanitize_text_field( wp_unslash( $_GET['fp_dmk_saved'] ) ) === '1' ) : ?>
 				<div class="fpdmk-alert fpdmk-alert-success">
 					<span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Impostazioni salvate.', 'fp-dmk' ); ?>
 				</div>
@@ -159,11 +205,74 @@ final class SettingsPage {
 			</div>
 
 			<div class="fpdmk-card">
+				<div class="fpdmk-card-header">
+					<div class="fpdmk-card-header-left">
+						<span class="dashicons dashicons-art"></span>
+						<h2><?php esc_html_e( 'Aspetto', 'fp-dmk' ); ?></h2>
+					</div>
+				</div>
+				<div class="fpdmk-card-body">
+					<p class="description" style="margin-bottom: 20px;"><?php esc_html_e( 'Personalizza colori e stili delle pagine Login, Registrazione e Media Kit.', 'fp-dmk' ); ?></p>
+					<div class="fpdmk-fields-grid">
+						<div class="fpdmk-field">
+							<label for="btn_primary"><?php esc_html_e( 'Bottone primario (inizio gradiente)', 'fp-dmk' ); ?></label>
+							<input type="text" id="btn_primary" name="btn_primary" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['btn_primary'] ?? self::DEFAULTS['btn_primary'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="btn_primary_end"><?php esc_html_e( 'Bottone primario (fine gradiente)', 'fp-dmk' ); ?></label>
+							<input type="text" id="btn_primary_end" name="btn_primary_end" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['btn_primary_end'] ?? self::DEFAULTS['btn_primary_end'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="btn_secondary"><?php esc_html_e( 'Bottone secondario', 'fp-dmk' ); ?></label>
+							<input type="text" id="btn_secondary" name="btn_secondary" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['btn_secondary'] ?? self::DEFAULTS['btn_secondary'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="btn_secondary_hover"><?php esc_html_e( 'Bottone secondario (hover)', 'fp-dmk' ); ?></label>
+							<input type="text" id="btn_secondary_hover" name="btn_secondary_hover" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['btn_secondary_hover'] ?? self::DEFAULTS['btn_secondary_hover'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="card_bg"><?php esc_html_e( 'Sfondo card', 'fp-dmk' ); ?></label>
+							<input type="text" id="card_bg" name="card_bg" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['card_bg'] ?? self::DEFAULTS['card_bg'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="card_border"><?php esc_html_e( 'Bordo card', 'fp-dmk' ); ?></label>
+							<input type="text" id="card_border" name="card_border" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['card_border'] ?? self::DEFAULTS['card_border'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="section_bg"><?php esc_html_e( 'Sfondo sezione (lascia vuoto per trasparente)', 'fp-dmk' ); ?></label>
+							<input type="text" id="section_bg" name="section_bg" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['section_bg'] ?? '' ); ?>" placeholder="trasparente">
+						</div>
+						<div class="fpdmk-field">
+							<label for="input_border"><?php esc_html_e( 'Bordo campi input', 'fp-dmk' ); ?></label>
+							<input type="text" id="input_border" name="input_border" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['input_border'] ?? self::DEFAULTS['input_border'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="input_focus"><?php esc_html_e( 'Bordo input (focus)', 'fp-dmk' ); ?></label>
+							<input type="text" id="input_focus" name="input_focus" class="fpdmk-color-picker" value="<?php echo esc_attr( $opts['input_focus'] ?? self::DEFAULTS['input_focus'] ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="border_radius"><?php esc_html_e( 'Raggio bordi bottoni/input (px)', 'fp-dmk' ); ?></label>
+							<input type="number" id="border_radius" name="border_radius" min="0" max="24" value="<?php echo esc_attr( $opts['border_radius'] ?? 8 ); ?>">
+						</div>
+						<div class="fpdmk-field">
+							<label for="card_radius"><?php esc_html_e( 'Raggio bordi card (px)', 'fp-dmk' ); ?></label>
+							<input type="number" id="card_radius" name="card_radius" min="0" max="32" value="<?php echo esc_attr( $opts['card_radius'] ?? 12 ); ?>">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="fpdmk-card">
 				<div class="fpdmk-card-body">
 					<button type="submit" class="fpdmk-btn fpdmk-btn-primary"><span class="dashicons dashicons-saved"></span> <?php esc_html_e( 'Salva', 'fp-dmk' ); ?></button>
 				</div>
 			</div>
 			</form>
+			<script>
+			jQuery(function($) {
+				$('.fpdmk-color-picker').wpColorPicker();
+			});
+			</script>
 		<?php
 		// Fix: il form deve wrappare tutto - correggo
 	}
