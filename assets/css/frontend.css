@@ -72,6 +72,37 @@
     text-decoration: underline;
 }
 
+.fpdmk-field-checkbox {
+    margin-bottom: 12px;
+}
+
+.fpdmk-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.fpdmk-checkbox {
+    width: 18px;
+    height: 18px;
+}
+
+.fpdmk-empty-state {
+    padding: 2rem;
+    text-align: center;
+    background: var(--fpdmk-card-bg, #fff);
+    border: 1px dashed var(--fpdmk-card-border, #e5e7eb);
+    border-radius: var(--fpdmk-card-radius, 12px);
+}
+
+.fpdmk-btn.is-loading {
+    opacity: 0.7;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .fpdmk-btn {
     display: inline-flex;
     align-items: center;

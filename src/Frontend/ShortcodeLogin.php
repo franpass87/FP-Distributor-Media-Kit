@@ -59,6 +59,9 @@ final class ShortcodeLogin {
 		$html .= '<label for="fp_dmk_login_password">' . esc_html__( 'Password', 'fp-dmk' ) . '</label>';
 		$html .= '<input type="password" id="fp_dmk_login_password" name="pwd" class="fpdmk-input" required autocomplete="current-password">';
 		$html .= '</div>';
+		$html .= '<div class="fpdmk-field fpdmk-field-checkbox">';
+		$html .= '<label class="fpdmk-checkbox-label"><input type="checkbox" name="rememberme" value="1" class="fpdmk-checkbox"> ' . esc_html__( 'Ricordami', 'fp-dmk' ) . '</label>';
+		$html .= '</div>';
 		$login_page_id = (int) get_option( 'fp_dmk_login_page', 0 );
 		$lost_password_redirect = $login_page_id > 0 ? get_permalink( $login_page_id ) : home_url( '/' );
 		$lost_password_url = wp_lostpassword_url( $lost_password_redirect );

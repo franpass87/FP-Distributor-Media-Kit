@@ -83,5 +83,9 @@ final class AppearanceService {
 	public static function enqueue_with_custom_styles(): void {
 		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
 		wp_add_inline_style( 'fp-dmk-frontend', self::get_custom_css() );
+		wp_enqueue_script( 'fp-dmk-frontend', FP_DMK_URL . 'assets/js/frontend.js', [], FP_DMK_VERSION, true );
+		wp_localize_script( 'fp-dmk-frontend', 'fpDmkI18n', [
+			'loading' => __( 'Invio in corso...', 'fp-dmk' ),
+		] );
 	}
 }

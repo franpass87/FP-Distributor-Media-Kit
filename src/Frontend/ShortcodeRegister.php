@@ -32,7 +32,8 @@ final class ShortcodeRegister {
 		];
 		$error_msg = isset( $messages[ $error ] ) ? $messages[ $error ] : '';
 
-		$success = isset( $_GET['fp_dmk_registered'] ) ? (int) $_GET['fp_dmk_registered'] : 0;
+		$success_raw = isset( $_GET['fp_dmk_registered'] ) ? sanitize_text_field( wp_unslash( $_GET['fp_dmk_registered'] ) ) : '';
+		$success = ( $success_raw === '1' );
 
 		$html = '<div class="fpdmk-register-wrap">';
 		if ( $success ) {

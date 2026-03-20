@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0] - 2025-03-20
+
+### Added
+
+- Checkbox "Ricordami" nel form login frontend
+- Indicatore caricamento form: bottone disabilitato e testo "Invio in corso..." su submit
+- Script frontend `assets/js/frontend.js` per gestione submit form login e registrazione
+- Classe `.fpdmk-empty-state` per messaggio Media Kit vuoto
+
+### Changed
+
+- Messaggio Media Kit vuoto: testo esteso "Torna più tardi o contatta l'amministratore"
+- ShortcodeRegister: sanitizzazione `$_GET['fp_dmk_registered']` (solo '1' mostra successo)
+- Stili checkbox e empty state nel frontend CSS
+
 ## [1.2.0] - 2025-03-20
 
 ### Added

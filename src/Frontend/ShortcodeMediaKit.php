@@ -94,7 +94,9 @@ final class ShortcodeMediaKit {
 		}
 
 		if ( empty( $by_category ) ) {
-			$html .= '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Nessun asset disponibile al momento.', 'fp-dmk' ) . '</p>';
+			$html .= '<div class="fpdmk-empty-state">';
+			$html .= '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Nessun asset disponibile al momento. Torna più tardi o contatta l\'amministratore.', 'fp-dmk' ) . '</p>';
+			$html .= '</div>';
 		}
 
 		$html .= '</div>';
