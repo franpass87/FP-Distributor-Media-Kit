@@ -1,0 +1,18 @@
+{
+	"name": "franpass87/fp-distributor-media-kit",
+	"description": "Area riservata Media Kit per distributori",
+	"type": "wordpress-plugin",
+	"license": "Proprietary",
+	"autoload": {
+		"psr-4": {
+			"FP\\DistributorMediaKit\\": "src/"
+		}
+	},
+	"require": {
+		"php": ">=8.0"
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true
+	}
+}

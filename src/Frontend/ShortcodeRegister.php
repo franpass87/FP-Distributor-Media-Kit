@@ -1,0 +1,71 @@
+<?php
+
+declare( strict_types=1 );
+
+namespace FP\DistributorMediaKit\Frontend;
+
+/**
+ * Shortcode [fp_dmk_register] - Form registrazione.
+ *
+ * @package FP\DistributorMediaKit\Frontend
+ */
+final class ShortcodeRegister {
+
+	public static function render( array $atts ): string {
+		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
+
+		if ( is_user_logged_in() ) {
+			return '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Sei già registrato.', 'fp-dmk' ) . '</p>';
+		}
+
+		$redirect = isset( $atts['redirect'] ) ? esc_url( $atts['redirect'] ) : '';
+		if ( $redirect === '' ) {
+			$redirect = wp_get_referer() ?: home_url();
+		}
+
+		$error = isset( $_GET['fp_dmk_error'] ) ? sanitize_text_field( wp_unslash( $_GET['fp_dmk_error'] ) ) : '';
+		$messages = [
+			'invalid_email' => __( 'Indirizzo email non valido.', 'fp-dmk' ),
+			'email_exists'  => __( 'Questo indirizzo email è già registrato.', 'fp-dmk' ),
+			'password_short'=> __( 'La password deve essere di almeno 8 caratteri.', 'fp-dmk' ),
+			'create_failed' => __( 'Si è verificato un errore. Riprova.', 'fp-dmk' ),
+		];
+		$error_msg = isset( $messages[ $error ] ) ? $messages[ $error ] : '';
+
+		$success = isset( $_GET['fp_dmk_registered'] ) ? (int) $_GET['fp_dmk_registered'] : 0;
+
+		$html = '<div class="fpdmk-register-wrap">';
+		if ( $success ) {
+			$html .= '<div class="fpdmk-message fpdmk-message-success">' . esc_html__( 'Registrazione completata. La tua richiesta è in attesa di approvazione da parte dell\'amministratore.', 'fp-dmk' ) . '</div>';
+			return $html . '</div>';
+		}
+		if ( $error_msg ) {
+			$html .= '<div class="fpdmk-message fpdmk-message-error">' . esc_html( $error_msg ) . '</div>';
+		}
+		$html .= '<form method="post" action="" class="fpdmk-form fpdmk-register-form">';
+		$html .= wp_nonce_field( 'fp_dmk_register', 'fp_dmk_register_nonce', true, false );
+		$html .= '<input type="hidden" name="fp_dmk_register" value="1">';
+		if ( $redirect ) {
+			$html .= '<input type="hidden" name="redirect_to" value="' . esc_attr( $redirect ) . '">';
+		}
+		$html .= '<div class="fpdmk-field">';
+		$html .= '<label for="fp_dmk_reg_name">' . esc_html__( 'Nome', 'fp-dmk' ) . '</label>';
+		$html .= '<input type="text" id="fp_dmk_reg_name" name="name" class="fpdmk-input" placeholder="' . esc_attr__( 'Il tuo nome', 'fp-dmk' ) . '">';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-field">';
+		$html .= '<label for="fp_dmk_reg_email">' . esc_html__( 'Email', 'fp-dmk' ) . ' <span class="required">*</span></label>';
+		$html .= '<input type="email" id="fp_dmk_reg_email" name="email" class="fpdmk-input" required placeholder="' . esc_attr__( 'email@esempio.it', 'fp-dmk' ) . '">';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-field">';
+		$html .= '<label for="fp_dmk_reg_password">' . esc_html__( 'Password', 'fp-dmk' ) . ' <span class="required">*</span></label>';
+		$html .= '<input type="password" id="fp_dmk_reg_password" name="password" class="fpdmk-input" required minlength="8" placeholder="' . esc_attr__( 'Minimo 8 caratteri', 'fp-dmk' ) . '">';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-field fpdmk-field-submit">';
+		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-primary">' . esc_html__( 'Registrati', 'fp-dmk' ) . '</button>';
+		$html .= '</div>';
+		$html .= '</form>';
+		$html .= '</div>';
+
+		return $html;
+	}
+}

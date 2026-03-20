@@ -1,0 +1,7 @@
+# vendor/ — COMMENTATO: fp-git-updater lo richiede per installazione su produzione
+# vendor/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+*.zip

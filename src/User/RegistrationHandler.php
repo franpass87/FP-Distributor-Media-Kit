@@ -1,0 +1,101 @@
+<?php
+
+declare( strict_types=1 );
+
+namespace FP\DistributorMediaKit\User;
+
+/**
+ * Gestione form registrazione frontend.
+ *
+ * @package FP\DistributorMediaKit\User
+ */
+final class RegistrationHandler {
+
+	public static function init(): void {
+		add_action( 'init', [ self::class, 'handle_register_post' ], 20 );
+		add_action( 'init', [ self::class, 'handle_login_post' ], 20 );
+	}
+
+	public static function handle_login_post(): void {
+		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' || ! isset( $_POST['fp_dmk_login'] ) ) {
+			return;
+		}
+		if ( ! isset( $_POST['fp_dmk_login_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fp_dmk_login_nonce'] ) ), 'fp_dmk_login' ) ) {
+			return;
+		}
+		$log = isset( $_POST['log'] ) ? sanitize_user( wp_unslash( $_POST['log'] ), true ) : '';
+		$pwd = isset( $_POST['pwd'] ) ? $_POST['pwd'] : '';
+		$redirect = isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : home_url( '/' );
+		if ( $log === '' || $pwd === '' ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'invalid', $redirect ) );
+			exit;
+		}
+		$user = wp_signon(
+			[
+				'user_login'    => $log,
+				'user_password' => $pwd,
+				'remember'      => ! empty( $_POST['rememberme'] ),
+			],
+			is_ssl()
+		);
+		if ( is_wp_error( $user ) ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'invalid', wp_get_referer() ?: $redirect ) );
+			exit;
+		}
+		// Solo i distributori registrati hanno fp_dmk_approved; se è 0, blocca
+		$meta = get_user_meta( $user->ID, ApprovalService::META_KEY, true );
+		if ( $meta === ApprovalService::STATUS_PENDING ) {
+			wp_logout();
+			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'not_approved', wp_get_referer() ?: $redirect ) );
+			exit;
+		}
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	public static function handle_register_post(): void {
+		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' || ! isset( $_POST['fp_dmk_register'] ) ) {
+			return;
+		}
+		if ( ! isset( $_POST['fp_dmk_register_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fp_dmk_register_nonce'] ) ), 'fp_dmk_register' ) ) {
+			return;
+		}
+
+		$email    = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+		$password = isset( $_POST['password'] ) ? $_POST['password'] : '';
+		$name     = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+
+		if ( ! is_email( $email ) ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'invalid_email', wp_get_referer() ?: home_url() ) );
+			exit;
+		}
+		if ( username_exists( $email ) || email_exists( $email ) ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'email_exists', wp_get_referer() ?: home_url() ) );
+			exit;
+		}
+		if ( strlen( $password ) < 8 ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'password_short', wp_get_referer() ?: home_url() ) );
+			exit;
+		}
+
+		$user_id = wp_create_user( $email, $password, $email );
+		if ( is_wp_error( $user_id ) ) {
+			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'create_failed', wp_get_referer() ?: home_url() ) );
+			exit;
+		}
+
+		if ( $name !== '' ) {
+			wp_update_user( [
+				'ID'           => $user_id,
+				'display_name' => $name,
+				'first_name'   => $name,
+			] );
+		}
+
+		ApprovalService::set_approved( $user_id, false );
+
+		$redirect = wp_get_referer() ?: home_url( '/' );
+		wp_safe_redirect( add_query_arg( 'fp_dmk_registered', '1', $redirect ) );
+		exit;
+	}
+}

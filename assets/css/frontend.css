@@ -1,0 +1,165 @@
+/**
+ * FP Distributor Media Kit — Frontend (shortcode, login, media kit)
+ */
+
+.fpdmk-register-wrap,
+.fpdmk-login-wrap,
+.fpdmk-media-kit {
+    max-width: 480px;
+    margin: 0 auto 2rem;
+}
+
+.fpdmk-media-kit {
+    max-width: 900px;
+}
+
+.fpdmk-message {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.fpdmk-message-success { background: #d1fae5; border-left: 4px solid #10b981; }
+.fpdmk-message-error { background: #fee2e2; border-left: 4px solid #ef4444; }
+.fpdmk-message-warning { background: #fef3c7; border-left: 4px solid #f59e0b; }
+.fpdmk-message-info { background: #dbeafe; border-left: 4px solid #3b82f6; }
+
+.fpdmk-form .fpdmk-field {
+    margin-bottom: 18px;
+}
+
+.fpdmk-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.fpdmk-form .required { color: #ef4444; }
+
+.fpdmk-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.fpdmk-input:focus {
+    border-color: #667eea;
+    outline: none;
+}
+
+.fpdmk-field-submit { margin-top: 24px; }
+
+.fpdmk-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fpdmk-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.fpdmk-btn-primary:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.fpdmk-btn-secondary {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+
+.fpdmk-btn-secondary:hover {
+    background: #d1d5db;
+}
+
+/* Media Kit grid */
+.fpdmk-media-kit-header {
+    margin-bottom: 2rem;
+}
+
+.fpdmk-media-kit-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.fpdmk-media-kit-desc {
+    color: #4b5563;
+    margin: 0 0 16px;
+}
+
+.fpdmk-media-kit-actions {
+    margin-top: 12px;
+}
+
+.fpdmk-section {
+    margin-bottom: 2.5rem;
+}
+
+.fpdmk-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.fpdmk-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.fpdmk-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    transition: box-shadow 0.2s ease;
+}
+
+.fpdmk-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.fpdmk-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+
+.fpdmk-card-desc {
+    font-size: 14px;
+    color: #4b5563;
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.fpdmk-card-meta {
+    font-size: 12px;
+    color: #9ca3af;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.fpdmk-btn-download {
+    margin-top: 8px;
+}
+
+.fpdmk-card-no-file {
+    font-size: 14px;
+    color: #9ca3af;
+    font-style: italic;
+}
