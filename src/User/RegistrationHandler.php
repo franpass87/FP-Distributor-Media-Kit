@@ -17,7 +17,7 @@ final class RegistrationHandler {
 	}
 
 	public static function handle_login_post(): void {
-		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' || ! isset( $_POST['fp_dmk_login'] ) ) {
+		if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) !== 'POST' || ! isset( $_POST['fp_dmk_login'] ) ) {
 			return;
 		}
 		if ( ! isset( $_POST['fp_dmk_login_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fp_dmk_login_nonce'] ) ), 'fp_dmk_login' ) ) {
@@ -52,7 +52,7 @@ final class RegistrationHandler {
 	}
 
 	public static function handle_register_post(): void {
-		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' || ! isset( $_POST['fp_dmk_register'] ) ) {
+		if ( ( $_SERVER['REQUEST_METHOD'] ?? '' ) !== 'POST' || ! isset( $_POST['fp_dmk_register'] ) ) {
 			return;
 		}
 		if ( ! isset( $_POST['fp_dmk_register_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['fp_dmk_register_nonce'] ) ), 'fp_dmk_register' ) ) {
