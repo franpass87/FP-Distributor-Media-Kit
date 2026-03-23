@@ -63,4 +63,30 @@ final class ApprovalService {
 		] );
 		return $users ?: [];
 	}
+
+	/**
+	 * Ottiene tutti i distributori (con meta fp_dmk_approved, approved o pending).
+	 *
+	 * @param string $status 'all'|'approved'|'pending' Filtro per stato.
+	 * @param string $orderby Campo ordinamento (user_registered, display_name, user_email).
+	 * @param string $order ASC o DESC.
+	 * @return array<int, \WP_User>
+	 */
+	public static function get_all_distributors( string $status = 'all', string $orderby = 'user_registered', string $order = 'DESC' ): array {
+		$args = [
+			'meta_key' => self::META_KEY,
+			'number'   => 5000,
+			'orderby'  => $orderby,
+			'order'    => strtoupper( $order ) === 'ASC' ? 'ASC' : 'DESC',
+		];
+		if ( $status === 'approved' ) {
+			$args['meta_value'] = self::STATUS_APPROVED;
+		} elseif ( $status === 'pending' ) {
+			$args['meta_value'] = self::STATUS_PENDING;
+		} else {
+			$args['meta_compare'] = 'EXISTS';
+		}
+		$users = get_users( $args );
+		return $users ?: [];
+	}
 }

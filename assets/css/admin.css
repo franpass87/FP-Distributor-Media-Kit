@@ -379,3 +379,20 @@ body.fpdmk-admin-shell .fpdmk-cpt-page-header {
 	flex-shrink: 0;
 }
 .fpdmk-btn-add { font-size: 13px; padding: 6px 14px; }
+.fpdmk-btn-sm { font-size: 12px; padding: 4px 10px; }
+.fpdmk-filter-tabs { display: flex; gap: 8px; }
+.fpdmk-filter-tabs .fpdmk-tab {
+	padding: 6px 14px;
+	border-radius: var(--radius-md);
+	text-decoration: none;
+	color: var(--fpdms-text);
+	background: var(--fpdms-border-light);
+	font-size: 13px;
+	font-weight: 500;
+}
+.fpdmk-filter-tabs .fpdmk-tab:hover { background: var(--fpdms-border); }
+.fpdmk-filter-tabs .fpdmk-tab.is-active {
+	background: var(--fpdms-primary);
+	color: white;
+}
+.fpdmk-muted { font-size: 11px; color: var(--fpdms-text-muted); }

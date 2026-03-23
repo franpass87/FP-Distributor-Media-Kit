@@ -10,6 +10,7 @@ use FP\DistributorMediaKit\Admin\NotifyUsersPage;
 use FP\DistributorMediaKit\Admin\ReportsPage;
 use FP\DistributorMediaKit\Admin\SettingsPage;
 use FP\DistributorMediaKit\Admin\UserApprovalPage;
+use FP\DistributorMediaKit\Admin\UsersListPage;
 use FP\DistributorMediaKit\Cron\PurgeDownloadsCron;
 use FP\DistributorMediaKit\Download\ProxyController;
 use FP\DistributorMediaKit\Frontend\RestrictedContent;
@@ -54,6 +55,7 @@ final class Plugin {
 			AssetManager::init();
 			\FP\DistributorMediaKit\Admin\CptBanner::init();
 			new UserApprovalPage();
+			new UsersListPage();
 			new ReportsPage();
 			new SettingsPage();
 			new NotifyUsersPage();

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.3] - 2026-03-23
+
+### Added
+
+- Pagina **Lista utenti**: tutti i distributori con filtro (Tutti/Approvati/In attesa), n. download, azioni Approva/Revoca
+
 ## [1.5.2] - 2026-03-23
 
 ### Added

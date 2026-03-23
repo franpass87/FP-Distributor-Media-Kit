@@ -278,6 +278,41 @@ final class ReportService {
 	}
 
 	/**
+	 * Statistiche download per una lista di user_id.
+	 *
+	 * @param array<int> $user_ids ID utenti.
+	 * @return array<int, array{count: int, last: string|null}> user_id => stats
+	 */
+	public static function get_download_stats_for_users( array $user_ids ): array {
+		if ( empty( $user_ids ) ) {
+			return [];
+		}
+		global $wpdb;
+		$table = $wpdb->prefix . 'fp_dmk_downloads';
+		$ids   = array_map( 'absint', $user_ids );
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT user_id, COUNT(*) AS cnt, MAX(downloaded_at) AS last_dl
+				FROM {$table} WHERE user_id IN ($placeholders) GROUP BY user_id",
+				...$ids
+			),
+			ARRAY_A
+		);
+
+		$result = [];
+		foreach ( $ids as $id ) {
+			$result[ $id ] = [ 'count' => 0, 'last' => null ];
+		}
+		foreach ( is_array( $rows ) ? $rows : [] as $r ) {
+			$uid = (int) $r['user_id'];
+			$result[ $uid ] = [ 'count' => (int) $r['cnt'], 'last' => $r['last_dl'] ?? null ];
+		}
+		return $result;
+	}
+
+	/**
 	 * Elenco nomi asset scaricati da un utente (per tooltip/anteprima).
 	 */
 	private static function get_asset_names_for_user( int $user_id ): string {
