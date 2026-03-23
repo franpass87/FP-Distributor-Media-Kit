@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.5] - 2026-03-23
+
+### Fixed
+
+- Pagine **Media Kit Asset** e **Categorie** aggiornate al design system FP: lista asset con card, thead viola, tablenav; taxonomy con form-wrap card, tabella categorie, postbox stile FP; add/edit asset con postbox come card e input stilizzati
+
 ## [1.5.4] - 2026-03-23
 
 ### Fixed

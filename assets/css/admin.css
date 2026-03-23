@@ -442,3 +442,203 @@ body.fpdmk-admin-shell .fpdmk-cpt-page-header {
 	color: white;
 }
 .fpdmk-muted { font-size: 11px; color: var(--fpdms-text-muted); }
+
+/* ========== Media Kit Asset (CPT list) e Categorie (taxonomy) — design system FP ========== */
+
+/* Wrap e elementi comuni */
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wrap,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .wrap {
+	max-width: 1100px;
+}
+body.fpdmk-admin-shell.edit-php .wrap > hr.wp-header-end,
+body.fpdmk-admin-shell.edit-tags-php .wrap > hr.wp-header-end {
+	display: none;
+}
+
+/* Lista Asset (edit.php?post_type=fp_dmk_asset) */
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset #posts-filter {
+	background: var(--fpdms-bg-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	padding: 0;
+	overflow: hidden;
+	margin: 0 20px 24px 0;
+	max-width: 1100px;
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat {
+	border: none;
+	box-shadow: none;
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead td {
+	background: var(--fpdms-gradient-primary) !important;
+	color: white !important;
+	border: none;
+	padding: 12px 16px;
+	font-weight: 600;
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat tbody tr:hover {
+	background: var(--fpdms-bg-light);
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat td,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat th {
+	border-color: var(--fpdms-border-light);
+	padding: 12px 16px;
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .tablenav {
+	padding: 16px 20px;
+	background: var(--fpdms-bg-light);
+	border-bottom: 2px solid var(--fpdms-border-light);
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .tablenav .button {
+	padding: 6px 14px;
+	border-radius: var(--radius-md);
+	font-weight: 600;
+	border: 2px solid var(--fpdms-border);
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .tablenav .button-primary {
+	background: var(--fpdms-gradient-primary);
+	border-color: transparent;
+}
+
+/* Pagina Categorie (edit-tags.php?taxonomy=fp_dmk_category) */
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #col-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+	max-width: 1100px;
+	margin: 0 20px 24px 0;
+}
+@media (max-width: 900px) {
+	body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #col-container {
+		grid-template-columns: 1fr;
+	}
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #col-left,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #col-right {
+	float: none;
+	width: 100%;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .form-wrap {
+	background: var(--fpdms-bg-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	padding: 24px;
+	margin-bottom: 24px;
+	border: none;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .form-wrap h2 {
+	margin: 0 0 16px;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--fpdms-text);
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .form-wrap .form-field input,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .form-wrap .form-field select {
+	padding: 10px 14px !important;
+	border: 2px solid var(--fpdms-border) !important;
+	border-radius: var(--radius-md) !important;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .form-wrap .button-primary {
+	background: var(--fpdms-gradient-primary);
+	border: none;
+	border-radius: var(--radius-md);
+	padding: 8px 18px;
+	font-weight: 600;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat {
+	background: var(--fpdms-bg-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	border: none;
+	overflow: hidden;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead td {
+	background: var(--fpdms-gradient-primary) !important;
+	color: white !important;
+	border: none;
+	padding: 12px 16px;
+	font-weight: 600;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat tbody tr:hover {
+	background: var(--fpdms-bg-light);
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat td,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat th {
+	border-color: var(--fpdms-border-light);
+	padding: 12px 16px;
+}
+/* Search form su Categorie */
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .search-form {
+	margin-bottom: 20px;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .search-form input[type="search"],
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .search-form input[type="text"] {
+	padding: 10px 14px !important;
+	border: 2px solid var(--fpdms-border) !important;
+	border-radius: var(--radius-md) !important;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #posts-filter {
+	background: var(--fpdms-bg-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	padding: 0;
+	overflow: hidden;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #posts-filter .tablenav {
+	padding: 16px 20px;
+	background: var(--fpdms-bg-light);
+	border-bottom: 2px solid var(--fpdms-border-light);
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #posts-filter .tablenav .button {
+	padding: 6px 14px;
+	border-radius: var(--radius-md);
+	font-weight: 600;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category #posts-filter .tablenav .button-primary {
+	background: var(--fpdms-gradient-primary);
+	border-color: transparent;
+}
+
+/* Add/Edit Asset (post.php, post-new.php) — postbox come card FP */
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset .postbox,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset .postbox {
+	border: none;
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset .postbox > .postbox-header,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset .postbox > .postbox-header {
+	background: var(--fpdms-bg-light) !important;
+	border-bottom: 2px solid var(--fpdms-border-light) !important;
+	padding: 18px 24px;
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset .postbox > .postbox-header h2,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset .postbox > .postbox-header h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--fpdms-text);
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset .postbox > .inside,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset .postbox > .inside {
+	padding: 24px;
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset #postbox-container-1 .postbox,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #postbox-container-1 .postbox {
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset #titlewrap #title,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title {
+	padding: 10px 14px !important;
+	border: 2px solid var(--fpdms-border) !important;
+	border-radius: var(--radius-md) !important;
+}
+body.fpdmk-admin-shell.post-php.post-type-fp_dmk_asset #titlewrap #title:focus,
+body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:focus {
+	border-color: var(--fpdms-primary) !important;
+	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
