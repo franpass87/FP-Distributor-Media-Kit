@@ -8,6 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'FP\\DistributorMediaKit\\Admin\\AssetManager' => $baseDir . '/src/Admin/AssetManager.php',
+    'FP\\DistributorMediaKit\\Admin\\CptBanner' => $baseDir . '/src/Admin/CptBanner.php',
     'FP\\DistributorMediaKit\\Admin\\DownloadsLogPage' => $baseDir . '/src/Admin/DownloadsLogPage.php',
     'FP\\DistributorMediaKit\\Admin\\NotifyUsersPage' => $baseDir . '/src/Admin/NotifyUsersPage.php',
     'FP\\DistributorMediaKit\\Admin\\ReportsPage' => $baseDir . '/src/Admin/ReportsPage.php',

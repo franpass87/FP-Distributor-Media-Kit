@@ -352,3 +352,30 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 }
 .fpdmk-cell-assets { font-size: 12px; max-width: 280px; }
 .fpdmk-more { color: var(--fpdms-text-muted); font-size: 11px; }
+
+/* Banner CPT/taxonomy (iniettato via admin_notices) */
+.fpdmk-cpt-banner-wrap {
+	margin: 20px 20px 0 0;
+	max-width: 1100px;
+}
+body.fpdmk-admin-shell.edit-php .wrap > h1.wp-heading-inline,
+body.fpdmk-admin-shell.post-php .wrap > h1.wp-heading-inline,
+body.fpdmk-admin-shell.post-new-php .wrap > h1.wp-heading-inline,
+body.fpdmk-admin-shell.edit-tags-php .wrap > h1.wp-heading-inline {
+	display: none !important;
+}
+/* Nascondi "Aggiungi nuovo" duplicato (è nel banner) */
+body.fpdmk-admin-shell.edit-php .wrap > .page-title-action {
+	display: none !important;
+}
+/* Riduci spazio tra banner e contenuto WP */
+body.fpdmk-admin-shell .fpdmk-cpt-page-header {
+	margin-bottom: 20px;
+}
+.fpdmk-page-header-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+}
+.fpdmk-btn-add { font-size: 13px; padding: 6px 14px; }

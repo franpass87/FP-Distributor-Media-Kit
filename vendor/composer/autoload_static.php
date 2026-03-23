@@ -23,6 +23,7 @@ class ComposerStaticInit488c20eed7d619142a46cfda433c3e99
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'FP\\DistributorMediaKit\\Admin\\AssetManager' => __DIR__ . '/../..' . '/src/Admin/AssetManager.php',
+        'FP\\DistributorMediaKit\\Admin\\CptBanner' => __DIR__ . '/../..' . '/src/Admin/CptBanner.php',
         'FP\\DistributorMediaKit\\Admin\\DownloadsLogPage' => __DIR__ . '/../..' . '/src/Admin/DownloadsLogPage.php',
         'FP\\DistributorMediaKit\\Admin\\NotifyUsersPage' => __DIR__ . '/../..' . '/src/Admin/NotifyUsersPage.php',
         'FP\\DistributorMediaKit\\Admin\\ReportsPage' => __DIR__ . '/../..' . '/src/Admin/ReportsPage.php',

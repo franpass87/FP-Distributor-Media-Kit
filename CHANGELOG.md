@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] - 2026-03-23
+
+### Fixed
+
+- Banner grafica FP unificato su tutte le pagine: lista asset, aggiungi/modifica asset, categorie
+
 ## [1.5.0] - 2026-03-23
 
 ### Added

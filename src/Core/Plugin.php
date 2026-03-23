@@ -52,6 +52,7 @@ final class Plugin {
 		// Admin
 		if ( is_admin() ) {
 			AssetManager::init();
+			\FP\DistributorMediaKit\Admin\CptBanner::init();
 			new UserApprovalPage();
 			new ReportsPage();
 			new SettingsPage();
