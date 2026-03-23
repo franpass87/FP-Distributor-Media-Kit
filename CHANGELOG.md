@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.4] - 2026-03-23
+
+### Fixed
+
+- Grafica sezioni e box allineata al design system FP: card hover, thead viola, input/textarea con focus ring, descrizioni
+
 ## [1.5.3] - 2026-03-23
 
 ### Added
