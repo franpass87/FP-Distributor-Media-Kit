@@ -477,6 +477,19 @@ body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat th
 	padding: 12px 16px;
 	font-weight: 600;
 }
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th a,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th a:hover,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th a:focus {
+	color: white !important;
+}
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead .sorting-indicator:before,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead .sorting-indicator.asc:before,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead .sorting-indicator.desc:before,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th.sorted .sorting-indicator.asc:before,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th.sorted .sorting-indicator.desc:before,
+body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat thead th.sorted:hover .sorting-indicator:before {
+	color: rgba(255,255,255,0.9) !important;
+}
 body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat tbody tr:hover {
 	background: var(--fpdms-bg-light);
 }
@@ -560,6 +573,19 @@ body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead td 
 	border: none;
 	padding: 12px 16px;
 	font-weight: 600;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th a,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th a:hover,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th a:focus {
+	color: white !important;
+}
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead .sorting-indicator:before,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead .sorting-indicator.asc:before,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead .sorting-indicator.desc:before,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th.sorted .sorting-indicator.asc:before,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th.sorted .sorting-indicator.desc:before,
+body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat thead th.sorted:hover .sorting-indicator:before {
+	color: rgba(255,255,255,0.9) !important;
 }
 body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .widefat tbody tr:hover {
 	background: var(--fpdms-bg-light);

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.6] - 2026-03-23
+
+### Fixed
+
+- Intestazioni tabella Categorie e Asset: testo e icone ordinamento bianchi su sfondo viola (contrasto e leggibilità)
+
 ## [1.5.5] - 2026-03-23
 
 ### Fixed
