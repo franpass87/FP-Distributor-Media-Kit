@@ -17,6 +17,7 @@ final class UserApprovalPage {
 		add_action( 'admin_menu', [ $this, 'register_menu' ], 5 );
 		add_action( 'admin_init', [ $this, 'handle_approve' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
+		add_filter( 'admin_body_class', [ $this, 'admin_body_class' ] );
 	}
 
 	public function register_menu(): void {
@@ -27,7 +28,7 @@ final class UserApprovalPage {
 			'fp-dmk',
 			[ $this, 'render_assets_redirect' ],
 			'dashicons-media-archive',
-			30
+			'56.13'
 		);
 		remove_submenu_page( 'fp-dmk', 'fp-dmk' );
 		add_submenu_page(
@@ -96,13 +97,44 @@ final class UserApprovalPage {
 		exit;
 	}
 
+	/**
+	 * Aggiunge classe body per pagine del plugin (CSS scoped).
+	 *
+	 * @param string $classes Classi esistenti.
+	 * @return string
+	 */
+	public function admin_body_class( string $classes ): string {
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return $classes;
+		}
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		$is_dmk = ( $screen->post_type === AssetManager::CPT )
+			|| ( isset( $screen->taxonomy ) && $screen->taxonomy === AssetManager::TAXONOMY )
+			|| ( $page !== '' && strpos( $page, 'fp-dmk' ) === 0 );
+		if ( $is_dmk ) {
+			$classes .= ' fpdmk-admin-shell';
+		}
+		return $classes;
+	}
+
+	/**
+	 * Enqueue CSS admin con pattern design system: strpos su hook/page + post_type/taxonomy.
+	 */
 	public function enqueue( string $hook ): void {
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
-		$is_our_page = ( strpos( $hook, 'fp-dmk' ) !== false ) || ( strpos( $page, 'fp-dmk' ) === 0 );
+		$screen = get_current_screen();
+		$is_our_page = ( strpos( $hook, 'fp-dmk' ) !== false )
+			|| ( $page !== '' && strpos( $page, 'fp-dmk' ) === 0 )
+			|| ( $screen && $screen->post_type === AssetManager::CPT )
+			|| ( $screen && isset( $screen->taxonomy ) && $screen->taxonomy === AssetManager::TAXONOMY );
 		if ( ! $is_our_page ) {
 			return;
 		}
 		wp_enqueue_style( 'fp-dmk-admin', FP_DMK_URL . 'assets/css/admin.css', [], FP_DMK_VERSION );
+		if ( $screen && $screen->post_type === AssetManager::CPT ) {
+			wp_enqueue_media();
+		}
 	}
 
 	public function render(): void {

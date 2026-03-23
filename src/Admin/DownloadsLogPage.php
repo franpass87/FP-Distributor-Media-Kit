@@ -16,7 +16,6 @@ final class DownloadsLogPage {
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'register_menu' ], 15 );
 		add_action( 'admin_init', [ $this, 'handle_export' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
 	}
 
 	public function register_menu(): void {
@@ -58,15 +57,6 @@ final class DownloadsLogPage {
 		}
 		fclose( $out );
 		exit;
-	}
-
-	public function enqueue( string $hook ): void {
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
-		$is_our_page = ( strpos( $hook, 'fp-dmk-downloads' ) !== false ) || ( $page === 'fp-dmk-downloads' );
-		if ( ! $is_our_page ) {
-			return;
-		}
-		wp_enqueue_style( 'fp-dmk-admin', FP_DMK_URL . 'assets/css/admin.css', [], FP_DMK_VERSION );
 	}
 
 	public function render(): void {

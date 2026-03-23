@@ -85,11 +85,11 @@ final class NotifyUsersPage {
 						<form method="post" class="fpdmk-fields-grid">
 							<?php wp_nonce_field( 'fp_dmk_notify', 'fp_dmk_notify_nonce' ); ?>
 							<input type="hidden" name="fp_dmk_send_notify" value="1">
-							<div class="fpdmk-field" style="grid-column: 1 / -1;">
+							<div class="fpdmk-field fpdmk-field-fw">
 								<label for="fp_dmk_notify_subject"><?php esc_html_e( 'Oggetto', 'fp-dmk' ); ?></label>
 								<input type="text" id="fp_dmk_notify_subject" name="subject" class="large-text" value="<?php echo esc_attr( $subject ); ?>">
 							</div>
-							<div class="fpdmk-field" style="grid-column: 1 / -1;">
+							<div class="fpdmk-field fpdmk-field-fw">
 								<label for="fp_dmk_notify_body"><?php esc_html_e( 'Corpo email (HTML, placeholder: {name}, {email})', 'fp-dmk' ); ?></label>
 								<textarea id="fp_dmk_notify_body" name="body" rows="12" class="large-text"><?php echo esc_textarea( $body ); ?></textarea>
 							</div>

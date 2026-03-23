@@ -32,6 +32,8 @@
     --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* body[class*="fpdmk"] copre fpdmk-admin-shell + eventuali varianti quando menu sotto parent */
+body[class*="fpdmk"] #wpbody-content > .wrap.fpdmk-admin-page,
 body[class*="fp-dmk"] #wpbody-content > .wrap.fpdmk-admin-page,
 body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
     margin-top: 12px;
@@ -60,7 +62,8 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
     font-size: 26px;
     font-weight: 700;
     margin: 0 0 6px;
-    color: white;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -75,7 +78,7 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 .fpdmk-page-header-content p {
     font-size: 14px;
     margin: 0;
-    color: rgba(255,255,255,0.88);
+    color: rgba(255,255,255,0.88) !important;
 }
 
 .fpdmk-page-header-badge {
@@ -303,3 +306,11 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 
 .fpdmk-file-preview { display: flex; align-items: center; gap: 10px; }
 .fpdmk-file-preview a { color: var(--fpdms-primary); }
+
+/* Campi full-width nella griglia (NotifyUsersPage) */
+.fpdmk-fields-grid .fpdmk-field-fw {
+	grid-column: 1 / -1;
+}
+
+/* Descrizione con margin (SettingsPage Aspetto) */
+.fpdmk-card-body .description.fpdmk-mb { margin-bottom: 20px; }

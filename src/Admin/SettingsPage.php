@@ -221,7 +221,7 @@ final class SettingsPage {
 					</div>
 				</div>
 				<div class="fpdmk-card-body">
-					<p class="description" style="margin-bottom: 20px;"><?php esc_html_e( 'Personalizza colori e stili delle pagine Login, Registrazione e Media Kit.', 'fp-dmk' ); ?></p>
+					<p class="description fpdmk-mb"><?php esc_html_e( 'Personalizza colori e stili delle pagine Login, Registrazione e Media Kit.', 'fp-dmk' ); ?></p>
 					<div class="fpdmk-fields-grid">
 						<div class="fpdmk-field">
 							<label for="btn_primary"><?php esc_html_e( 'Bottone primario (inizio gradiente)', 'fp-dmk' ); ?></label>

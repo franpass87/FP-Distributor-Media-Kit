@@ -38,7 +38,6 @@ final class AssetManager {
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ self::class, 'columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ self::class, 'column_content' ], 10, 2 );
 		add_filter( 'manage_edit-' . self::CPT . '_sortable_columns', [ self::class, 'sortable_columns' ] );
-		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_admin_assets' ] );
 		add_action( 'transition_post_status', [ self::class, 'on_publish' ], 10, 3 );
 	}
 
@@ -243,14 +242,6 @@ final class AssetManager {
 		return $cols;
 	}
 
-	public static function enqueue_admin_assets( string $hook ): void {
-		$screen = get_current_screen();
-		if ( ! $screen || $screen->post_type !== self::CPT ) {
-			return;
-		}
-		wp_enqueue_media();
-		wp_enqueue_style( 'fp-dmk-admin', FP_DMK_URL . 'assets/css/admin.css', [], FP_DMK_VERSION );
-	}
 
 	/**
 	 * Fire hook on publish per notifiche automatiche.

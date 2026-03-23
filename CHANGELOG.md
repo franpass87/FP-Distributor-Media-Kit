@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.2] - 2026-03-23
+
+### Changed
+
+- Grafica admin unificata al design system FP: header con `color: white !important` e `text-shadow`, body selector `fpdmk-admin-shell`, menu position 56.13
+- Enqueue CSS centralizzato in UserApprovalPage con pattern strpos + post_type/taxonomy per compatibilità menu parent
+- Rimossi stili inline da SettingsPage e NotifyUsersPage (classi CSS dedicate)
+
+### Fixed
+
+- Enqueue admin su tutte le pagine plugin (CPT, taxonomy, submenu)
+
 ## [1.4.1] - 2026-03-23
 ### Added
 - Eventi `fp_tracking_event` per integrazione FP-Marketing-Tracking-Layer: `dmk_asset_downloaded`, `dmk_login_success`, `dmk_login_failed`, `dmk_login_blocked_not_approved`, `dmk_registration_submitted`, `dmk_user_approved`
