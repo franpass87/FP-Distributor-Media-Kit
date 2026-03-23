@@ -10,6 +10,7 @@ return array(
     'FP\\DistributorMediaKit\\Admin\\AssetManager' => $baseDir . '/src/Admin/AssetManager.php',
     'FP\\DistributorMediaKit\\Admin\\DownloadsLogPage' => $baseDir . '/src/Admin/DownloadsLogPage.php',
     'FP\\DistributorMediaKit\\Admin\\NotifyUsersPage' => $baseDir . '/src/Admin/NotifyUsersPage.php',
+    'FP\\DistributorMediaKit\\Admin\\ReportsPage' => $baseDir . '/src/Admin/ReportsPage.php',
     'FP\\DistributorMediaKit\\Admin\\SettingsPage' => $baseDir . '/src/Admin/SettingsPage.php',
     'FP\\DistributorMediaKit\\Admin\\UserApprovalPage' => $baseDir . '/src/Admin/UserApprovalPage.php',
     'FP\\DistributorMediaKit\\Core\\Plugin' => $baseDir . '/src/Core/Plugin.php',
@@ -22,6 +23,7 @@ return array(
     'FP\\DistributorMediaKit\\Frontend\\ShortcodeLogin' => $baseDir . '/src/Frontend/ShortcodeLogin.php',
     'FP\\DistributorMediaKit\\Frontend\\ShortcodeMediaKit' => $baseDir . '/src/Frontend/ShortcodeMediaKit.php',
     'FP\\DistributorMediaKit\\Frontend\\ShortcodeRegister' => $baseDir . '/src/Frontend/ShortcodeRegister.php',
+    'FP\\DistributorMediaKit\\Report\\ReportService' => $baseDir . '/src/Report/ReportService.php',
     'FP\\DistributorMediaKit\\User\\ApprovalService' => $baseDir . '/src/User/ApprovalService.php',
     'FP\\DistributorMediaKit\\User\\RegistrationHandler' => $baseDir . '/src/User/RegistrationHandler.php',
 );

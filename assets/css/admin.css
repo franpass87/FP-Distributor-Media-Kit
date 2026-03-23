@@ -19,6 +19,7 @@
     --fpdms-info-bg: #dbeafe;
     --fpdms-text: #1f2937;
     --fpdms-text-light: #4b5563;
+    --fpdms-text-muted: #9ca3af;
     --fpdms-border: #e5e7eb;
     --fpdms-border-light: #f3f4f6;
     --fpdms-bg-white: #ffffff;
@@ -314,3 +315,40 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 
 /* Descrizione con margin (SettingsPage Aspetto) */
 .fpdmk-card-body .description.fpdmk-mb { margin-bottom: 20px; }
+
+/* Report page */
+.fpdmk-report-kpi-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+.fpdmk-report-kpi {
+	background: var(--fpdms-bg-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	padding: 20px;
+	text-align: center;
+	border: 1px solid var(--fpdms-border-light);
+}
+.fpdmk-report-kpi-value {
+	display: block;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--fpdms-primary);
+	line-height: 1.2;
+}
+.fpdmk-report-kpi-label {
+	font-size: 12px;
+	color: var(--fpdms-text-light);
+	margin-top: 4px;
+	display: block;
+}
+.fpdmk-report-two-cols {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 24px;
+	margin-bottom: 24px;
+}
+.fpdmk-cell-assets { font-size: 12px; max-width: 280px; }
+.fpdmk-more { color: var(--fpdms-text-muted); font-size: 11px; }

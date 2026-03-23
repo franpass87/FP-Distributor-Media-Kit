@@ -7,6 +7,7 @@ namespace FP\DistributorMediaKit\Core;
 use FP\DistributorMediaKit\Admin\AssetManager;
 use FP\DistributorMediaKit\Admin\DownloadsLogPage;
 use FP\DistributorMediaKit\Admin\NotifyUsersPage;
+use FP\DistributorMediaKit\Admin\ReportsPage;
 use FP\DistributorMediaKit\Admin\SettingsPage;
 use FP\DistributorMediaKit\Admin\UserApprovalPage;
 use FP\DistributorMediaKit\Cron\PurgeDownloadsCron;
@@ -52,6 +53,7 @@ final class Plugin {
 		if ( is_admin() ) {
 			AssetManager::init();
 			new UserApprovalPage();
+			new ReportsPage();
 			new SettingsPage();
 			new NotifyUsersPage();
 			new DownloadsLogPage();

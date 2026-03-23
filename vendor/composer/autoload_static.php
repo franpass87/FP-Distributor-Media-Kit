@@ -25,6 +25,7 @@ class ComposerStaticInit488c20eed7d619142a46cfda433c3e99
         'FP\\DistributorMediaKit\\Admin\\AssetManager' => __DIR__ . '/../..' . '/src/Admin/AssetManager.php',
         'FP\\DistributorMediaKit\\Admin\\DownloadsLogPage' => __DIR__ . '/../..' . '/src/Admin/DownloadsLogPage.php',
         'FP\\DistributorMediaKit\\Admin\\NotifyUsersPage' => __DIR__ . '/../..' . '/src/Admin/NotifyUsersPage.php',
+        'FP\\DistributorMediaKit\\Admin\\ReportsPage' => __DIR__ . '/../..' . '/src/Admin/ReportsPage.php',
         'FP\\DistributorMediaKit\\Admin\\SettingsPage' => __DIR__ . '/../..' . '/src/Admin/SettingsPage.php',
         'FP\\DistributorMediaKit\\Admin\\UserApprovalPage' => __DIR__ . '/../..' . '/src/Admin/UserApprovalPage.php',
         'FP\\DistributorMediaKit\\Core\\Plugin' => __DIR__ . '/../..' . '/src/Core/Plugin.php',
@@ -37,6 +38,7 @@ class ComposerStaticInit488c20eed7d619142a46cfda433c3e99
         'FP\\DistributorMediaKit\\Frontend\\ShortcodeLogin' => __DIR__ . '/../..' . '/src/Frontend/ShortcodeLogin.php',
         'FP\\DistributorMediaKit\\Frontend\\ShortcodeMediaKit' => __DIR__ . '/../..' . '/src/Frontend/ShortcodeMediaKit.php',
         'FP\\DistributorMediaKit\\Frontend\\ShortcodeRegister' => __DIR__ . '/../..' . '/src/Frontend/ShortcodeRegister.php',
+        'FP\\DistributorMediaKit\\Report\\ReportService' => __DIR__ . '/../..' . '/src/Report/ReportService.php',
         'FP\\DistributorMediaKit\\User\\ApprovalService' => __DIR__ . '/../..' . '/src/User/ApprovalService.php',
         'FP\\DistributorMediaKit\\User\\RegistrationHandler' => __DIR__ . '/../..' . '/src/User/RegistrationHandler.php',
     );

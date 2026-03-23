@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0] - 2026-03-23
+
+### Added
+
+- Pagina admin **Report** con statistiche generali, attività per utente e per asset
+- KPI: totale download, utenti attivi, asset pubblicati, distributori approvati, in attesa
+- Attività recente: ultimi 15 download con asset, utente e data
+- Top 10 asset più scaricati e Top 10 utenti per download
+- Report "Cosa scarica ogni utente": tabella con utente, n. download, asset scaricati
+- Report "Chi scarica ogni asset": tabella con asset, categoria, n. download, utenti
+- Export CSV per report per utente e per asset
+
 ## [1.4.2] - 2026-03-23
 
 ### Changed
