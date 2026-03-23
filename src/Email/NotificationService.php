@@ -22,12 +22,17 @@ final class NotificationService {
 		$users = ApprovalService::get_approved_users();
 		$sent = 0;
 		$errors = [];
-		$from_email = get_option( 'fp_dmk_email_from', get_bloginfo( 'admin_email' ) );
-		$from_name = get_option( 'fp_dmk_email_from_name', get_bloginfo( 'name' ) );
-		$headers = [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . $from_name . ' <' . $from_email . '>',
-		];
+
+		$opts = get_option( 'fp_dmk_settings', [] );
+		$opts = is_array( $opts ) ? $opts : [];
+		$use_fpmail_from = ! empty( $opts['use_fpmail_from'] ) && defined( 'FP_FPMAIL_VERSION' );
+
+		$headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+		if ( ! $use_fpmail_from ) {
+			$from_email = get_option( 'fp_dmk_email_from', get_bloginfo( 'admin_email' ) );
+			$from_name = get_option( 'fp_dmk_email_from_name', get_bloginfo( 'name' ) );
+			$headers[] = 'From: ' . $from_name . ' <' . $from_email . '>';
+		}
 
 		$subject = apply_filters( 'fp_dmk_email_subject', $subject );
 

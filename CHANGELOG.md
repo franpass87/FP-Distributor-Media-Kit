@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.2] - 2026-03-23
+
+### Added
+
+- Compatibilità FP Mail SMTP: opzione "Usa mittente da FP Mail SMTP" in Impostazioni → Email
+
 ## [1.5.1] - 2026-03-23
 
 ### Fixed

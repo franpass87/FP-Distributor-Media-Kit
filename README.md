@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.5.1-blue)
+![Version](https://img.shields.io/badge/version-1.5.2-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -14,6 +14,10 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 - **Tracking download** per ogni asset
 - **Report** con statistiche generali, attività per utente (cosa scaricano) e per asset (chi scarica)
 - **Notifica email** a tutti i distributori approvati (manual o automatica su nuovo asset)
+
+## Compatibilità FP Mail SMTP
+
+Le email del Media Kit usano `wp_mail()`, quindi **FP Mail SMTP** gestisce automaticamente l'invio via SMTP quando è attivo. In **FP Media Kit → Impostazioni → Email** trovi l'opzione *Usa mittente da FP Mail SMTP*: se attivata, le notifiche useranno il mittente configurato in FP Mail SMTP invece di quello del Media Kit. Le email vengono registrate nel log di FP Mail SMTP.
 
 ## Requisiti
 

@@ -14,13 +14,14 @@ final class SettingsPage {
 	private const OPTION_KEY = 'fp_dmk_settings';
 
 	private const DEFAULTS = [
-		'media_kit_page' => 0,
-		'login_page'     => 0,
-		'register_page'  => 0,
-		'email_from'     => '',
-		'email_from_name'=> '',
-		'auto_notify'    => false,
-		'purge_days'     => 0,
+		'media_kit_page'   => 0,
+		'login_page'       => 0,
+		'register_page'    => 0,
+		'email_from'       => '',
+		'email_from_name'  => '',
+		'use_fpmail_from'  => false,
+		'auto_notify'      => false,
+		'purge_days'       => 0,
 		// Aspetto frontend
 		'btn_primary'        => '#667eea',
 		'btn_primary_end'    => '#764ba2',
@@ -65,9 +66,10 @@ final class SettingsPage {
 		$opts['media_kit_page'] = isset( $_POST['media_kit_page'] ) ? absint( $_POST['media_kit_page'] ) : 0;
 		$opts['login_page'] = isset( $_POST['login_page'] ) ? absint( $_POST['login_page'] ) : 0;
 		$opts['register_page'] = isset( $_POST['register_page'] ) ? absint( $_POST['register_page'] ) : 0;
-		$opts['email_from'] = isset( $_POST['email_from'] ) ? sanitize_email( wp_unslash( $_POST['email_from'] ) ) : '';
+		$opts['email_from']      = isset( $_POST['email_from'] ) ? sanitize_email( wp_unslash( $_POST['email_from'] ) ) : '';
 		$opts['email_from_name'] = isset( $_POST['email_from_name'] ) ? sanitize_text_field( wp_unslash( $_POST['email_from_name'] ) ) : '';
-		$opts['auto_notify'] = ! empty( $_POST['auto_notify'] );
+		$opts['use_fpmail_from'] = ! empty( $_POST['use_fpmail_from'] );
+		$opts['auto_notify']     = ! empty( $_POST['auto_notify'] );
 		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
 		// Aspetto
 		$hex = static fn( string $k ) => isset( $_POST[ $k ] ) ? ( self::sanitize_hex( (string) wp_unslash( $_POST[ $k ] ) ) ?: self::DEFAULTS[ $k ] ) : self::DEFAULTS[ $k ];
@@ -194,6 +196,18 @@ final class SettingsPage {
 							<label for="email_from_name"><?php esc_html_e( 'Nome mittente', 'fp-dmk' ); ?></label>
 							<input type="text" id="email_from_name" name="email_from_name" class="regular-text" value="<?php echo esc_attr( $opts['email_from_name'] ?: get_bloginfo( 'name' ) ); ?>">
 						</div>
+						<?php if ( defined( 'FP_FPMAIL_VERSION' ) ) : ?>
+						<div class="fpdmk-field fpdmk-toggle-row">
+							<div class="fpdmk-toggle-info">
+								<strong><?php esc_html_e( 'Usa mittente da FP Mail SMTP', 'fp-dmk' ); ?></strong>
+								<span><?php esc_html_e( 'Se attivo, le email del Media Kit useranno il mittente configurato in FP Mail SMTP invece di quello sopra.', 'fp-dmk' ); ?></span>
+							</div>
+							<label class="fpdmk-toggle">
+								<input type="checkbox" name="use_fpmail_from" value="1" <?php checked( ! empty( $opts['use_fpmail_from'] ) ); ?>>
+								<span class="fpdmk-toggle-slider"></span>
+							</label>
+						</div>
+						<?php endif; ?>
 						<div class="fpdmk-field fpdmk-toggle-row">
 							<div class="fpdmk-toggle-info">
 								<strong><?php esc_html_e( 'Notifica automatica', 'fp-dmk' ); ?></strong>
