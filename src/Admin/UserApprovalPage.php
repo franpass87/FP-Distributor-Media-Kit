@@ -81,12 +81,25 @@ final class UserApprovalPage {
 		}
 		$user_id = absint( $_GET['user_id'] );
 		ApprovalService::set_approved( $user_id, true );
+
+		do_action(
+			'fp_tracking_event',
+			'dmk_user_approved',
+			[
+				'user_id'       => $user_id,
+				'operator_id'   => get_current_user_id(),
+				'source_plugin' => 'fp-distributor-media-kit',
+			]
+		);
+
 		wp_safe_redirect( add_query_arg( 'fp_dmk_approved', '1', remove_query_arg( [ 'fp_dmk_approve', 'user_id', '_wpnonce' ] ) ) );
 		exit;
 	}
 
 	public function enqueue( string $hook ): void {
-		if ( strpos( $hook, 'fp-dmk' ) === false ) {
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		$is_our_page = ( strpos( $hook, 'fp-dmk' ) !== false ) || ( strpos( $page, 'fp-dmk' ) === 0 );
+		if ( ! $is_our_page ) {
 			return;
 		}
 		wp_enqueue_style( 'fp-dmk-admin', FP_DMK_URL . 'assets/css/admin.css', [], FP_DMK_VERSION );

@@ -27,6 +27,14 @@ final class RegistrationHandler {
 		$pwd = isset( $_POST['pwd'] ) ? $_POST['pwd'] : '';
 		$redirect = isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : home_url( '/' );
 		if ( $log === '' || $pwd === '' ) {
+			do_action(
+				'fp_tracking_event',
+				'dmk_login_failed',
+				[
+					'reason'        => 'invalid_credentials',
+					'source_plugin' => 'fp-distributor-media-kit',
+				]
+			);
 			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'invalid', $redirect ) );
 			exit;
 		}
@@ -39,14 +47,39 @@ final class RegistrationHandler {
 			is_ssl()
 		);
 		if ( is_wp_error( $user ) ) {
+			do_action(
+				'fp_tracking_event',
+				'dmk_login_failed',
+				[
+					'reason'        => 'invalid_credentials',
+					'source_plugin' => 'fp-distributor-media-kit',
+				]
+			);
 			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'invalid', wp_get_referer() ?: $redirect ) );
 			exit;
 		}
 		if ( ! ApprovalService::is_approved( $user->ID ) ) {
+			do_action(
+				'fp_tracking_event',
+				'dmk_login_blocked_not_approved',
+				[
+					'user_id'       => (int) $user->ID,
+					'source_plugin' => 'fp-distributor-media-kit',
+				]
+			);
 			wp_logout();
 			wp_safe_redirect( add_query_arg( 'fp_dmk_login_error', 'not_approved', wp_get_referer() ?: $redirect ) );
 			exit;
 		}
+
+		do_action(
+			'fp_tracking_event',
+			'dmk_login_success',
+			[
+				'user_id'       => (int) $user->ID,
+				'source_plugin' => 'fp-distributor-media-kit',
+			]
+		);
 		wp_safe_redirect( $redirect );
 		exit;
 	}
@@ -92,6 +125,15 @@ final class RegistrationHandler {
 		}
 
 		ApprovalService::set_approved( $user_id, false );
+
+		do_action(
+			'fp_tracking_event',
+			'dmk_registration_submitted',
+			[
+				'user_id'       => (int) $user_id,
+				'source_plugin' => 'fp-distributor-media-kit',
+			]
+		);
 
 		$redirect = wp_get_referer() ?: home_url( '/' );
 		wp_safe_redirect( add_query_arg( 'fp_dmk_registered', '1', $redirect ) );

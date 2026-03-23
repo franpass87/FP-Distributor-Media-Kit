@@ -61,7 +61,9 @@ final class DownloadsLogPage {
 	}
 
 	public function enqueue( string $hook ): void {
-		if ( strpos( $hook, 'fp-dmk-downloads' ) === false ) {
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		$is_our_page = ( strpos( $hook, 'fp-dmk-downloads' ) !== false ) || ( $page === 'fp-dmk-downloads' );
+		if ( ! $is_our_page ) {
 			return;
 		}
 		wp_enqueue_style( 'fp-dmk-admin', FP_DMK_URL . 'assets/css/admin.css', [], FP_DMK_VERSION );

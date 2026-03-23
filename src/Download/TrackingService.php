@@ -26,6 +26,18 @@ final class TrackingService {
 			],
 			[ '%d', '%d', '%s' ]
 		);
+
+		$asset = get_post( $asset_id );
+		do_action(
+			'fp_tracking_event',
+			'dmk_asset_downloaded',
+			[
+				'asset_id'      => $asset_id,
+				'asset_title'   => $asset ? sanitize_text_field( (string) $asset->post_title ) : '',
+				'user_id'       => $user_id,
+				'source_plugin' => 'fp-distributor-media-kit',
+			]
+		);
 	}
 
 	/**

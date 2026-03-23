@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1] - 2026-03-23
+### Added
+- Eventi `fp_tracking_event` per integrazione FP-Marketing-Tracking-Layer: `dmk_asset_downloaded`, `dmk_login_success`, `dmk_login_failed`, `dmk_login_blocked_not_approved`, `dmk_registration_submitted`, `dmk_user_approved`
+
+### Fixed
+- Enqueue admin CSS su pagine fp-dmk con fallback su `$_GET['page']` per menu sotto parent
+
 ## [1.4.0] - 2025-03-20
 
 ### Added
