@@ -11,6 +11,7 @@ use FP\DistributorMediaKit\Admin\ReportsPage;
 use FP\DistributorMediaKit\Admin\SettingsPage;
 use FP\DistributorMediaKit\Admin\UserApprovalPage;
 use FP\DistributorMediaKit\Admin\UsersListPage;
+use FP\DistributorMediaKit\Cron\DailyDownloadReportCron;
 use FP\DistributorMediaKit\Cron\PurgeDownloadsCron;
 use FP\DistributorMediaKit\Download\ProxyController;
 use FP\DistributorMediaKit\Frontend\RestrictedContent;
@@ -62,8 +63,9 @@ final class Plugin {
 			new DownloadsLogPage();
 		}
 
-		// Cron pulizia log
+		// Cron pulizia log e report giornaliero download
 		PurgeDownloadsCron::init();
+		DailyDownloadReportCron::init();
 
 		// User registration (AJAX / POST)
 		RegistrationHandler::init();

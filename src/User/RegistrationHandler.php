@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace FP\DistributorMediaKit\User;
 
+use FP\DistributorMediaKit\Email\NotificationService;
+
 /**
  * Gestione form registrazione frontend.
  *
@@ -125,6 +127,14 @@ final class RegistrationHandler {
 		}
 
 		ApprovalService::set_approved( $user_id, false );
+
+		$settings = get_option( 'fp_dmk_settings', [] );
+		if ( is_array( $settings ) && ! empty( $settings['notify_pending_registration'] ) ) {
+			$token = ApprovalService::issue_approval_email_token( $user_id );
+			NotificationService::send_pending_registration_to_admin( $user_id, $token );
+		}
+
+		do_action( 'fp_dmk_distributor_pending_registered', $user_id );
 
 		do_action(
 			'fp_tracking_event',

@@ -243,6 +243,44 @@ final class ReportService {
 	}
 
 	/**
+	 * Conteggi download per asset in un intervallo di tempo (datetime MySQL, timezone sito).
+	 *
+	 * @param string $start_inclusive Inizio inclusivo (Y-m-d H:i:s).
+	 * @param string $end_exclusive Fine esclusiva (Y-m-d H:i:s).
+	 * @return array<int, object{asset_id: int, asset_title: string, download_count: int}>
+	 */
+	public static function get_download_counts_by_asset_between( string $start_inclusive, string $end_exclusive ): array {
+		global $wpdb;
+		$table = $wpdb->prefix . 'fp_dmk_downloads';
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT asset_id, COUNT(*) AS cnt FROM {$table}
+				WHERE downloaded_at >= %s AND downloaded_at < %s
+				GROUP BY asset_id ORDER BY cnt DESC",
+				$start_inclusive,
+				$end_exclusive
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+
+		$result = [];
+		foreach ( $rows as $r ) {
+			$post = get_post( (int) $r['asset_id'] );
+			$result[] = (object) [
+				'asset_id'       => (int) $r['asset_id'],
+				'asset_title'    => $post ? (string) $post->post_title : '—',
+				'download_count' => (int) $r['cnt'],
+			];
+		}
+		return $result;
+	}
+
+	/**
 	 * Attività recente: ultimi N download.
 	 *
 	 * @return array<int, object{asset_title: string, user_email: string, display_name: string, downloaded_at: string}>

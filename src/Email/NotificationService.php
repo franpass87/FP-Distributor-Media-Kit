@@ -4,14 +4,165 @@ declare( strict_types=1 );
 
 namespace FP\DistributorMediaKit\Email;
 
+use FP\DistributorMediaKit\Report\ReportService;
 use FP\DistributorMediaKit\User\ApprovalService;
+use DateTimeImmutable;
 
 /**
- * Invio email wp_mail a distributori approvati.
+ * Invio email wp_mail a distributori approvati e notifiche amministratore.
  *
  * @package FP\DistributorMediaKit\Email
  */
 final class NotificationService {
+
+	/**
+	 * Email destinatario notifiche admin (registrazioni in attesa, report giornaliero).
+	 */
+	public static function get_admin_notification_email(): string {
+		$opts = get_option( 'fp_dmk_settings', [] );
+		$opts = is_array( $opts ) ? $opts : [];
+		$to   = isset( $opts['admin_notify_email'] ) ? sanitize_email( (string) $opts['admin_notify_email'] ) : '';
+		return is_email( $to ) ? $to : (string) get_bloginfo( 'admin_email' );
+	}
+
+	/**
+	 * Costruisce l'URL di approvazione da email (richiede login admin con manage_fp_dmk).
+	 */
+	public static function build_mail_approval_url( int $user_id, string $plain_token ): string {
+		return add_query_arg(
+			[
+				'page'                => 'fp-dmk-approval',
+				'fp_dmk_mail_approve' => '1',
+				'user_id'             => $user_id,
+				'key'                 => $plain_token,
+			],
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Invia email all'amministratore per nuova registrazione in attesa di approvazione.
+	 */
+	public static function send_pending_registration_to_admin( int $user_id, string $plain_token ): void {
+		$opts = get_option( 'fp_dmk_settings', [] );
+		if ( ! is_array( $opts ) || empty( $opts['notify_pending_registration'] ) ) {
+			return;
+		}
+		$to = self::get_admin_notification_email();
+		if ( ! is_email( $to ) ) {
+			return;
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return;
+		}
+
+		$approve_url = self::build_mail_approval_url( $user_id, $plain_token );
+		$list_url    = admin_url( 'admin.php?page=fp-dmk-approval' );
+
+		$subject = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] Nuovo distributore in attesa di approvazione', 'fp-dmk' ),
+			get_bloginfo( 'name' )
+		);
+		$subject = str_replace( [ "\r", "\n" ], '', $subject );
+		$subject = apply_filters( 'fp_dmk_admin_pending_registration_subject', $subject, $user_id );
+
+		$body = '<p>' . sprintf(
+			/* translators: %s: user display name or login */
+			esc_html__( 'È stata inviata una nuova richiesta di accesso al Media Kit da: %s', 'fp-dmk' ),
+			esc_html( $user->display_name ?: $user->user_login )
+		) . '</p>';
+		$body .= '<p>' . esc_html__( 'Email:', 'fp-dmk' ) . ' ' . esc_html( $user->user_email ) . '</p>';
+		$body .= '<p><strong>' . esc_html__( 'Approva da questo link (dopo aver effettuato l\'accesso al pannello):', 'fp-dmk' ) . '</strong><br>';
+		$body .= '<a href="' . esc_url( $approve_url ) . '">' . esc_html__( 'Approva distributore', 'fp-dmk' ) . '</a></p>';
+		$body .= '<p>' . esc_html__( 'Oppure gestisci tutte le richieste da:', 'fp-dmk' ) . ' <a href="' . esc_url( $list_url ) . '">' . esc_html__( 'Utenti da approvare', 'fp-dmk' ) . '</a></p>';
+
+		$body = apply_filters( 'fp_dmk_admin_pending_registration_body', $body, $user_id, $approve_url );
+
+		wp_mail( $to, $subject, $body, self::build_mail_headers() );
+	}
+
+	/**
+	 * Invia il report giornaliero download (giorno solare precedente, timezone sito).
+	 */
+	public static function maybe_send_daily_download_report(): void {
+		$opts = get_option( 'fp_dmk_settings', [] );
+		if ( ! is_array( $opts ) || empty( $opts['daily_download_report'] ) ) {
+			return;
+		}
+		$to = self::get_admin_notification_email();
+		if ( ! is_email( $to ) ) {
+			return;
+		}
+
+		$tz = wp_timezone();
+		$yesterday = ( new DateTimeImmutable( 'now', $tz ) )->modify( '-1 day' )->format( 'Y-m-d' );
+		$start     = $yesterday . ' 00:00:00';
+		$end_excl  = ( new DateTimeImmutable( $yesterday . ' 00:00:00', $tz ) )->modify( '+1 day' )->format( 'Y-m-d H:i:s' );
+
+		$rows = ReportService::get_download_counts_by_asset_between( $start, $end_excl );
+		$total = 0;
+		foreach ( $rows as $r ) {
+			$total += $r->download_count;
+		}
+
+		$subject = sprintf(
+			/* translators: 1: site name, 2: date (Y-m-d) */
+			__( '[%1$s] Media Kit — report download %2$s', 'fp-dmk' ),
+			get_bloginfo( 'name' ),
+			$yesterday
+		);
+		$subject = str_replace( [ "\r", "\n" ], '', $subject );
+		$subject = apply_filters( 'fp_dmk_daily_download_report_subject', $subject, $yesterday );
+
+		if ( $total === 0 ) {
+			$body = '<p>' . sprintf(
+				/* translators: %s: date */
+				esc_html__( 'Nessun download registrato il %s.', 'fp-dmk' ),
+				esc_html( $yesterday )
+			) . '</p>';
+		} else {
+			$body = '<p>' . sprintf(
+				/* translators: 1: date, 2: total downloads */
+				esc_html__( 'Download totali il %1$s: %2$d.', 'fp-dmk' ),
+				esc_html( $yesterday ),
+				$total
+			) . '</p>';
+			$body .= '<table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse"><thead><tr>';
+			$body .= '<th>' . esc_html__( 'File / asset', 'fp-dmk' ) . '</th><th>' . esc_html__( 'Download', 'fp-dmk' ) . '</th></tr></thead><tbody>';
+			foreach ( $rows as $r ) {
+				$body .= '<tr><td>' . esc_html( $r->asset_title ) . '</td><td>' . (int) $r->download_count . '</td></tr>';
+			}
+			$body .= '</tbody></table>';
+			$reports_url = admin_url( 'admin.php?page=fp-dmk-reports' );
+			$body       .= '<p><a href="' . esc_url( $reports_url ) . '">' . esc_html__( 'Apri report completi nel pannello', 'fp-dmk' ) . '</a></p>';
+		}
+
+		$body = apply_filters( 'fp_dmk_daily_download_report_body', $body, $yesterday, $rows );
+
+		wp_mail( $to, $subject, $body, self::build_mail_headers() );
+	}
+
+	/**
+	 * Intestazioni comuni per email HTML del plugin.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function build_mail_headers(): array {
+		$opts = get_option( 'fp_dmk_settings', [] );
+		$opts = is_array( $opts ) ? $opts : [];
+		$use_fpmail_from = ! empty( $opts['use_fpmail_from'] ) && defined( 'FP_FPMAIL_VERSION' );
+
+		$headers = [ 'Content-Type: text/html; charset=UTF-8' ];
+		if ( ! $use_fpmail_from ) {
+			$from_email = get_option( 'fp_dmk_email_from', get_bloginfo( 'admin_email' ) );
+			$from_name  = get_option( 'fp_dmk_email_from_name', get_bloginfo( 'name' ) );
+			$headers[]  = 'From: ' . $from_name . ' <' . $from_email . '>';
+		}
+		return $headers;
+	}
 
 	/**
 	 * Invia email a tutti i distributori approvati.
@@ -23,16 +174,7 @@ final class NotificationService {
 		$sent = 0;
 		$errors = [];
 
-		$opts = get_option( 'fp_dmk_settings', [] );
-		$opts = is_array( $opts ) ? $opts : [];
-		$use_fpmail_from = ! empty( $opts['use_fpmail_from'] ) && defined( 'FP_FPMAIL_VERSION' );
-
-		$headers = [ 'Content-Type: text/html; charset=UTF-8' ];
-		if ( ! $use_fpmail_from ) {
-			$from_email = get_option( 'fp_dmk_email_from', get_bloginfo( 'admin_email' ) );
-			$from_name = get_option( 'fp_dmk_email_from_name', get_bloginfo( 'name' ) );
-			$headers[] = 'From: ' . $from_name . ' <' . $from_email . '>';
-		}
+		$headers = self::build_mail_headers();
 
 		$subject = apply_filters( 'fp_dmk_email_subject', $subject );
 

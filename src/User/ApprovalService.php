@@ -13,6 +13,11 @@ final class ApprovalService {
 
 	public const META_KEY = 'fp_dmk_approved';
 
+	/**
+	 * Hash del token per link approvazione da email (plain inviato solo via mail).
+	 */
+	public const META_APPROVE_TOKEN = 'fp_dmk_approve_token';
+
 	public const STATUS_PENDING = '0';
 
 	public const STATUS_APPROVED = '1';
@@ -33,7 +38,35 @@ final class ApprovalService {
 	 * Imposta stato approvazione.
 	 */
 	public static function set_approved( int $user_id, bool $approved ): bool {
+		if ( $approved ) {
+			delete_user_meta( $user_id, self::META_APPROVE_TOKEN );
+		}
 		return update_user_meta( $user_id, self::META_KEY, $approved ? self::STATUS_APPROVED : self::STATUS_PENDING );
+	}
+
+	/**
+	 * Genera un token per il link di approvazione via email e ne salva l'hash in user meta.
+	 *
+	 * @return string Token in chiaro da includere nell'URL (solo per l'email).
+	 */
+	public static function issue_approval_email_token( int $user_id ): string {
+		$plain = wp_generate_password( 48, false, false );
+		update_user_meta( $user_id, self::META_APPROVE_TOKEN, wp_hash( $plain ) );
+		return $plain;
+	}
+
+	/**
+	 * Verifica il token ricevuto dal link email rispetto all'hash salvato.
+	 */
+	public static function validate_approval_email_token( int $user_id, string $plain ): bool {
+		if ( $user_id <= 0 || $plain === '' ) {
+			return false;
+		}
+		$stored = get_user_meta( $user_id, self::META_APPROVE_TOKEN, true );
+		if ( ! is_string( $stored ) || $stored === '' ) {
+			return false;
+		}
+		return hash_equals( $stored, wp_hash( $plain ) );
 	}
 
 	/**

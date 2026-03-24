@@ -20,8 +20,11 @@ final class SettingsPage {
 		'email_from'       => '',
 		'email_from_name'  => '',
 		'use_fpmail_from'  => false,
-		'auto_notify'      => false,
-		'purge_days'       => 0,
+		'auto_notify'                  => false,
+		'admin_notify_email'           => '',
+		'notify_pending_registration'  => false,
+		'daily_download_report'        => false,
+		'purge_days'                   => 0,
 		// Aspetto frontend
 		'btn_primary'        => '#667eea',
 		'btn_primary_end'    => '#764ba2',
@@ -70,6 +73,9 @@ final class SettingsPage {
 		$opts['email_from_name'] = isset( $_POST['email_from_name'] ) ? sanitize_text_field( wp_unslash( $_POST['email_from_name'] ) ) : '';
 		$opts['use_fpmail_from'] = ! empty( $_POST['use_fpmail_from'] );
 		$opts['auto_notify']     = ! empty( $_POST['auto_notify'] );
+		$opts['admin_notify_email'] = isset( $_POST['admin_notify_email'] ) ? sanitize_email( wp_unslash( $_POST['admin_notify_email'] ) ) : '';
+		$opts['notify_pending_registration'] = ! empty( $_POST['notify_pending_registration'] );
+		$opts['daily_download_report']      = ! empty( $_POST['daily_download_report'] );
 		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
 		// Aspetto
 		$hex = static fn( string $k ) => isset( $_POST[ $k ] ) ? ( self::sanitize_hex( (string) wp_unslash( $_POST[ $k ] ) ) ?: self::DEFAULTS[ $k ] ) : self::DEFAULTS[ $k ];
@@ -93,6 +99,7 @@ final class SettingsPage {
 		update_option( 'fp_dmk_email_from_name', $opts['email_from_name'] ?: get_bloginfo( 'name' ) );
 		update_option( 'fp_dmk_purge_days', $opts['purge_days'] );
 		\FP\DistributorMediaKit\Cron\PurgeDownloadsCron::maybe_schedule();
+		\FP\DistributorMediaKit\Cron\DailyDownloadReportCron::maybe_schedule();
 
 		wp_safe_redirect( add_query_arg( 'fp_dmk_saved', '1', wp_get_referer() ?: admin_url( 'admin.php?page=fp-dmk-settings' ) ) );
 		exit;
@@ -215,6 +222,31 @@ final class SettingsPage {
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="auto_notify" value="1" <?php checked( $opts['auto_notify'] ); ?>>
+								<span class="fpdmk-toggle-slider"></span>
+							</label>
+						</div>
+						<div class="fpdmk-field">
+							<label for="admin_notify_email"><?php esc_html_e( 'Email notifiche amministratore', 'fp-dmk' ); ?></label>
+							<input type="email" id="admin_notify_email" name="admin_notify_email" class="regular-text" value="<?php echo esc_attr( (string) ( $opts['admin_notify_email'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'admin_email' ) ); ?>">
+							<span class="fpdmk-hint"><?php esc_html_e( 'Destinatario per nuove registrazioni in attesa e per il report giornaliero download. Se vuoto, viene usata l\'email amministratore del sito.', 'fp-dmk' ); ?></span>
+						</div>
+						<div class="fpdmk-field fpdmk-toggle-row">
+							<div class="fpdmk-toggle-info">
+								<strong><?php esc_html_e( 'Email a ogni registrazione in attesa', 'fp-dmk' ); ?></strong>
+								<span><?php esc_html_e( 'Invia un\'email all\'indirizzo sopra con link per approvare il distributore (dopo login in bacheca).', 'fp-dmk' ); ?></span>
+							</div>
+							<label class="fpdmk-toggle">
+								<input type="checkbox" name="notify_pending_registration" value="1" <?php checked( ! empty( $opts['notify_pending_registration'] ) ); ?>>
+								<span class="fpdmk-toggle-slider"></span>
+							</label>
+						</div>
+						<div class="fpdmk-field fpdmk-toggle-row">
+							<div class="fpdmk-toggle-info">
+								<strong><?php esc_html_e( 'Report giornaliero download', 'fp-dmk' ); ?></strong>
+								<span><?php esc_html_e( 'Invia ogni giorno un riepilogo dei download del giorno precedente (per file), con link ai report completi.', 'fp-dmk' ); ?></span>
+							</div>
+							<label class="fpdmk-toggle">
+								<input type="checkbox" name="daily_download_report" value="1" <?php checked( ! empty( $opts['daily_download_report'] ) ); ?>>
 								<span class="fpdmk-toggle-slider"></span>
 							</label>
 						</div>

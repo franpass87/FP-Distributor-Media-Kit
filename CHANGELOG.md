@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0] - 2026-03-24
+
+### Added
+
+- Impostazioni **Email notifiche amministratore**: destinatario dedicato (fallback email sito)
+- Opzione **Email a ogni registrazione in attesa**: invio con link di approvazione (token sicuro; richiede login in bacheca con permesso Media Kit)
+- Opzione **Report giornaliero download**: cron giornaliero con riepilogo download del giorno precedente (per asset) e link ai report admin
+- Hook `fp_dmk_distributor_pending_registered` e filtri `fp_dmk_admin_pending_registration_*`, `fp_dmk_daily_download_report_*`
+
 ## [1.5.6] - 2026-03-23
 
 ### Fixed
