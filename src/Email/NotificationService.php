@@ -26,17 +26,16 @@ final class NotificationService {
 	}
 
 	/**
-	 * Costruisce l'URL di approvazione da email (richiede login admin con manage_fp_dmk).
+	 * Costruisce l'URL di approvazione da email (frontend: token segreto, senza login).
 	 */
 	public static function build_mail_approval_url( int $user_id, string $plain_token ): string {
 		return add_query_arg(
 			[
-				'page'                => 'fp-dmk-approval',
 				'fp_dmk_mail_approve' => '1',
 				'user_id'             => $user_id,
 				'key'                 => $plain_token,
 			],
-			admin_url( 'admin.php' )
+			home_url( '/' )
 		);
 	}
 
@@ -75,9 +74,10 @@ final class NotificationService {
 			esc_html( $user->display_name ?: $user->user_login )
 		) . '</p>';
 		$body .= '<p>' . esc_html__( 'Email:', 'fp-dmk' ) . ' ' . esc_html( $user->user_email ) . '</p>';
-		$body .= '<p><strong>' . esc_html__( 'Approva da questo link (dopo aver effettuato l\'accesso al pannello):', 'fp-dmk' ) . '</strong><br>';
+		$body .= '<p><strong>' . esc_html__( 'Approva con un clic (non serve accedere alla bacheca WordPress):', 'fp-dmk' ) . '</strong><br>';
 		$body .= '<a href="' . esc_url( $approve_url ) . '">' . esc_html__( 'Approva distributore', 'fp-dmk' ) . '</a></p>';
-		$body .= '<p>' . esc_html__( 'Oppure gestisci tutte le richieste da:', 'fp-dmk' ) . ' <a href="' . esc_url( $list_url ) . '">' . esc_html__( 'Utenti da approvare', 'fp-dmk' ) . '</a></p>';
+		$body .= '<p>' . esc_html__( 'Il link è personale e monouso: non inoltrarlo.', 'fp-dmk' ) . '</p>';
+		$body .= '<p>' . esc_html__( 'In alternativa, dalla bacheca:', 'fp-dmk' ) . ' <a href="' . esc_url( $list_url ) . '">' . esc_html__( 'Utenti da approvare', 'fp-dmk' ) . '</a></p>';
 
 		$body = apply_filters( 'fp_dmk_admin_pending_registration_body', $body, $user_id, $approve_url );
 

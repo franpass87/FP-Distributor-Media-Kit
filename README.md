@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.6.0-blue)
+![Version](https://img.shields.io/badge/version-1.6.1-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -62,6 +62,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 | `apply_filters('fp_dmk_admin_pending_registration_body', $body, $user_id, $approve_url)` | Corpo HTML email nuova registrazione |
 | `apply_filters('fp_dmk_daily_download_report_subject', $subject, $date_ymd)` | Oggetto report giornaliero download |
 | `apply_filters('fp_dmk_daily_download_report_body', $body, $date_ymd, $rows)` | Corpo HTML report giornaliero (`$rows`: conteggi per asset) |
+| `apply_filters('fp_dmk_mail_approval_success_redirect', $url)` | Dopo approvazione da link email: stringa URL non vuota per `wp_safe_redirect` al posto della pagina di conferma |
 
 ## Struttura
 
@@ -69,7 +70,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 src/
 ├── Core/Plugin.php
 ├── Admin/AssetManager, UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
-├── User/RegistrationHandler, ApprovalService
+├── User/RegistrationHandler, ApprovalService, MailApprovalController
 ├── Frontend/ShortcodeMediaKit, ShortcodeLogin, ShortcodeRegister, RestrictedContent
 ├── Download/ProxyController, TrackingService
 ├── Report/ReportService

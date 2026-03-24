@@ -233,7 +233,7 @@ final class SettingsPage {
 						<div class="fpdmk-field fpdmk-toggle-row">
 							<div class="fpdmk-toggle-info">
 								<strong><?php esc_html_e( 'Email a ogni registrazione in attesa', 'fp-dmk' ); ?></strong>
-								<span><?php esc_html_e( 'Invia un\'email all\'indirizzo sopra con link per approvare il distributore (dopo login in bacheca).', 'fp-dmk' ); ?></span>
+								<span><?php esc_html_e( 'Invia un\'email all\'indirizzo sopra con link monouso per approvare il distributore (non richiede login in bacheca).', 'fp-dmk' ); ?></span>
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="notify_pending_registration" value="1" <?php checked( ! empty( $opts['notify_pending_registration'] ) ); ?>>

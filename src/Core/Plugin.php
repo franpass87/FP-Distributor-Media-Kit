@@ -18,6 +18,7 @@ use FP\DistributorMediaKit\Frontend\RestrictedContent;
 use FP\DistributorMediaKit\Frontend\ShortcodeLogin;
 use FP\DistributorMediaKit\Frontend\ShortcodeMediaKit;
 use FP\DistributorMediaKit\Frontend\ShortcodeRegister;
+use FP\DistributorMediaKit\User\MailApprovalController;
 use FP\DistributorMediaKit\User\RegistrationHandler;
 
 /**
@@ -67,8 +68,9 @@ final class Plugin {
 		PurgeDownloadsCron::init();
 		DailyDownloadReportCron::init();
 
-		// User registration (AJAX / POST)
+		// User registration (AJAX / POST) e approvazione da link email (frontend)
 		RegistrationHandler::init();
+		MailApprovalController::init();
 
 		// Frontend shortcodes
 		add_shortcode( 'fp_dmk_register', [ ShortcodeRegister::class, 'render' ] );

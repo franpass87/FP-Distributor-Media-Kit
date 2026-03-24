@@ -71,42 +71,6 @@ final class UserApprovalPage {
 	}
 
 	public function handle_approve(): void {
-		// Approvazione da link nell'email (token segreto + utente con manage_fp_dmk).
-		if ( isset( $_GET['fp_dmk_mail_approve'], $_GET['user_id'], $_GET['key'] ) ) {
-			if ( ! current_user_can( 'manage_fp_dmk' ) ) {
-				wp_die( esc_html__( 'Devi accedere al pannello con un account autorizzato a gestire il Media Kit per usare questo link.', 'fp-dmk' ), '', [ 'response' => 403 ] );
-			}
-			$user_id = absint( $_GET['user_id'] );
-			$key     = sanitize_text_field( wp_unslash( (string) $_GET['key'] ) );
-			if ( ! ApprovalService::validate_approval_email_token( $user_id, $key ) ) {
-				wp_die( esc_html__( 'Link di approvazione non valido o già utilizzato.', 'fp-dmk' ), '', [ 'response' => 400 ] );
-			}
-			ApprovalService::set_approved( $user_id, true );
-
-			do_action(
-				'fp_tracking_event',
-				'dmk_user_approved',
-				[
-					'user_id'       => $user_id,
-					'operator_id'   => get_current_user_id(),
-					'source_plugin' => 'fp-distributor-media-kit',
-					'source'        => 'email_link',
-				]
-			);
-
-			wp_safe_redirect(
-				add_query_arg(
-					'fp_dmk_approved',
-					'1',
-					remove_query_arg(
-						[ 'fp_dmk_mail_approve', 'user_id', 'key' ],
-						admin_url( 'admin.php?page=fp-dmk-approval' )
-					)
-				)
-			);
-			exit;
-		}
-
 		if ( ! isset( $_GET['fp_dmk_approve'] ) || ! isset( $_GET['user_id'] ) ) {
 			return;
 		}
