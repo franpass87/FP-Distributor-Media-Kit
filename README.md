@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.6.1-blue)
+![Version](https://img.shields.io/badge/version-1.5.7-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -15,7 +15,6 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 - **Lista utenti** con tutti i distributori, filtro stato e azioni Approva/Revoca
 - **Report** con statistiche generali, attività per utente (cosa scaricano) e per asset (chi scarica)
 - **Notifica email** a tutti i distributori approvati (manual o automatica su nuovo asset)
-- **Notifica admin** a ogni nuova registrazione in attesa (con link approvazione) e **report giornaliero** download per file (opzionali in Impostazioni)
 
 ## Compatibilità FP Mail SMTP
 
@@ -55,14 +54,8 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 | Hook/Filtro | Descrizione |
 |-------------|-------------|
 | `do_action('fp_dmk_asset_published', $asset_id)` | Eseguito dopo publish di un asset |
-| `do_action('fp_dmk_distributor_pending_registered', $user_id)` | Dopo registrazione frontend con stato in attesa |
 | `apply_filters('fp_dmk_allowed_mime_types', $types)` | Estende i tipi file consentiti per upload |
 | `apply_filters('fp_dmk_email_subject', $subject)` | Personalizza l'oggetto email notifica |
-| `apply_filters('fp_dmk_admin_pending_registration_subject', $subject, $user_id)` | Oggetto email nuova registrazione in attesa |
-| `apply_filters('fp_dmk_admin_pending_registration_body', $body, $user_id, $approve_url)` | Corpo HTML email nuova registrazione |
-| `apply_filters('fp_dmk_daily_download_report_subject', $subject, $date_ymd)` | Oggetto report giornaliero download |
-| `apply_filters('fp_dmk_daily_download_report_body', $body, $date_ymd, $rows)` | Corpo HTML report giornaliero (`$rows`: conteggi per asset) |
-| `apply_filters('fp_dmk_mail_approval_success_redirect', $url)` | Dopo approvazione da link email: stringa URL non vuota per `wp_safe_redirect` al posto della pagina di conferma |
 
 ## Struttura
 
@@ -70,11 +63,9 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 src/
 ├── Core/Plugin.php
 ├── Admin/AssetManager, UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
-├── User/RegistrationHandler, ApprovalService, MailApprovalController
+├── User/RegistrationHandler, ApprovalService
 ├── Frontend/ShortcodeMediaKit, ShortcodeLogin, ShortcodeRegister, RestrictedContent
 ├── Download/ProxyController, TrackingService
-├── Report/ReportService
-├── Cron/PurgeDownloadsCron, DailyDownloadReportCron
 └── Email/NotificationService
 ```
 

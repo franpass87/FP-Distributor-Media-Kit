@@ -4,9 +4,9 @@ declare( strict_types=1 );
 
 namespace FP\DistributorMediaKit\Email;
 
+use DateTimeImmutable;
 use FP\DistributorMediaKit\Report\ReportService;
 use FP\DistributorMediaKit\User\ApprovalService;
-use DateTimeImmutable;
 
 /**
  * Invio email wp_mail a distributori approvati e notifiche amministratore.
@@ -14,6 +14,20 @@ use DateTimeImmutable;
  * @package FP\DistributorMediaKit\Email
  */
 final class NotificationService {
+
+	/**
+	 * Wrapper FP Mail SMTP per HTML frammento (salta documenti completi).
+	 */
+	private static function maybe_fp_mail_brand_html( string $html ): string {
+		if ( ! function_exists( 'fp_fpmail_brand_html' ) || $html === '' ) {
+			return $html;
+		}
+		if ( preg_match( '/<\s*!DOCTYPE/i', $html ) || preg_match( '/<\s*html[\s>]/i', $html ) ) {
+			return $html;
+		}
+
+		return fp_fpmail_brand_html( $html );
+	}
 
 	/**
 	 * Email destinatario notifiche admin (registrazioni in attesa, report giornaliero).
@@ -80,6 +94,7 @@ final class NotificationService {
 		$body .= '<p>' . esc_html__( 'In alternativa, dalla bacheca:', 'fp-dmk' ) . ' <a href="' . esc_url( $list_url ) . '">' . esc_html__( 'Utenti da approvare', 'fp-dmk' ) . '</a></p>';
 
 		$body = apply_filters( 'fp_dmk_admin_pending_registration_body', $body, $user_id, $approve_url );
+		$body = self::maybe_fp_mail_brand_html( $body );
 
 		wp_mail( $to, $subject, $body, self::build_mail_headers() );
 	}
@@ -141,6 +156,7 @@ final class NotificationService {
 		}
 
 		$body = apply_filters( 'fp_dmk_daily_download_report_body', $body, $yesterday, $rows );
+		$body = self::maybe_fp_mail_brand_html( $body );
 
 		wp_mail( $to, $subject, $body, self::build_mail_headers() );
 	}
@@ -183,6 +199,7 @@ final class NotificationService {
 				continue;
 			}
 			$body_personalized = str_replace( [ '{name}', '{email}' ], [ $user->display_name ?: $user->user_login, $user->user_email ], $body );
+			$body_personalized = self::maybe_fp_mail_brand_html( $body_personalized );
 			$result = wp_mail( $user->user_email, $subject, $body_personalized, $headers );
 			if ( $result ) {
 				++$sent;

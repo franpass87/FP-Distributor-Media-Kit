@@ -3,7 +3,7 @@
  * Plugin Name:       FP Distributor Media Kit
  * Plugin URI:        https://github.com/franpass87/FP-Distributor-Media-Kit
  * Description:       Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
- * Version:           1.6.1
+ * Version:           1.5.7
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Francesco Passeri
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_DMK_VERSION', '1.6.1' );
+define( 'FP_DMK_VERSION', '1.5.7' );
 define( 'FP_DMK_FILE', __FILE__ );
 define( 'FP_DMK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_DMK_URL', plugin_dir_url( __FILE__ ) );
@@ -57,7 +57,6 @@ register_activation_hook( __FILE__, 'fp_dmk_activate' );
  */
 function fp_dmk_deactivate(): void {
 	wp_clear_scheduled_hook( \FP\DistributorMediaKit\Cron\PurgeDownloadsCron::HOOK );
-	wp_clear_scheduled_hook( \FP\DistributorMediaKit\Cron\DailyDownloadReportCron::HOOK );
 	$admin = get_role( 'administrator' );
 	if ( $admin ) {
 		$admin->remove_cap( 'manage_fp_dmk' );

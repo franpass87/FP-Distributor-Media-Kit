@@ -1,19 +1,10 @@
 # Changelog
 
-## [1.6.1] - 2026-03-24
+## [1.5.7] - 2026-03-24
 
 ### Changed
 
-- Link approvazione da email: URL sul **frontend** (non più wp-admin), utilizzabile **senza login**; il token segreto resta l’unica autenticazione. Filtro `fp_dmk_mail_approval_success_redirect` per reindirizzare dopo l’OK.
-
-## [1.6.0] - 2026-03-24
-
-### Added
-
-- Impostazioni **Email notifiche amministratore**: destinatario dedicato (fallback email sito)
-- Opzione **Email a ogni registrazione in attesa**: invio con link di approvazione (token sicuro sul frontend; dalla 1.6.1 senza obbligo di login)
-- Opzione **Report giornaliero download**: cron giornaliero con riepilogo download del giorno precedente (per asset) e link ai report admin
-- Hook `fp_dmk_distributor_pending_registered` e filtri `fp_dmk_admin_pending_registration_*`, `fp_dmk_daily_download_report_*`
+- Email HTML del plugin (distributori, registrazione in attesa, report download giornaliero): corpo frammento avvolto da **FP Mail SMTP** (`fp_fpmail_brand_html`) se disponibile; documenti HTML completi lasciati invariati.
 
 ## [1.5.6] - 2026-03-23
 
