@@ -3,7 +3,7 @@
  * Plugin Name:       FP Distributor Media Kit
  * Plugin URI:        https://github.com/franpass87/FP-Distributor-Media-Kit
  * Description:       Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
- * Version:           1.5.7
+ * Version:           1.5.8
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Francesco Passeri
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_DMK_VERSION', '1.5.7' );
+define( 'FP_DMK_VERSION', '1.5.8' );
 define( 'FP_DMK_FILE', __FILE__ );
 define( 'FP_DMK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_DMK_URL', plugin_dir_url( __FILE__ ) );
@@ -24,6 +24,22 @@ define( 'FP_DMK_BASENAME', plugin_basename( __FILE__ ) );
 
 if ( file_exists( FP_DMK_DIR . 'vendor/autoload.php' ) ) {
 	require_once FP_DMK_DIR . 'vendor/autoload.php';
+}
+
+/**
+ * Assegna al ruolo Administrator la capability `manage_fp_dmk` se mancante (idempotente).
+ *
+ * Copre installazioni o aggiornamenti senza nuova esecuzione dell'hook di attivazione
+ * (es. deploy via Git/updater): senza questa capability le pagine admin risultano vietate.
+ */
+function fp_dmk_ensure_administrator_capability(): void {
+	if ( ! function_exists( 'get_role' ) ) {
+		return;
+	}
+	$admin = get_role( 'administrator' );
+	if ( $admin && ! $admin->has_cap( 'manage_fp_dmk' ) ) {
+		$admin->add_cap( 'manage_fp_dmk' );
+	}
 }
 
 /**
@@ -45,12 +61,11 @@ function fp_dmk_activate(): void {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	dbDelta( $sql );
 
-	$admin = get_role( 'administrator' );
-	if ( $admin && ! $admin->has_cap( 'manage_fp_dmk' ) ) {
-		$admin->add_cap( 'manage_fp_dmk' );
-	}
+	fp_dmk_ensure_administrator_capability();
 }
 register_activation_hook( __FILE__, 'fp_dmk_activate' );
+
+add_action( 'plugins_loaded', 'fp_dmk_ensure_administrator_capability', 5 );
 
 /**
  * Disattivazione plugin.

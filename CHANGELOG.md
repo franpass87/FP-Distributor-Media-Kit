@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.8] - 2026-03-27
+
+### Fixed
+
+- Capability `manage_fp_dmk` per il ruolo **Administrator** riassegnata automaticamente al caricamento del plugin se mancante (installazione/aggiornamento senza riattivazione: prima compariva “non hai il permesso” pur essendo admin).
+
 ## [1.5.7] - 2026-03-24
 
 ### Changed
