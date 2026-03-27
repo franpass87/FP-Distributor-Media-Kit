@@ -3,7 +3,7 @@
  * Plugin Name:       FP Distributor Media Kit
  * Plugin URI:        https://github.com/franpass87/FP-Distributor-Media-Kit
  * Description:       Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
- * Version:           1.5.8
+ * Version:           1.6.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Francesco Passeri
@@ -16,29 +16,85 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_DMK_VERSION', '1.5.8' );
+define( 'FP_DMK_VERSION', '1.6.0' );
 define( 'FP_DMK_FILE', __FILE__ );
 define( 'FP_DMK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_DMK_URL', plugin_dir_url( __FILE__ ) );
 define( 'FP_DMK_BASENAME', plugin_basename( __FILE__ ) );
+define( 'FP_DMK_ROLE_MANAGER', 'fp_dmk_manager' );
+
+require_once FP_DMK_DIR . 'fp-dmk-capabilities.php';
 
 if ( file_exists( FP_DMK_DIR . 'vendor/autoload.php' ) ) {
 	require_once FP_DMK_DIR . 'vendor/autoload.php';
 }
 
 /**
- * Assegna al ruolo Administrator la capability `manage_fp_dmk` se mancante (idempotente).
+ * Carica traduzioni per etichette ruolo (activation / bootstrap anticipato).
+ */
+function fp_dmk_load_textdomain_for_caps(): void {
+	load_plugin_textdomain( 'fp-dmk', false, dirname( FP_DMK_BASENAME ) . '/languages' );
+}
+
+/**
+ * Assegna capability plugin all'Administrator, crea/aggiorna il ruolo Gestore Media Kit.
  *
  * Copre installazioni o aggiornamenti senza nuova esecuzione dell'hook di attivazione
- * (es. deploy via Git/updater): senza questa capability le pagine admin risultano vietate.
+ * (es. deploy via Git/updater).
  */
-function fp_dmk_ensure_administrator_capability(): void {
+function fp_dmk_ensure_roles_and_caps(): void {
 	if ( ! function_exists( 'get_role' ) ) {
 		return;
 	}
+	fp_dmk_load_textdomain_for_caps();
+	$caps = fp_dmk_plugin_capability_names();
 	$admin = get_role( 'administrator' );
-	if ( $admin && ! $admin->has_cap( 'manage_fp_dmk' ) ) {
-		$admin->add_cap( 'manage_fp_dmk' );
+	if ( $admin ) {
+		foreach ( $caps as $cap ) {
+			if ( ! $admin->has_cap( $cap ) ) {
+				$admin->add_cap( $cap );
+			}
+		}
+	}
+	$role_key = FP_DMK_ROLE_MANAGER;
+	$manager  = get_role( $role_key );
+	$base     = fp_dmk_manager_role_base_capability_names();
+	$all_mgr  = array_merge( $base, $caps );
+	if ( ! $manager ) {
+		$caps_map = array_fill_keys( $all_mgr, true );
+		add_role(
+			$role_key,
+			__( 'FP Media Kit Manager', 'fp-dmk' ),
+			$caps_map
+		);
+	} else {
+		foreach ( $all_mgr as $cap ) {
+			if ( ! $manager->has_cap( $cap ) ) {
+				$manager->add_cap( $cap );
+			}
+		}
+	}
+}
+
+/**
+ * Rimuove le capability del plugin da Administrator e dal ruolo Gestore (disattivazione).
+ */
+function fp_dmk_revoke_plugin_capabilities_from_roles(): void {
+	if ( ! function_exists( 'get_role' ) ) {
+		return;
+	}
+	$caps = fp_dmk_plugin_capability_names();
+	$admin = get_role( 'administrator' );
+	if ( $admin ) {
+		foreach ( $caps as $cap ) {
+			$admin->remove_cap( $cap );
+		}
+	}
+	$manager = get_role( FP_DMK_ROLE_MANAGER );
+	if ( $manager ) {
+		foreach ( array_merge( fp_dmk_manager_role_base_capability_names(), $caps ) as $cap ) {
+			$manager->remove_cap( $cap );
+		}
 	}
 }
 
@@ -61,21 +117,18 @@ function fp_dmk_activate(): void {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	dbDelta( $sql );
 
-	fp_dmk_ensure_administrator_capability();
+	fp_dmk_ensure_roles_and_caps();
 }
 register_activation_hook( __FILE__, 'fp_dmk_activate' );
 
-add_action( 'plugins_loaded', 'fp_dmk_ensure_administrator_capability', 5 );
+add_action( 'plugins_loaded', 'fp_dmk_ensure_roles_and_caps', 5 );
 
 /**
  * Disattivazione plugin.
  */
 function fp_dmk_deactivate(): void {
 	wp_clear_scheduled_hook( \FP\DistributorMediaKit\Cron\PurgeDownloadsCron::HOOK );
-	$admin = get_role( 'administrator' );
-	if ( $admin ) {
-		$admin->remove_cap( 'manage_fp_dmk' );
-	}
+	fp_dmk_revoke_plugin_capabilities_from_roles();
 }
 register_deactivation_hook( __FILE__, 'fp_dmk_deactivate' );
 

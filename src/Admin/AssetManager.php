@@ -9,6 +9,9 @@ use FP\DistributorMediaKit\Download\TrackingService;
 /**
  * Gestione CPT fp_dmk_asset, taxonomy fp_dmk_category, metabox e list table.
  *
+ * CPT con capability dedicate (`fp_dmk_asset` / `fp_dmk_assets`) e tassonomia con `manage_fp_dmk_categories`,
+ * così un ruolo dedicato può gestire asset senza `edit_posts` globale (menu Articoli).
+ *
  * @package FP\DistributorMediaKit\Admin
  */
 final class AssetManager {
@@ -60,7 +63,7 @@ final class AssetManager {
 			'public'              => false,
 			'show_ui'             => true,
 			'show_in_menu'        => 'fp-dmk',
-			'capability_type'     => 'post',
+			'capability_type'     => [ 'fp_dmk_asset', 'fp_dmk_assets' ],
 			'map_meta_cap'        => true,
 			'supports'            => [ 'title', 'thumbnail' ],
 			'has_archive'         => false,
@@ -84,6 +87,12 @@ final class AssetManager {
 			'show_in_menu'      => true,
 			'show_admin_column' => true,
 			'rewrite'           => false,
+			'capabilities'      => [
+				'manage_terms' => 'manage_fp_dmk_categories',
+				'edit_terms'   => 'manage_fp_dmk_categories',
+				'delete_terms' => 'manage_fp_dmk_categories',
+				'assign_terms' => 'edit_fp_dmk_assets',
+			],
 		] );
 
 		// Inserisci termini default se vuoti

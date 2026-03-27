@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.0] - 2026-03-27
+
+### Added
+
+- Ruolo WordPress **FP Media Kit Manager** (`fp_dmk_manager`): accesso completo alle schermate del plugin, asset, categorie, upload in libreria media (`upload_files`), senza permessi da amministratore generico.
+
+### Changed
+
+- CPT **Media Kit Asset** e tassonomia **Categorie** usano capability dedicate (non più `edit_posts` / `manage_categories` di WordPress). **Administrator** riceve automaticamente le nuove capability al caricamento del plugin. Altri ruoli (es. Editore) che in passato potevano toccare gli asset solo perché avevano `edit_posts` **non** hanno più accesso, salvo assegnazione manuale delle capability `fp_dmk_*` o del nuovo ruolo.
+
 ## [1.5.8] - 2026-03-27
 
 ### Fixed

@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.5.8-blue)
+![Version](https://img.shields.io/badge/version-1.6.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -33,6 +33,13 @@ Le email del Media Kit usano `wp_mail()`, quindi **FP Mail SMTP** gestisce autom
 4. Crea le pagine necessarie e inserisci gli shortcode
 5. Personalizza colori e stili nella sezione **Aspetto** (bottoni, card, sfondi)
 
+## Ruoli e permessi
+
+- **Administrator**: ha tutte le funzioni del plugin (capability assegnate automaticamente all’attivazione / al primo caricamento).
+- **FP Media Kit Manager** (`fp_dmk_manager`): ruolo dedicato creato dal plugin. Assegnalo da **Utenti → il profilo** (o con un plugin ruoli) agli operatori che devono gestire approvazioni, asset, report e impostazioni del Media Kit **senza** essere amministratori del sito. Include `read`, `upload_files` (libreria media per i file asset) e tutte le capability `manage_fp_dmk` / `fp_dmk_asset*` / `manage_fp_dmk_categories`.
+
+Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse da Administrator e dal ruolo Gestore (il ruolo resta nel sito ma senza permessi finché non riattivi il plugin).
+
 ## Shortcode
 
 | Shortcode | Descrizione |
@@ -60,6 +67,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 ## Struttura
 
 ```
+fp-dmk-capabilities.php   # elenco capability (bootstrap + uninstall)
 src/
 ├── Core/Plugin.php
 ├── Admin/AssetManager, UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
