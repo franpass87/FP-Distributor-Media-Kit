@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.7.1-blue)
+![Version](https://img.shields.io/badge/version-1.8.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -9,7 +9,7 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 - **Registrazione utenti** (frontend) con approvazione admin obbligatoria
 - **Login/Logout** dedicato
 - **Media Kit** protetto: solo utenti approvati
-- **Asset** organizzati per categoria (Visual Assets, Tech Sheets, Copy Templates, Brand Voice Guide)
+- **Asset** organizzati per **categoria** (tipo di materiale) e opzionalmente per **cartelle** gerarchiche (ordinamento nel Media Kit)
 - **Download sicuro** tramite proxy (nessun link diretto ai file)
 - **Tracking download** per ogni asset
 - **Lista utenti** con tutti i distributori, filtro stato e azioni Approva/Revoca
@@ -47,7 +47,7 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 |-----------|-------------|
 | `[fp_dmk_register]` | Form registrazione (email, password, nome; se abilitato: tipo di accesso) |
 | `[fp_dmk_login]` | Form login |
-| `[fp_dmk_media_kit]` | Griglia asset per categoria (solo utenti approvati) |
+| `[fp_dmk_media_kit]` | Griglia asset per cartella e categoria (solo utenti approvati); attributi opzionali: `category`, `language`, `folder` (slug cartella) |
 
 ## Pagine da configurare
 
@@ -72,7 +72,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 fp-dmk-capabilities.php   # elenco capability (bootstrap + uninstall)
 src/
 ├── Core/Plugin.php
-├── Admin/AssetManager, UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
+├── Admin/AssetManager (CPT, categorie `fp_dmk_category`, cartelle `fp_dmk_folder`), UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
 ├── User/RegistrationHandler, ApprovalService, AudienceService
 ├── Frontend/ShortcodeMediaKit, ShortcodeLogin, ShortcodeRegister, RestrictedContent
 ├── Download/ProxyController, TrackingService

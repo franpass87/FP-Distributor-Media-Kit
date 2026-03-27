@@ -30,6 +30,10 @@ final class CptBanner {
 			$title    = __( 'Categorie', 'fp-dmk' );
 			$desc     = __( 'Organizza gli asset in categorie (Visual Assets, Tech Sheets, ecc.).', 'fp-dmk' );
 			$dashicon = 'dashicons-category';
+		} elseif ( isset( $screen->taxonomy ) && $screen->taxonomy === AssetManager::TAXONOMY_FOLDER ) {
+			$title    = __( 'Cartelle', 'fp-dmk' );
+			$desc     = __( 'Raggruppa gli asset in cartelle e sottocartelle per il Media Kit (ordinamento in frontend).', 'fp-dmk' );
+			$dashicon = 'dashicons-portfolio';
 		} elseif ( $screen->post_type === AssetManager::CPT ) {
 			$post_type_obj = get_post_type_object( AssetManager::CPT );
 			if ( $screen->base === 'edit' ) {

@@ -7,7 +7,7 @@ namespace FP\DistributorMediaKit\Admin;
 use FP\DistributorMediaKit\Download\TrackingService;
 
 /**
- * Gestione CPT fp_dmk_asset, taxonomy fp_dmk_category, metabox e list table.
+ * Gestione CPT fp_dmk_asset, tassonomie fp_dmk_category (tipo materiale) e fp_dmk_folder (cartelle), metabox e list table.
  *
  * CPT con capability dedicate (`fp_dmk_asset` / `fp_dmk_assets`) e tassonomia con `manage_fp_dmk_categories`,
  * così un ruolo dedicato può gestire asset senza `edit_posts` globale (menu Articoli).
@@ -19,6 +19,8 @@ final class AssetManager {
 	public const CPT = 'fp_dmk_asset';
 
 	public const TAXONOMY = 'fp_dmk_category';
+
+	public const TAXONOMY_FOLDER = 'fp_dmk_folder';
 
 	public const META_FILE_ID     = '_fp_dmk_file_id';
 	public const META_DESCRIPTION = '_fp_dmk_description';
@@ -36,8 +38,10 @@ final class AssetManager {
 	public static function init(): void {
 		add_action( 'init', [ self::class, 'register_cpt' ] );
 		add_action( 'init', [ self::class, 'register_taxonomy' ] );
+		add_action( 'init', [ self::class, 'register_folder_taxonomy' ] );
 		add_action( 'add_meta_boxes', [ self::class, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT, [ self::class, 'save_meta' ], 10, 2 );
+		add_action( 'save_post_' . self::CPT, [ self::class, 'normalize_single_folder_term' ], 30, 2 );
 		add_filter( 'manage_' . self::CPT . '_posts_columns', [ self::class, 'columns' ] );
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ self::class, 'column_content' ], 10, 2 );
 		add_filter( 'manage_edit-' . self::CPT . '_sortable_columns', [ self::class, 'sortable_columns' ] );
@@ -106,6 +110,35 @@ final class AssetManager {
 		}
 	}
 
+	public static function register_folder_taxonomy(): void {
+		$labels = [
+			'name'          => _x( 'Cartelle', 'taxonomy general name', 'fp-dmk' ),
+			'singular_name' => _x( 'Cartella', 'taxonomy singular name', 'fp-dmk' ),
+			'menu_name'     => __( 'Cartelle', 'fp-dmk' ),
+		];
+		register_taxonomy(
+			self::TAXONOMY_FOLDER,
+			self::CPT,
+			[
+				'labels'            => $labels,
+				'hierarchical'      => true,
+				'public'            => false,
+				'show_ui'           => true,
+				'show_in_menu'      => false,
+				'show_admin_column' => false,
+				'show_in_rest'      => false,
+				'meta_box_cb'       => false,
+				'rewrite'           => false,
+				'capabilities'      => [
+					'manage_terms' => 'manage_fp_dmk_categories',
+					'edit_terms'   => 'manage_fp_dmk_categories',
+					'delete_terms' => 'manage_fp_dmk_categories',
+					'assign_terms' => 'edit_fp_dmk_assets',
+				],
+			]
+		);
+	}
+
 	public static function add_meta_boxes(): void {
 		add_meta_box(
 			'fp_dmk_asset_details',
@@ -167,6 +200,30 @@ final class AssetManager {
 					<?php endforeach; ?>
 				</select>
 			</div>
+			<div class="fpdmk-field">
+				<label for="fp_dmk_folder_term"><?php esc_html_e( 'Cartella', 'fp-dmk' ); ?></label>
+				<select id="fp_dmk_folder_term" name="fp_dmk_folder_term">
+					<option value="0"><?php esc_html_e( '— Nessuna cartella —', 'fp-dmk' ); ?></option>
+					<?php
+					$sel_folder = 0;
+					$cur_folder = self::get_primary_folder_term_for_post( $post->ID );
+					if ( $cur_folder instanceof \WP_Term ) {
+						$sel_folder = (int) $cur_folder->term_id;
+					}
+					foreach ( self::get_folder_terms_hierarchical_options() as $row ) {
+						$t = $row['term'];
+						if ( ! $t instanceof \WP_Term ) {
+							continue;
+						}
+						$pad = str_repeat( '— ', $row['depth'] );
+						?>
+						<option value="<?php echo (int) $t->term_id; ?>" <?php selected( $sel_folder, (int) $t->term_id ); ?>><?php echo esc_html( $pad . $t->name ); ?></option>
+						<?php
+					}
+					?>
+				</select>
+				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Crea le cartelle da FP Media Kit → Cartelle.', 'fp-dmk' ); ?></span>
+			</div>
 		</div>
 		<script>
 		(function() {
@@ -215,6 +272,153 @@ final class AssetManager {
 		update_post_meta( $post_id, self::META_FILE_ID, $file_id );
 		update_post_meta( $post_id, self::META_DESCRIPTION, $desc );
 		update_post_meta( $post_id, self::META_LANGUAGE, $lang );
+
+		if ( isset( $_POST['fp_dmk_folder_term'] ) ) {
+			$folder_id = absint( $_POST['fp_dmk_folder_term'] );
+			if ( $folder_id > 0 ) {
+				$t = get_term( $folder_id, self::TAXONOMY_FOLDER );
+				if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
+					wp_set_object_terms( $post_id, [ $folder_id ], self::TAXONOMY_FOLDER );
+				}
+			} else {
+				wp_set_object_terms( $post_id, [], self::TAXONOMY_FOLDER );
+			}
+		}
+	}
+
+	/**
+	 * Se più cartelle sono assegnate (es. da flussi alternativi), mantiene una sola (la più specifica in profondità).
+	 */
+	public static function normalize_single_folder_term( int $post_id, \WP_Post $post ): void {
+		if ( $post->post_type !== self::CPT ) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+		$terms = wp_get_object_terms( $post_id, self::TAXONOMY_FOLDER );
+		if ( is_wp_error( $terms ) || count( $terms ) <= 1 ) {
+			return;
+		}
+		$best   = $terms[0];
+		$best_d = self::folder_term_depth( $best );
+		foreach ( $terms as $t ) {
+			if ( ! $t instanceof \WP_Term ) {
+				continue;
+			}
+			$d = self::folder_term_depth( $t );
+			if ( $d > $best_d ) {
+				$best_d = $d;
+				$best   = $t;
+			}
+		}
+		wp_set_object_terms( $post_id, [ (int) $best->term_id ], self::TAXONOMY_FOLDER );
+	}
+
+	/**
+	 * Profondità del termine nella gerarchia cartelle (0 = radice).
+	 */
+	public static function folder_term_depth( \WP_Term $term ): int {
+		$d = 0;
+		$p = (int) $term->parent;
+		while ( $p > 0 ) {
+			$d++;
+			$pt = get_term( $p, self::TAXONOMY_FOLDER );
+			if ( ! $pt instanceof \WP_Term || is_wp_error( $pt ) ) {
+				break;
+			}
+			$p = (int) $pt->parent;
+		}
+		return $d;
+	}
+
+	/**
+	 * Cartella principale dell’asset (se più termini, quello più profondo nella gerarchia).
+	 */
+	public static function get_primary_folder_term_for_post( int $post_id ): ?\WP_Term {
+		if ( $post_id <= 0 ) {
+			return null;
+		}
+		$terms = get_the_terms( $post_id, self::TAXONOMY_FOLDER );
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return null;
+		}
+		$best   = null;
+		$best_d = -1;
+		foreach ( $terms as $t ) {
+			if ( ! $t instanceof \WP_Term ) {
+				continue;
+			}
+			$d = self::folder_term_depth( $t );
+			if ( $d > $best_d ) {
+				$best_d = $d;
+				$best   = $t;
+			}
+		}
+		return $best;
+	}
+
+	/**
+	 * Etichetta con percorso (Genitore › Figlio) per ordinamento e filtri.
+	 */
+	public static function get_folder_breadcrumb_label( \WP_Term $term ): string {
+		$chain = get_ancestors( $term->term_id, self::TAXONOMY_FOLDER );
+		$chain = array_reverse( array_map( 'absint', $chain ) );
+		$parts = [];
+		foreach ( $chain as $tid ) {
+			$t = get_term( $tid, self::TAXONOMY_FOLDER );
+			if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
+				$parts[] = $t->name;
+			}
+		}
+		$parts[] = $term->name;
+		return implode( ' › ', $parts );
+	}
+
+	/**
+	 * Termini cartella ordinati ad albero (per select admin).
+	 *
+	 * @return list<array{term: \WP_Term, depth: int}>
+	 */
+	public static function get_folder_terms_hierarchical_options(): array {
+		$terms = get_terms(
+			[
+				'taxonomy'   => self::TAXONOMY_FOLDER,
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			]
+		);
+		if ( ! is_array( $terms ) || is_wp_error( $terms ) ) {
+			return [];
+		}
+		$by_parent = [];
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
+				continue;
+			}
+			$by_parent[ (int) $term->parent ][] = $term;
+		}
+		$out = [];
+		self::walk_folder_children( $by_parent, 0, 0, $out );
+		return $out;
+	}
+
+	/**
+	 * @param array<int, list<\WP_Term>> $by_parent
+	 * @param list<array{term: \WP_Term, depth: int}> $out
+	 */
+	private static function walk_folder_children( array $by_parent, int $parent_id, int $depth, array &$out ): void {
+		if ( empty( $by_parent[ $parent_id ] ) ) {
+			return;
+		}
+		foreach ( $by_parent[ $parent_id ] as $term ) {
+			$out[] = [ 'term' => $term, 'depth' => $depth ];
+			self::walk_folder_children( $by_parent, (int) $term->term_id, $depth + 1, $out );
+		}
 	}
 
 	public static function columns( array $columns ): array {
@@ -222,6 +426,7 @@ final class AssetManager {
 		foreach ( $columns as $k => $v ) {
 			$new[ $k ] = $v;
 			if ( $k === 'title' ) {
+				$new['fp_dmk_folder'] = __( 'Cartella', 'fp-dmk' );
 				$new['fp_dmk_category'] = __( 'Categoria', 'fp-dmk' );
 				$new['fp_dmk_language'] = __( 'Lingua', 'fp-dmk' );
 				$new['fp_dmk_downloads'] = __( 'Download', 'fp-dmk' );
@@ -232,6 +437,10 @@ final class AssetManager {
 
 	public static function column_content( string $column, int $post_id ): void {
 		switch ( $column ) {
+			case 'fp_dmk_folder':
+				$ft = self::get_primary_folder_term_for_post( $post_id );
+				echo $ft instanceof \WP_Term ? esc_html( self::get_folder_breadcrumb_label( $ft ) ) : '—';
+				break;
 			case 'fp_dmk_category':
 				$terms = get_the_terms( $post_id, self::TAXONOMY );
 				echo $terms && ! is_wp_error( $terms ) ? esc_html( implode( ', ', wp_list_pluck( $terms, 'name' ) ) ) : '—';

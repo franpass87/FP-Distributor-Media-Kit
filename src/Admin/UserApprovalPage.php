@@ -41,6 +41,14 @@ final class UserApprovalPage {
 		);
 		add_submenu_page(
 			'fp-dmk',
+			__( 'Cartelle', 'fp-dmk' ),
+			__( 'Cartelle', 'fp-dmk' ),
+			'manage_fp_dmk',
+			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY_FOLDER . '&post_type=' . AssetManager::CPT,
+			null
+		);
+		add_submenu_page(
+			'fp-dmk',
 			__( 'Utenti da approvare', 'fp-dmk' ),
 			__( 'Utenti da approvare', 'fp-dmk' ),
 			'manage_fp_dmk',
@@ -110,7 +118,7 @@ final class UserApprovalPage {
 		}
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 		$is_dmk = ( $screen->post_type === AssetManager::CPT )
-			|| ( isset( $screen->taxonomy ) && $screen->taxonomy === AssetManager::TAXONOMY )
+			|| ( isset( $screen->taxonomy ) && ( $screen->taxonomy === AssetManager::TAXONOMY || $screen->taxonomy === AssetManager::TAXONOMY_FOLDER ) )
 			|| ( $page !== '' && strpos( $page, 'fp-dmk' ) === 0 );
 		if ( $is_dmk ) {
 			$classes .= ' fpdmk-admin-shell';
@@ -127,7 +135,7 @@ final class UserApprovalPage {
 		$is_our_page = ( strpos( $hook, 'fp-dmk' ) !== false )
 			|| ( $page !== '' && strpos( $page, 'fp-dmk' ) === 0 )
 			|| ( $screen && $screen->post_type === AssetManager::CPT )
-			|| ( $screen && isset( $screen->taxonomy ) && $screen->taxonomy === AssetManager::TAXONOMY );
+			|| ( $screen && isset( $screen->taxonomy ) && ( $screen->taxonomy === AssetManager::TAXONOMY || $screen->taxonomy === AssetManager::TAXONOMY_FOLDER ) );
 		if ( ! $is_our_page ) {
 			return;
 		}

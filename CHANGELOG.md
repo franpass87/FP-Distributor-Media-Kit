@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.0] - 2026-03-27
+
+### Added
+
+- Tassonomia gerarchica **Cartelle** (`fp_dmk_folder`): organizza gli asset in cartelle/sottocartelle; voce di menu **FP Media Kit → Cartelle** (stessi permessi delle Categorie).
+- Metabox asset: select **Cartella** (una sola; se ne restano più assegnate, viene mantenuta la più specifica in profondità).
+- Lista asset in admin: colonna **Cartella** (percorso con « › »).
+- Media Kit frontend: raggruppamento per **cartella** poi per **categoria**; filtro **Tutte le cartelle** nel form; attributo shortcode `folder="slug"`.
+
 ## [1.7.1] - 2026-03-27
 
 ### Fixed

@@ -5,12 +5,11 @@ declare( strict_types=1 );
 namespace FP\DistributorMediaKit\Frontend;
 
 use FP\DistributorMediaKit\Admin\AssetManager;
-use FP\DistributorMediaKit\Download\TrackingService;
 use FP\DistributorMediaKit\User\ApprovalService;
 use FP\DistributorMediaKit\User\AudienceService;
 
 /**
- * Shortcode [fp_dmk_media_kit] - Griglia asset per categoria.
+ * Shortcode [fp_dmk_media_kit] - Griglia asset per cartella e categoria.
  *
  * @package FP\DistributorMediaKit\Frontend
  */
@@ -27,13 +26,17 @@ final class ShortcodeMediaKit {
 			return '<p class="fpdmk-message fpdmk-message-warning">' . esc_html__( 'Il tuo account è in attesa di approvazione.', 'fp-dmk' ) . '</p>';
 		}
 
-		$filter_cat = isset( $atts['category'] ) ? sanitize_text_field( $atts['category'] ) : '';
-		$filter_lang = isset( $atts['language'] ) ? sanitize_text_field( $atts['language'] ) : '';
+		$filter_cat    = isset( $atts['category'] ) ? sanitize_text_field( $atts['category'] ) : '';
+		$filter_lang   = isset( $atts['language'] ) ? sanitize_text_field( $atts['language'] ) : '';
+		$filter_folder = isset( $atts['folder'] ) ? sanitize_title( $atts['folder'] ) : '';
 		if ( $filter_cat === '' && isset( $_GET['fp_dmk_cat'] ) ) {
 			$filter_cat = sanitize_text_field( wp_unslash( $_GET['fp_dmk_cat'] ) );
 		}
 		if ( $filter_lang === '' && isset( $_GET['fp_dmk_lang'] ) ) {
 			$filter_lang = sanitize_text_field( wp_unslash( $_GET['fp_dmk_lang'] ) );
+		}
+		if ( $filter_folder === '' && isset( $_GET['fp_dmk_folder'] ) ) {
+			$filter_folder = sanitize_title( wp_unslash( (string) $_GET['fp_dmk_folder'] ) );
 		}
 
 		$query_args = [
@@ -47,15 +50,29 @@ final class ShortcodeMediaKit {
 		$effective_cats = AudienceService::get_effective_category_slugs_for_query( $user_id, $filter_cat );
 		if ( $effective_cats !== null && $effective_cats === [] ) {
 			$query_args['post__in'] = [ 0 ];
-		} elseif ( $effective_cats !== null ) {
-			$query_args['tax_query'] = [
-				[
+		} else {
+			$tax_queries = [];
+			if ( $effective_cats !== null ) {
+				$tax_queries[] = [
 					'taxonomy' => AssetManager::TAXONOMY,
 					'field'    => 'slug',
 					'terms'    => $effective_cats,
 					'operator' => 'IN',
-				],
-			];
+				];
+			}
+			if ( $filter_folder !== '' ) {
+				$tax_queries[] = [
+					'taxonomy' => AssetManager::TAXONOMY_FOLDER,
+					'field'    => 'slug',
+					'terms'    => [ $filter_folder ],
+				];
+			}
+			if ( count( $tax_queries ) > 1 ) {
+				$tax_queries['relation'] = 'AND';
+			}
+			if ( $tax_queries !== [] ) {
+				$query_args['tax_query'] = $tax_queries;
+			}
 		}
 
 		if ( $filter_lang !== '' ) {
@@ -70,8 +87,16 @@ final class ShortcodeMediaKit {
 		$query = new \WP_Query( $query_args );
 		$posts = $query->posts ?? [];
 
-		$by_category = [];
+		$by_folder = [];
 		foreach ( $posts as $post ) {
+			$fterm      = AssetManager::get_primary_folder_term_for_post( $post->ID );
+			$folder_key = $fterm instanceof \WP_Term ? (int) $fterm->term_id : 0;
+			if ( ! isset( $by_folder[ $folder_key ] ) ) {
+				$by_folder[ $folder_key ] = [
+					'term'        => $fterm,
+					'by_category' => [],
+				];
+			}
 			$terms = get_the_terms( $post->ID, AssetManager::TAXONOMY );
 			$cat_slug = 'uncategorized';
 			$cat_name = __( 'Altro', 'fp-dmk' );
@@ -80,11 +105,13 @@ final class ShortcodeMediaKit {
 				$cat_slug = $t->slug;
 				$cat_name = $t->name;
 			}
-			if ( ! isset( $by_category[ $cat_slug ] ) ) {
-				$by_category[ $cat_slug ] = [ 'name' => $cat_name, 'items' => [] ];
+			if ( ! isset( $by_folder[ $folder_key ]['by_category'][ $cat_slug ] ) ) {
+				$by_folder[ $folder_key ]['by_category'][ $cat_slug ] = [ 'name' => $cat_name, 'items' => [] ];
 			}
-			$by_category[ $cat_slug ]['items'][] = $post;
+			$by_folder[ $folder_key ]['by_category'][ $cat_slug ]['items'][] = $post;
 		}
+
+		$folder_order = self::ordered_folder_keys( array_keys( $by_folder ) );
 
 		$current_url = get_permalink();
 		$terms       = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => true ] );
@@ -101,6 +128,30 @@ final class ShortcodeMediaKit {
 			$terms = [];
 		}
 
+		$folder_terms_all = get_terms(
+			[
+				'taxonomy'   => AssetManager::TAXONOMY_FOLDER,
+				'hide_empty' => true,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			]
+		);
+		$folder_terms_all = is_array( $folder_terms_all ) ? $folder_terms_all : [];
+		$ids_with_posts   = [];
+		foreach ( $folder_terms_all as $x ) {
+			if ( $x instanceof \WP_Term ) {
+				$ids_with_posts[] = (int) $x->term_id;
+			}
+		}
+		$folder_for_select = [];
+		foreach ( AssetManager::get_folder_terms_hierarchical_options() as $row ) {
+			$t = $row['term'];
+			if ( ! $t instanceof \WP_Term || ! in_array( (int) $t->term_id, $ids_with_posts, true ) ) {
+				continue;
+			}
+			$folder_for_select[] = $row;
+		}
+
 		$html = '<div class="fpdmk-media-kit">';
 		$html .= '<div class="fpdmk-media-kit-header">';
 		$html .= '<h2 class="fpdmk-media-kit-title">' . esc_html__( 'Media Kit', 'fp-dmk' ) . '</h2>';
@@ -112,6 +163,18 @@ final class ShortcodeMediaKit {
 
 		$html .= '<form method="get" action="' . esc_url( $current_url ) . '" class="fpdmk-filters">';
 		$html .= '<div class="fpdmk-filters-inner">';
+		$html .= '<label for="fp_dmk_filter_folder" class="screen-reader-text">' . esc_html__( 'Filtra per cartella', 'fp-dmk' ) . '</label>';
+		$html .= '<select id="fp_dmk_filter_folder" name="fp_dmk_folder" class="fpdmk-select">';
+		$html .= '<option value="">' . esc_html__( 'Tutte le cartelle', 'fp-dmk' ) . '</option>';
+		foreach ( $folder_for_select as $row ) {
+			$t = $row['term'];
+			if ( ! $t instanceof \WP_Term ) {
+				continue;
+			}
+			$pad = str_repeat( '— ', (int) $row['depth'] );
+			$html .= '<option value="' . esc_attr( $t->slug ) . '"' . selected( $filter_folder, $t->slug, false ) . '>' . esc_html( $pad . $t->name ) . '</option>';
+		}
+		$html .= '</select>';
 		$html .= '<label for="fp_dmk_filter_cat" class="screen-reader-text">' . esc_html__( 'Filtra per categoria', 'fp-dmk' ) . '</label>';
 		$html .= '<select id="fp_dmk_filter_cat" name="fp_dmk_cat" class="fpdmk-select">';
 		$html .= '<option value="">' . esc_html__( 'Tutte le categorie', 'fp-dmk' ) . '</option>';
@@ -132,18 +195,31 @@ final class ShortcodeMediaKit {
 		$html .= '</div>';
 		$html .= '</form>';
 
-		foreach ( $by_category as $cat_slug => $cat_data ) {
-			$html .= '<section class="fpdmk-section">';
-			$html .= '<h3 class="fpdmk-section-title">' . esc_html( $cat_data['name'] ) . '</h3>';
-			$html .= '<div class="fpdmk-cards">';
-			foreach ( $cat_data['items'] as $post ) {
-				$html .= self::render_card( $post );
+		foreach ( $folder_order as $folder_key ) {
+			if ( ! isset( $by_folder[ $folder_key ] ) ) {
+				continue;
+			}
+			$block        = $by_folder[ $folder_key ];
+			$folder_title = __( 'Senza cartella', 'fp-dmk' );
+			if ( $block['term'] instanceof \WP_Term ) {
+				$folder_title = AssetManager::get_folder_breadcrumb_label( $block['term'] );
+			}
+			$html .= '<div class="fpdmk-folder-block">';
+			$html .= '<h3 class="fpdmk-folder-title">' . esc_html( $folder_title ) . '</h3>';
+			foreach ( $block['by_category'] as $cat_data ) {
+				$html .= '<section class="fpdmk-section fpdmk-section-nested">';
+				$html .= '<h4 class="fpdmk-section-title">' . esc_html( $cat_data['name'] ) . '</h4>';
+				$html .= '<div class="fpdmk-cards">';
+				foreach ( $cat_data['items'] as $post ) {
+					$html .= self::render_card( $post );
+				}
+				$html .= '</div>';
+				$html .= '</section>';
 			}
 			$html .= '</div>';
-			$html .= '</section>';
 		}
 
-		if ( empty( $by_category ) ) {
+		if ( empty( $by_folder ) ) {
 			$html .= '<div class="fpdmk-empty-state">';
 			$html .= '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Nessun asset disponibile al momento. Torna più tardi o contatta l\'amministratore.', 'fp-dmk' ) . '</p>';
 			$html .= '</div>';
@@ -156,12 +232,45 @@ final class ShortcodeMediaKit {
 		return $html;
 	}
 
+	/**
+	 * Ordine di visualizzazione blocchi cartella (alfabetico per percorso; «senza cartella» in coda).
+	 *
+	 * @param list<int> $keys Chiavi folder (0 = nessuna cartella).
+	 * @return list<int>
+	 */
+	private static function ordered_folder_keys( array $keys ): array {
+		$keys = array_values( array_unique( array_map( 'intval', $keys ) ) );
+		usort(
+			$keys,
+			static function ( int $a, int $b ): int {
+				if ( $a === $b ) {
+					return 0;
+				}
+				if ( $a === 0 ) {
+					return 1;
+				}
+				if ( $b === 0 ) {
+					return -1;
+				}
+				$ta = get_term( $a, AssetManager::TAXONOMY_FOLDER );
+				$tb = get_term( $b, AssetManager::TAXONOMY_FOLDER );
+				$sa = ( $ta instanceof \WP_Term && ! is_wp_error( $ta ) )
+					? AssetManager::get_folder_breadcrumb_label( $ta )
+					: '';
+				$sb = ( $tb instanceof \WP_Term && ! is_wp_error( $tb ) )
+					? AssetManager::get_folder_breadcrumb_label( $tb )
+					: '';
+				return strcasecmp( $sa, $sb );
+			}
+		);
+		return $keys;
+	}
+
 	private static function render_card( \WP_Post $post ): string {
-		$file_id = (int) get_post_meta( $post->ID, AssetManager::META_FILE_ID, true );
-		$desc    = (string) get_post_meta( $post->ID, AssetManager::META_DESCRIPTION, true );
-		$lang    = (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true );
+		$file_id    = (int) get_post_meta( $post->ID, AssetManager::META_FILE_ID, true );
+		$desc       = (string) get_post_meta( $post->ID, AssetManager::META_DESCRIPTION, true );
+		$lang       = (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true );
 		$lang_label = AssetManager::LANGUAGES[ $lang ] ?? $lang;
-		$downloads = TrackingService::get_count_for_asset( $post->ID );
 
 		$html = '<div class="fpdmk-card">';
 		$html .= '<div class="fpdmk-card-body">';
