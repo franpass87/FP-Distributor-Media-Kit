@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.0] - 2026-03-27
+
+### Added
+
+- **Tipi di accesso (audience)**: in **Impostazioni** puoi abilitare segmenti (es. distributore / giornalista), opzionalmente **limitare le categorie asset** per tipo (checkbox «Limita categorie» + selezione categorie; senza limite = tutte le categorie).
+- Shortcode registrazione: campo **Tipo di accesso** obbligatorio quando la segmentazione è attiva.
+- **Lista utenti**: colonna e form per modificare il tipo di accesso (meta `fp_dmk_segment`).
+- Email «nuova registrazione in attesa» all’admin: riga con **Tipo di accesso** se presente.
+- Filtro `fp_dmk_allowed_asset_category_slugs` sulle categorie consentite per utente (vedi `AudienceService::get_allowed_category_slugs_for_user`).
+
 ## [1.6.1] - 2026-03-27
 
 ### Fixed

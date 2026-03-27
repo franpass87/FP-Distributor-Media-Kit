@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace FP\DistributorMediaKit\Frontend;
 
+use FP\DistributorMediaKit\User\AudienceService;
+
 /**
  * Shortcode [fp_dmk_register] - Form registrazione.
  *
@@ -32,6 +34,7 @@ final class ShortcodeRegister {
 			'password_no_lower'=> __( 'La password deve contenere almeno una lettera minuscola.', 'fp-dmk' ),
 			'password_no_number'=> __( 'La password deve contenere almeno un numero.', 'fp-dmk' ),
 			'create_failed'    => __( 'Si è verificato un errore. Riprova.', 'fp-dmk' ),
+			'invalid_segment'  => __( 'Seleziona il tipo di accesso richiesto.', 'fp-dmk' ),
 		];
 		$error_msg = isset( $messages[ $error ] ) ? $messages[ $error ] : '';
 
@@ -66,6 +69,21 @@ final class ShortcodeRegister {
 		$html .= '<input type="password" id="fp_dmk_reg_password" name="password" class="fpdmk-input" required minlength="8" placeholder="' . esc_attr__( 'Minimo 8 caratteri', 'fp-dmk' ) . '" aria-describedby="fp_dmk_reg_password_hint">';
 		$html .= '<span id="fp_dmk_reg_password_hint" class="fpdmk-hint">' . esc_html( $password_hint ) . '</span>';
 		$html .= '</div>';
+		if ( AudienceService::is_audience_enabled() ) {
+			$segments = AudienceService::get_segments();
+			if ( $segments !== [] ) {
+				$html .= '<div class="fpdmk-field">';
+				$html .= '<label for="fp_dmk_reg_segment">' . esc_html__( 'Tipo di accesso', 'fp-dmk' ) . ' <span class="required">*</span></label>';
+				$html .= '<select id="fp_dmk_reg_segment" name="fp_dmk_segment" class="fpdmk-select" required>';
+				$html .= '<option value="">' . esc_html__( '— Seleziona —', 'fp-dmk' ) . '</option>';
+				foreach ( $segments as $row ) {
+					$html .= '<option value="' . esc_attr( $row['slug'] ) . '">' . esc_html( $row['label'] ) . '</option>';
+				}
+				$html .= '</select>';
+				$html .= '<span class="fpdmk-hint">' . esc_html__( 'Il materiale visibile dipende dal tipo scelto e dalla configurazione del sito.', 'fp-dmk' ) . '</span>';
+				$html .= '</div>';
+			}
+		}
 		$html .= '<div class="fpdmk-field fpdmk-field-submit">';
 		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-primary">' . esc_html__( 'Registrati', 'fp-dmk' ) . '</button>';
 		$login_page_id = (int) get_option( 'fp_dmk_login_page', 0 );

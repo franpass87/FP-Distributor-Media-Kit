@@ -25,6 +25,12 @@ final class SettingsPage {
 		'notify_pending_registration'  => false,
 		'daily_download_report'        => false,
 		'purge_days'                   => 0,
+		'audience_enabled'             => false,
+		'audience_segments'            => [
+			[ 'slug' => 'distributor', 'label' => 'Distributore' ],
+			[ 'slug' => 'journalist', 'label' => 'Giornalista' ],
+		],
+		'audience_segment_categories'  => [],
 		// Aspetto frontend
 		'btn_primary'        => '#667eea',
 		'btn_primary_end'    => '#764ba2',
@@ -77,6 +83,46 @@ final class SettingsPage {
 		$opts['notify_pending_registration'] = ! empty( $_POST['notify_pending_registration'] );
 		$opts['daily_download_report']      = ! empty( $_POST['daily_download_report'] );
 		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
+
+		$seg_slugs  = isset( $_POST['audience_seg_slug'] ) ? (array) wp_unslash( $_POST['audience_seg_slug'] ) : [];
+		$seg_labels = isset( $_POST['audience_seg_label'] ) ? (array) wp_unslash( $_POST['audience_seg_label'] ) : [];
+		$segments_parsed = [];
+		foreach ( $seg_slugs as $idx => $raw_slug ) {
+			$slug = sanitize_key( is_string( $raw_slug ) ? $raw_slug : '' );
+			if ( $slug === '' ) {
+				continue;
+			}
+			$label_raw = isset( $seg_labels[ $idx ] ) ? (string) $seg_labels[ $idx ] : '';
+			$label     = sanitize_text_field( $label_raw );
+			if ( $label === '' ) {
+				$label = $slug;
+			}
+			$segments_parsed[] = [ 'slug' => $slug, 'label' => $label ];
+		}
+		$audience_on = ! empty( $_POST['audience_enabled'] );
+		if ( $audience_on && $segments_parsed === [] ) {
+			$audience_on = false;
+		}
+		$opts['audience_enabled']           = $audience_on;
+		$opts['audience_segments']          = $segments_parsed;
+		$opts['audience_segment_categories'] = [];
+		$valid_slugs                        = array_column( $segments_parsed, 'slug' );
+		$restrict_post                      = isset( $_POST['audience_restrict'] ) && is_array( $_POST['audience_restrict'] ) ? wp_unslash( $_POST['audience_restrict'] ) : [];
+		foreach ( $valid_slugs as $seg_key ) {
+			if ( empty( $restrict_post[ $seg_key ] ) ) {
+				continue;
+			}
+			$raw_cats = isset( $_POST['audience_segment_cats'][ $seg_key ] ) && is_array( $_POST['audience_segment_cats'][ $seg_key ] )
+				? wp_unslash( $_POST['audience_segment_cats'][ $seg_key ] )
+				: [];
+			$vals     = [];
+			foreach ( $raw_cats as $t ) {
+				$vals[] = sanitize_title( is_string( $t ) ? $t : (string) $t );
+			}
+			$vals = array_values( array_unique( array_filter( $vals ) ) );
+			$opts['audience_segment_categories'][ $seg_key ] = $vals;
+		}
+
 		// Aspetto
 		$hex = static fn( string $k ) => isset( $_POST[ $k ] ) ? ( self::sanitize_hex( (string) wp_unslash( $_POST[ $k ] ) ) ?: self::DEFAULTS[ $k ] ) : self::DEFAULTS[ $k ];
 		$opts['btn_primary'] = $hex( 'btn_primary' );
@@ -122,6 +168,14 @@ final class SettingsPage {
 		}
 		$opts = wp_parse_args( get_option( self::OPTION_KEY, [] ), self::DEFAULTS );
 		$pages = get_pages( [ 'sort_column' => 'post_title' ] );
+		$seg_form_rows = isset( $opts['audience_segments'] ) && is_array( $opts['audience_segments'] ) ? $opts['audience_segments'] : [];
+		$seg_form_rows[] = [ 'slug' => '', 'label' => '' ];
+		$matrix_segments = \FP\DistributorMediaKit\User\AudienceService::get_segments();
+		$cat_map         = isset( $opts['audience_segment_categories'] ) && is_array( $opts['audience_segment_categories'] ) ? $opts['audience_segment_categories'] : [];
+		$asset_terms     = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => false ] );
+		if ( is_wp_error( $asset_terms ) ) {
+			$asset_terms = [];
+		}
 		?>
 		<div class="wrap fpdmk-admin-page">
 			<h1 class="screen-reader-text"><?php esc_html_e( 'FP Media Kit', 'fp-dmk' ); ?></h1>
@@ -262,6 +316,83 @@ final class SettingsPage {
 			<div class="fpdmk-card">
 				<div class="fpdmk-card-header">
 					<div class="fpdmk-card-header-left">
+						<span class="dashicons dashicons-groups"></span>
+						<h2><?php esc_html_e( 'Tipi di accesso (audience)', 'fp-dmk' ); ?></h2>
+					</div>
+				</div>
+				<div class="fpdmk-card-body">
+					<div class="fpdmk-field fpdmk-toggle-row">
+						<div class="fpdmk-toggle-info">
+							<strong><?php esc_html_e( 'Abilita tipi di accesso', 'fp-dmk' ); ?></strong>
+							<span><?php esc_html_e( 'In registrazione compare la scelta del tipo; puoi limitare le categorie di asset per tipo. Staff (admin, editori, gestori Media Kit) vede sempre tutto.', 'fp-dmk' ); ?></span>
+						</div>
+						<label class="fpdmk-toggle">
+							<input type="checkbox" name="audience_enabled" value="1" <?php checked( ! empty( $opts['audience_enabled'] ) ); ?>>
+							<span class="fpdmk-toggle-slider"></span>
+						</label>
+					</div>
+					<p class="description fpdmk-mb"><?php esc_html_e( 'Definisci slug (solo lettere minuscole, numeri, trattini) e etichetta. Aggiungi righe lasciando l’ultima vuota per nuovi tipi.', 'fp-dmk' ); ?></p>
+					<table class="fpdmk-table fpdmk-mb">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Slug', 'fp-dmk' ); ?></th>
+								<th><?php esc_html_e( 'Etichetta', 'fp-dmk' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $seg_form_rows as $row ) : ?>
+								<?php
+								$rslug = isset( $row['slug'] ) ? sanitize_key( (string) $row['slug'] ) : '';
+								$rlab  = isset( $row['label'] ) ? (string) $row['label'] : '';
+								?>
+								<tr>
+									<td><input type="text" name="audience_seg_slug[]" class="regular-text" value="<?php echo esc_attr( $rslug ); ?>" pattern="[a-z0-9\-]+" placeholder="es. journalist"></td>
+									<td><input type="text" name="audience_seg_label[]" class="regular-text" value="<?php echo esc_attr( $rlab ); ?>" placeholder="<?php esc_attr_e( 'Nome visualizzato', 'fp-dmk' ); ?>"></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+					<?php if ( $matrix_segments !== [] && $asset_terms !== [] ) : ?>
+						<h3 class="fpdmk-subheading"><?php esc_html_e( 'Categorie asset per tipo', 'fp-dmk' ); ?></h3>
+						<p class="description fpdmk-mb"><?php esc_html_e( 'Solo se attivi «Limita categorie» per un tipo: scegli quali categorie può vedere. Nessuna spunta = nessun file per quel tipo. Senza limite (checkbox disattivata) = tutte le categorie.', 'fp-dmk' ); ?></p>
+						<?php foreach ( $matrix_segments as $mrow ) : ?>
+							<?php
+							$mslug    = $mrow['slug'];
+							$restricted = array_key_exists( $mslug, $cat_map );
+							$sel      = $restricted && isset( $cat_map[ $mslug ] ) && is_array( $cat_map[ $mslug ] ) ? $cat_map[ $mslug ] : [];
+							?>
+							<div class="fpdmk-card fpdmk-card-nested fpdmk-mb">
+								<div class="fpdmk-card-body">
+									<p><strong><?php echo esc_html( $mrow['label'] ); ?></strong> <code><?php echo esc_html( $mslug ); ?></code></p>
+									<label class="fpdmk-field">
+										<input type="checkbox" name="audience_restrict[<?php echo esc_attr( $mslug ); ?>]" value="1" <?php checked( $restricted ); ?>>
+										<?php esc_html_e( 'Limita categorie per questo tipo', 'fp-dmk' ); ?>
+									</label>
+									<div class="fpdmk-fields-grid" style="margin-top:12px;">
+										<?php foreach ( $asset_terms as $term ) : ?>
+											<?php
+											if ( ! $term instanceof \WP_Term ) {
+												continue;
+											}
+											?>
+											<label class="fpdmk-field" style="display:flex;align-items:center;gap:8px;">
+												<input type="checkbox" name="audience_segment_cats[<?php echo esc_attr( $mslug ); ?>][]" value="<?php echo esc_attr( $term->slug ); ?>" <?php checked( in_array( $term->slug, $sel, true ) ); ?>>
+												<?php echo esc_html( $term->name ); ?>
+											</label>
+										<?php endforeach; ?>
+									</div>
+								</div>
+							</div>
+						<?php endforeach; ?>
+					<?php elseif ( $matrix_segments !== [] && $asset_terms === [] ) : ?>
+						<p class="description"><?php esc_html_e( 'Crea almeno una categoria asset (Media Kit → Categorie) per configurare i permessi per tipo.', 'fp-dmk' ); ?></p>
+					<?php endif; ?>
+				</div>
+			</div>
+
+			<div class="fpdmk-card">
+				<div class="fpdmk-card-header">
+					<div class="fpdmk-card-header-left">
 						<span class="dashicons dashicons-art"></span>
 						<h2><?php esc_html_e( 'Aspetto', 'fp-dmk' ); ?></h2>
 					</div>
@@ -329,6 +460,5 @@ final class SettingsPage {
 			});
 			</script>
 		<?php
-		// Fix: il form deve wrappare tutto - correggo
 	}
 }

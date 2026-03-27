@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.6.1-blue)
+![Version](https://img.shields.io/badge/version-1.7.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -15,6 +15,7 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 - **Lista utenti** con tutti i distributori, filtro stato e azioni Approva/Revoca
 - **Report** con statistiche generali, attività per utente (cosa scaricano) e per asset (chi scarica)
 - **Notifica email** a tutti i distributori approvati (manual o automatica su nuovo asset)
+- **Tipi di accesso** (opzionale): in registrazione l’utente sceglie il tipo (es. distributore / giornalista); in impostazioni puoi limitare quali **categorie di asset** vede ogni tipo
 
 ## Compatibilità FP Mail SMTP
 
@@ -44,7 +45,7 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 
 | Shortcode | Descrizione |
 |-----------|-------------|
-| `[fp_dmk_register]` | Form registrazione (email, password, nome) |
+| `[fp_dmk_register]` | Form registrazione (email, password, nome; se abilitato: tipo di accesso) |
 | `[fp_dmk_login]` | Form login |
 | `[fp_dmk_media_kit]` | Griglia asset per categoria (solo utenti approvati) |
 
@@ -63,6 +64,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 | `do_action('fp_dmk_asset_published', $asset_id)` | Eseguito dopo publish di un asset |
 | `apply_filters('fp_dmk_allowed_mime_types', $types)` | Estende i tipi file consentiti per upload |
 | `apply_filters('fp_dmk_email_subject', $subject)` | Personalizza l'oggetto email notifica |
+| `apply_filters('fp_dmk_allowed_asset_category_slugs', $slugs, $user_id, $segment_slug)` | Elenco slug categorie asset consentite per l’utente (solo con audience attiva) |
 
 ## Struttura
 
@@ -71,7 +73,7 @@ fp-dmk-capabilities.php   # elenco capability (bootstrap + uninstall)
 src/
 ├── Core/Plugin.php
 ├── Admin/AssetManager, UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
-├── User/RegistrationHandler, ApprovalService
+├── User/RegistrationHandler, ApprovalService, AudienceService
 ├── Frontend/ShortcodeMediaKit, ShortcodeLogin, ShortcodeRegister, RestrictedContent
 ├── Download/ProxyController, TrackingService
 └── Email/NotificationService

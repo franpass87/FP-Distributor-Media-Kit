@@ -7,6 +7,7 @@ namespace FP\DistributorMediaKit\Email;
 use DateTimeImmutable;
 use FP\DistributorMediaKit\Report\ReportService;
 use FP\DistributorMediaKit\User\ApprovalService;
+use FP\DistributorMediaKit\User\AudienceService;
 
 /**
  * Invio email wp_mail a distributori approvati e notifiche amministratore.
@@ -88,6 +89,10 @@ final class NotificationService {
 			esc_html( $user->display_name ?: $user->user_login )
 		) . '</p>';
 		$body .= '<p>' . esc_html__( 'Email:', 'fp-dmk' ) . ' ' . esc_html( $user->user_email ) . '</p>';
+		$seg_label = AudienceService::get_user_segment_label( $user_id );
+		if ( $seg_label !== '' ) {
+			$body .= '<p>' . esc_html__( 'Tipo di accesso:', 'fp-dmk' ) . ' ' . esc_html( $seg_label ) . '</p>';
+		}
 		$body .= '<p><strong>' . esc_html__( 'Approva con un clic (non serve accedere alla bacheca WordPress):', 'fp-dmk' ) . '</strong><br>';
 		$body .= '<a href="' . esc_url( $approve_url ) . '">' . esc_html__( 'Approva distributore', 'fp-dmk' ) . '</a></p>';
 		$body .= '<p>' . esc_html__( 'Il link è personale e monouso: non inoltrarlo.', 'fp-dmk' ) . '</p>';

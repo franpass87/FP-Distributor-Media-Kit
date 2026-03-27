@@ -7,6 +7,7 @@ namespace FP\DistributorMediaKit\Frontend;
 use FP\DistributorMediaKit\Admin\AssetManager;
 use FP\DistributorMediaKit\Download\TrackingService;
 use FP\DistributorMediaKit\User\ApprovalService;
+use FP\DistributorMediaKit\User\AudienceService;
 
 /**
  * Shortcode [fp_dmk_media_kit] - Griglia asset per categoria.
@@ -42,15 +43,21 @@ final class ShortcodeMediaKit {
 			'orderby'        => 'title',
 			'order'          => 'ASC',
 		];
-		if ( $filter_cat !== '' ) {
+
+		$effective_cats = AudienceService::get_effective_category_slugs_for_query( $user_id, $filter_cat );
+		if ( $effective_cats !== null && $effective_cats === [] ) {
+			$query_args['post__in'] = [ 0 ];
+		} elseif ( $effective_cats !== null ) {
 			$query_args['tax_query'] = [
 				[
 					'taxonomy' => AssetManager::TAXONOMY,
 					'field'    => 'slug',
-					'terms'    => $filter_cat,
+					'terms'    => $effective_cats,
+					'operator' => 'IN',
 				],
 			];
 		}
+
 		if ( $filter_lang !== '' ) {
 			$query_args['meta_query'] = [
 				[
@@ -80,8 +87,19 @@ final class ShortcodeMediaKit {
 		}
 
 		$current_url = get_permalink();
-		$terms = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => true ] );
-		$terms = is_array( $terms ) ? $terms : [];
+		$terms       = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => true ] );
+		$terms       = is_array( $terms ) ? $terms : [];
+		$allowed     = AudienceService::get_allowed_category_slugs_for_user( $user_id );
+		if ( $allowed !== null && $allowed !== [] ) {
+			$terms = array_values(
+				array_filter(
+					$terms,
+					static fn( $t ): bool => $t instanceof \WP_Term && in_array( $t->slug, $allowed, true )
+				)
+			);
+		} elseif ( $allowed !== null && $allowed === [] ) {
+			$terms = [];
+		}
 
 		$html = '<div class="fpdmk-media-kit">';
 		$html .= '<div class="fpdmk-media-kit-header">';

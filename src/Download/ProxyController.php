@@ -6,6 +6,7 @@ namespace FP\DistributorMediaKit\Download;
 
 use FP\DistributorMediaKit\Admin\AssetManager;
 use FP\DistributorMediaKit\User\ApprovalService;
+use FP\DistributorMediaKit\User\AudienceService;
 
 /**
  * Endpoint proxy per download sicuro degli asset.
@@ -46,6 +47,9 @@ final class ProxyController {
 		$post = get_post( $asset_id );
 		if ( ! $post || $post->post_type !== AssetManager::CPT || $post->post_status !== 'publish' ) {
 			wp_die( esc_html__( 'Asset non trovato.', 'fp-dmk' ), 404 );
+		}
+		if ( ! AudienceService::user_can_access_asset( $user_id, $asset_id ) ) {
+			wp_die( esc_html__( 'Non hai accesso a questo file.', 'fp-dmk' ), 403 );
 		}
 		$file_id = (int) get_post_meta( $asset_id, AssetManager::META_FILE_ID, true );
 		if ( $file_id <= 0 ) {

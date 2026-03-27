@@ -112,6 +112,16 @@ final class RegistrationHandler {
 			exit;
 		}
 
+		$segment = isset( $_POST['fp_dmk_segment'] ) ? sanitize_key( wp_unslash( $_POST['fp_dmk_segment'] ) ) : '';
+		if ( AudienceService::is_audience_enabled() ) {
+			if ( $segment === '' || ! AudienceService::is_valid_segment_slug( $segment ) ) {
+				wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'invalid_segment', wp_get_referer() ?: home_url() ) );
+				exit;
+			}
+		} else {
+			$segment = '';
+		}
+
 		$user_id = wp_create_user( $email, $password, $email );
 		if ( is_wp_error( $user_id ) ) {
 			wp_safe_redirect( add_query_arg( 'fp_dmk_error', 'create_failed', wp_get_referer() ?: home_url() ) );
@@ -127,6 +137,9 @@ final class RegistrationHandler {
 		}
 
 		ApprovalService::set_approved( $user_id, false );
+		if ( $segment !== '' ) {
+			AudienceService::set_user_segment( $user_id, $segment );
+		}
 
 		$settings = get_option( 'fp_dmk_settings', [] );
 		if ( is_array( $settings ) && ! empty( $settings['notify_pending_registration'] ) ) {
@@ -141,6 +154,7 @@ final class RegistrationHandler {
 			'dmk_registration_submitted',
 			[
 				'user_id'       => (int) $user_id,
+				'segment'       => $segment !== '' ? $segment : null,
 				'source_plugin' => 'fp-distributor-media-kit',
 			]
 		);
