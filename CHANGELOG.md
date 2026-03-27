@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.1] - 2026-03-27
+
+### Fixed
+
+- `AudienceService::is_audience_enabled()`: considera la segmentazione disattiva se non c’è alcun segmento valido (evita registrazioni bloccate con `invalid_segment` quando il flag è on ma l’elenco segmenti è vuoto).
+
 ## [1.7.0] - 2026-03-27
 
 ### Added

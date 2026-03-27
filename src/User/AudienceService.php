@@ -28,9 +28,15 @@ final class AudienceService {
 
 	/**
 	 * Segmentazione attiva (form registrazione + filtri asset).
+	 *
+	 * Richiede almeno un segmento configurato, così non resta uno stato incoerente (flag on ma lista vuota).
 	 */
 	public static function is_audience_enabled(): bool {
-		return ! empty( self::get_settings()['audience_enabled'] );
+		if ( empty( self::get_settings()['audience_enabled'] ) ) {
+			return false;
+		}
+
+		return self::get_segments() !== [];
 	}
 
 	/**
