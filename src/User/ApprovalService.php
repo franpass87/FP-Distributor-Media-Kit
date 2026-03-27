@@ -24,11 +24,12 @@ final class ApprovalService {
 
 	/**
 	 * Verifica se l'utente è approvato.
-	 * Admin e editor bypassano il controllo (gestiscono il Media Kit).
+	 * Staff che gestisce il Media Kit bypassa il controllo: amministratori, chi ha `edit_posts`,
+	 * e il ruolo **FP Media Kit Manager** (`manage_fp_dmk` senza `edit_posts`).
 	 */
 	public static function is_approved( int $user_id ): bool {
 		$user = $user_id > 0 ? get_userdata( $user_id ) : false;
-		if ( $user instanceof \WP_User && ( user_can( $user, 'manage_options' ) || user_can( $user, 'edit_posts' ) ) ) {
+		if ( $user instanceof \WP_User && ( user_can( $user, 'manage_options' ) || user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_fp_dmk' ) ) ) {
 			return true;
 		}
 		return (string) get_user_meta( $user_id, self::META_KEY, true ) === self::STATUS_APPROVED;

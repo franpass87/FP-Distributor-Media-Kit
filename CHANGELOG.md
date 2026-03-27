@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.1] - 2026-03-27
+
+### Fixed
+
+- `ApprovalService::is_approved()`: bypass anche per capability **`manage_fp_dmk`** (ruolo FP Media Kit Manager), così lo staff può usare login frontend, shortcode Media Kit e download proxy senza essere bloccato come “non approvato”.
+
 ## [1.6.0] - 2026-03-27
 
 ### Added
