@@ -49,6 +49,14 @@ final class UserApprovalPage {
 		);
 		add_submenu_page(
 			'fp-dmk',
+			__( 'Caricamento multiplo', 'fp-dmk' ),
+			__( 'Caricamento multiplo', 'fp-dmk' ),
+			'manage_fp_dmk',
+			\FP\DistributorMediaKit\Admin\BulkUploadPage::PAGE_SLUG,
+			[ \FP\DistributorMediaKit\Admin\BulkUploadPage::class, 'render' ]
+		);
+		add_submenu_page(
+			'fp-dmk',
 			__( 'Utenti da approvare', 'fp-dmk' ),
 			__( 'Utenti da approvare', 'fp-dmk' ),
 			'manage_fp_dmk',

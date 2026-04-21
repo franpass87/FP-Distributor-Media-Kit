@@ -46,6 +46,7 @@ final class AssetManager {
 		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ self::class, 'column_content' ], 10, 2 );
 		add_filter( 'manage_edit-' . self::CPT . '_sortable_columns', [ self::class, 'sortable_columns' ] );
 		add_action( 'transition_post_status', [ self::class, 'on_publish' ], 10, 3 );
+		add_action( 'wp_ajax_fp_dmk_create_folder', [ self::class, 'ajax_create_folder' ] );
 	}
 
 	public static function register_cpt(): void {
@@ -202,7 +203,7 @@ final class AssetManager {
 			</div>
 			<div class="fpdmk-field">
 				<label for="fp_dmk_folder_term"><?php esc_html_e( 'Cartella', 'fp-dmk' ); ?></label>
-				<select id="fp_dmk_folder_term" name="fp_dmk_folder_term">
+				<select id="fp_dmk_folder_term" name="fp_dmk_folder_term" class="fpdmk-folder-select">
 					<option value="0"><?php esc_html_e( '— Nessuna cartella —', 'fp-dmk' ); ?></option>
 					<?php
 					$sel_folder = 0;
@@ -217,12 +218,36 @@ final class AssetManager {
 						}
 						$pad = str_repeat( '— ', $row['depth'] );
 						?>
-						<option value="<?php echo (int) $t->term_id; ?>" <?php selected( $sel_folder, (int) $t->term_id ); ?>><?php echo esc_html( $pad . $t->name ); ?></option>
+						<option value="<?php echo (int) $t->term_id; ?>" data-depth="<?php echo (int) $row['depth']; ?>" <?php selected( $sel_folder, (int) $t->term_id ); ?>><?php echo esc_html( $pad . $t->name ); ?></option>
 						<?php
 					}
 					?>
 				</select>
-				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Crea le cartelle da FP Media Kit → Cartelle.', 'fp-dmk' ); ?></span>
+				<?php if ( current_user_can( 'manage_fp_dmk_categories' ) ) : ?>
+					<div class="fpdmk-folder-new" data-target="#fp_dmk_folder_term">
+						<button type="button" class="button fpdmk-folder-new-toggle"><span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e( 'Nuova cartella', 'fp-dmk' ); ?></button>
+						<div class="fpdmk-folder-new-form" hidden>
+							<input type="text" class="regular-text fpdmk-folder-new-name" placeholder="<?php esc_attr_e( 'Nome della cartella', 'fp-dmk' ); ?>">
+							<select class="fpdmk-folder-new-parent">
+								<option value="0"><?php esc_html_e( '— Nessun parent (radice) —', 'fp-dmk' ); ?></option>
+								<?php foreach ( self::get_folder_terms_hierarchical_options() as $row ) : ?>
+									<?php
+									$t = $row['term'];
+									if ( ! $t instanceof \WP_Term ) {
+										continue;
+									}
+									$pad = str_repeat( '— ', $row['depth'] );
+									?>
+									<option value="<?php echo (int) $t->term_id; ?>"><?php echo esc_html( $pad . $t->name ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<button type="button" class="button button-primary fpdmk-folder-new-save"><?php esc_html_e( 'Crea', 'fp-dmk' ); ?></button>
+							<button type="button" class="button fpdmk-folder-new-cancel"><?php esc_html_e( 'Annulla', 'fp-dmk' ); ?></button>
+							<span class="fpdmk-folder-new-msg" role="status" aria-live="polite"></span>
+						</div>
+					</div>
+				<?php endif; ?>
+				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Puoi crearne una nuova al volo oppure gestirle da FP Media Kit → Cartelle.', 'fp-dmk' ); ?></span>
 			</div>
 		</div>
 		<script>
@@ -247,6 +272,75 @@ final class AssetManager {
 				document.getElementById('fp_dmk_file_id').value = '0';
 				location.reload();
 			});
+
+			<?php if ( current_user_can( 'manage_fp_dmk_categories' ) ) : ?>
+			var nonce    = <?php echo wp_json_encode( wp_create_nonce( 'fp_dmk_create_folder' ) ); ?>;
+			var ajaxUrl  = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+			var widget   = document.querySelector('.fpdmk-folder-new');
+			if (widget) {
+				var targetSel = document.querySelector(widget.dataset.target);
+				var parentSel = widget.querySelector('.fpdmk-folder-new-parent');
+				var toggle    = widget.querySelector('.fpdmk-folder-new-toggle');
+				var form      = widget.querySelector('.fpdmk-folder-new-form');
+				var nameInput = widget.querySelector('.fpdmk-folder-new-name');
+				var saveBtn   = widget.querySelector('.fpdmk-folder-new-save');
+				var cancelBtn = widget.querySelector('.fpdmk-folder-new-cancel');
+				var msg       = widget.querySelector('.fpdmk-folder-new-msg');
+				toggle.addEventListener('click', function() {
+					form.hidden = false;
+					toggle.hidden = true;
+					nameInput.focus();
+				});
+				cancelBtn.addEventListener('click', function() {
+					form.hidden = true;
+					toggle.hidden = false;
+					nameInput.value = '';
+					msg.textContent = '';
+				});
+				saveBtn.addEventListener('click', function() {
+					var name = (nameInput.value || '').trim();
+					if (!name) { nameInput.focus(); return; }
+					saveBtn.disabled = true;
+					msg.textContent = <?php echo wp_json_encode( __( 'Creazione in corso…', 'fp-dmk' ) ); ?>;
+					var body = new URLSearchParams();
+					body.append('action', 'fp_dmk_create_folder');
+					body.append('_nonce', nonce);
+					body.append('name', name);
+					body.append('parent', parentSel.value || '0');
+					fetch(ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body }).then(function(r){ return r.json(); }).then(function(res){
+						saveBtn.disabled = false;
+						if (!res || !res.success) {
+							msg.textContent = (res && res.data && res.data.message) ? res.data.message : <?php echo wp_json_encode( __( 'Errore durante la creazione.', 'fp-dmk' ) ); ?>;
+							return;
+						}
+						var d = res.data;
+						var pad = ''; for (var i=0;i<d.depth;i++) pad += '— ';
+						var optText = pad + d.name;
+						var existing = targetSel.querySelector('option[value="' + d.term_id + '"]');
+						if (!existing) {
+							var opt = document.createElement('option');
+							opt.value = d.term_id;
+							opt.textContent = optText;
+							opt.setAttribute('data-depth', d.depth);
+							targetSel.appendChild(opt);
+							var popt = document.createElement('option');
+							popt.value = d.term_id;
+							popt.textContent = optText;
+							parentSel.appendChild(popt);
+						}
+						targetSel.value = String(d.term_id);
+						nameInput.value = '';
+						parentSel.value = '0';
+						form.hidden = true;
+						toggle.hidden = false;
+						msg.textContent = d.existed ? <?php echo wp_json_encode( __( 'Cartella già esistente, selezionata.', 'fp-dmk' ) ); ?> : <?php echo wp_json_encode( __( 'Cartella creata e selezionata.', 'fp-dmk' ) ); ?>;
+					}).catch(function(){
+						saveBtn.disabled = false;
+						msg.textContent = <?php echo wp_json_encode( __( 'Errore di rete.', 'fp-dmk' ) ); ?>;
+					});
+				});
+			}
+			<?php endif; ?>
 		})();
 		</script>
 		<?php
@@ -469,5 +563,75 @@ final class AssetManager {
 			return;
 		}
 		do_action( 'fp_dmk_asset_published', (int) $post->ID );
+	}
+
+	/**
+	 * AJAX: crea una nuova cartella ({@see self::TAXONOMY_FOLDER}) con nome + parent opzionale
+	 * e restituisce le informazioni del termine (compresa la profondità) così che il frontend
+	 * possa aggiornare le `<select>` senza ricaricare la pagina.
+	 *
+	 * Se un termine con stesso nome/slug esiste già sotto lo stesso parent, lo restituisce
+	 * con il flag `existed=true` invece di fallire: così l'utente può semplicemente selezionarlo
+	 * senza ricevere un errore poco utile.
+	 */
+	public static function ajax_create_folder(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_folder', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['name'] ) ) : '';
+		$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+
+		if ( $name === '' ) {
+			wp_send_json_error( [ 'message' => __( 'Il nome della cartella è obbligatorio.', 'fp-dmk' ) ], 400 );
+		}
+
+		if ( $parent > 0 ) {
+			$parent_term = get_term( $parent, self::TAXONOMY_FOLDER );
+			if ( ! $parent_term instanceof \WP_Term || is_wp_error( $parent_term ) ) {
+				wp_send_json_error( [ 'message' => __( 'Cartella superiore non valida.', 'fp-dmk' ) ], 400 );
+			}
+		}
+
+		$result = wp_insert_term( $name, self::TAXONOMY_FOLDER, [ 'parent' => $parent ] );
+		if ( is_wp_error( $result ) ) {
+			$existing_id = $result->get_error_data( 'term_exists' );
+			if ( $existing_id ) {
+				$existing = get_term( (int) $existing_id, self::TAXONOMY_FOLDER );
+				if ( $existing instanceof \WP_Term && ! is_wp_error( $existing ) ) {
+					wp_send_json_success(
+						[
+							'term_id' => (int) $existing->term_id,
+							'name'    => $existing->name,
+							'parent'  => (int) $existing->parent,
+							'depth'   => self::folder_term_depth( $existing ),
+							'label'   => self::get_folder_breadcrumb_label( $existing ),
+							'existed' => true,
+						]
+					);
+				}
+			}
+			wp_send_json_error( [ 'message' => $result->get_error_message() ], 400 );
+		}
+
+		$term_id = isset( $result['term_id'] ) ? (int) $result['term_id'] : 0;
+		$term    = $term_id > 0 ? get_term( $term_id, self::TAXONOMY_FOLDER ) : null;
+		if ( ! $term instanceof \WP_Term ) {
+			wp_send_json_error( [ 'message' => __( 'Errore nel recupero del termine creato.', 'fp-dmk' ) ], 500 );
+		}
+
+		wp_send_json_success(
+			[
+				'term_id' => (int) $term->term_id,
+				'name'    => $term->name,
+				'parent'  => (int) $term->parent,
+				'depth'   => self::folder_term_depth( $term ),
+				'label'   => self::get_folder_breadcrumb_label( $term ),
+				'existed' => false,
+			]
+		);
 	}
 }

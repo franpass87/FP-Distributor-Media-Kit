@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0] - 2026-04-21
+
+### Added
+
+- Nuova voce di menu **FP Media Kit → Caricamento multiplo**: seleziona N file dalla Libreria media in una sola volta e crea in blocco gli asset del Media Kit. Valori predefiniti (lingua, cartella, categorie) applicati a tutti i file, con override per singolo file su titolo, descrizione, lingua, cartella e categorie. Gli asset vengono creati in stato pubblicato e innescano l'hook `fp_dmk_asset_published` (quindi scatta anche la notifica automatica ai distributori, se abilitata).
+- Bottone **"+ Nuova cartella"** inline nel metabox del singolo asset e nella pagina Caricamento multiplo: crea una cartella (con parent opzionale) via AJAX senza ricaricare la pagina; la nuova cartella viene aggiunta a tutte le select cartella della schermata corrente (bulk: anche alle righe file già presenti). Richiede la capability `manage_fp_dmk_categories`.
+
 ## [1.8.0] - 2026-03-27
 
 ### Added

@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace FP\DistributorMediaKit\Core;
 
 use FP\DistributorMediaKit\Admin\AssetManager;
+use FP\DistributorMediaKit\Admin\BulkUploadPage;
 use FP\DistributorMediaKit\Admin\DownloadsLogPage;
 use FP\DistributorMediaKit\Admin\NotifyUsersPage;
 use FP\DistributorMediaKit\Admin\ReportsPage;
@@ -62,6 +63,7 @@ final class Plugin {
 			new SettingsPage();
 			new NotifyUsersPage();
 			new DownloadsLogPage();
+			new BulkUploadPage();
 		}
 
 		// Cron pulizia log e report giornaliero download
