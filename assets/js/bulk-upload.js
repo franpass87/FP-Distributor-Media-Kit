@@ -391,29 +391,32 @@
 		var completed = 0;
 		var total = queue.length;
 
+		function startOne( file ) {
+			uploadOne( file )
+				.then( function ( json ) {
+					addRow( mapRestToAtt( json, file ) );
+				} )
+				.catch( function ( err ) {
+					errors++;
+					setStatus( file.name + ': ' + ( err.message || 'Error' ), 'error' );
+				} )
+				.finally( function () {
+					inflight--;
+					completed++;
+					if ( completed === total ) {
+						if ( errors === 0 ) {
+							setStatus( i18n.uploadDone || '', 'success' );
+						}
+					} else {
+						pump();
+					}
+				} );
+		}
+
 		function pump() {
 			while ( inflight < MAX_PARALLEL && queue.length > 0 ) {
 				inflight++;
-				var file = queue.shift();
-				uploadOne( file )
-					.then( function ( json ) {
-						addRow( mapRestToAtt( json, file ) );
-					} )
-					.catch( function ( err ) {
-						errors++;
-						setStatus( file.name + ': ' + ( err.message || 'Error' ), 'error' );
-					} )
-					.finally( function () {
-						inflight--;
-						completed++;
-						if ( completed === total ) {
-							if ( errors === 0 ) {
-								setStatus( i18n.uploadDone || '', 'success' );
-							}
-						} else {
-							pump();
-						}
-					} );
+				startOne( queue.shift() );
 			}
 		}
 		pump();
