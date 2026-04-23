@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.11.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo**: **selezione multipla** delle righe in coda (checkbox per riga + master nel thead con stato indeterminato) e **toolbar azioni in blocco**: «Sposta in cartella selezionata» (usa la cartella evidenziata nell'albero), «Imposta lingua predefinita», «Applica categorie predefinite», «Rimuovi» (con conferma). Le azioni toccano solo le righe selezionate, non i file ancora in upload.
+
 ## [1.10.0] - 2026-04-23
 
 ### Added

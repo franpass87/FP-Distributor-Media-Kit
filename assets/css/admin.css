@@ -1044,6 +1044,50 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 .fpdmk-bulk-placeholder.is-error .fpdmk-bulk-placeholder-name {
 	color: var(--fpdms-danger-text);
 }
+/* Selezione multipla e azioni bulk */
+.fpdmk-bulk-col-check {
+	width: 32px;
+	text-align: center;
+}
+.fpdmk-bulk-col-check input[type="checkbox"] {
+	margin: 0;
+}
+.fpdmk-bulk-bulkbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	margin-bottom: 10px;
+	background: var(--fpdms-info-bg);
+	border: 1px solid var(--fpdms-info);
+	border-radius: var(--radius-md);
+	color: var(--fpdms-info-text);
+	font-size: 0.9rem;
+}
+.fpdmk-bulk-bulkbar .fpdmk-bulk-bulkbar-count {
+	font-weight: 600;
+}
+.fpdmk-bulk-bulkbar-sep {
+	color: var(--fpdms-info);
+}
+.fpdmk-bulk-bulkbar .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.fpdmk-bulk-bulkbar .button .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+.fpdmk-bulk-bulkbar .fpdmk-bulk-action.is-danger {
+	border-color: var(--fpdms-danger);
+	color: var(--fpdms-danger-text);
+}
+.fpdmk-bulk-bulkbar .fpdmk-bulk-action.is-danger:hover {
+	background: var(--fpdms-danger-bg);
+}
 .fpdmk-bulk-footer-actions {
 	display: flex;
 	flex-wrap: wrap;

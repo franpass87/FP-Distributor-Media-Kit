@@ -93,6 +93,7 @@ final class BulkUploadPage {
 					'treeLabel'         => __( 'Struttura cartelle Media Kit', 'fp-dmk' ),
 					'filterByFolder'    => __( 'Mostra solo le righe con questa cartella', 'fp-dmk' ),
 					'dragRowHint'       => __( 'Trascina una riga su una cartella per assegnarla.', 'fp-dmk' ),
+					'confirmBulkRemove' => __( 'Rimuovere %d file dalla coda?', 'fp-dmk' ),
 				],
 			]
 		);
@@ -336,10 +337,22 @@ final class BulkUploadPage {
 							<input type="file" id="fpdmk-bulk-file-input" class="fpdmk-bulk-file-input-hidden" multiple accept="<?php echo esc_attr( $file_accept ); ?>">
 							<p id="fpdmk-bulk-status" class="fpdmk-bulk-status" role="status" aria-live="polite"></p>
 							<div id="fpdmk-bulk-empty" class="description fpdmk-bulk-empty-msg"><?php esc_html_e( 'Nessun file in coda. Usa la zona sopra o la Libreria media.', 'fp-dmk' ); ?></div>
+							<div id="fpdmk-bulk-bulkbar" class="fpdmk-bulk-bulkbar is-hidden" role="toolbar" aria-label="<?php esc_attr_e( 'Azioni in blocco', 'fp-dmk' ); ?>">
+								<span class="fpdmk-bulk-bulkbar-count"><span id="fpdmk-bulk-sel-count">0</span> <?php esc_html_e( 'selezionati', 'fp-dmk' ); ?></span>
+								<span class="fpdmk-bulk-bulkbar-sep" aria-hidden="true">·</span>
+								<button type="button" class="button fpdmk-bulk-action" data-action="set-folder"><span class="dashicons dashicons-portfolio"></span> <?php esc_html_e( 'Sposta in cartella selezionata', 'fp-dmk' ); ?></button>
+								<button type="button" class="button fpdmk-bulk-action" data-action="set-language"><span class="dashicons dashicons-translation"></span> <?php esc_html_e( 'Imposta lingua predefinita', 'fp-dmk' ); ?></button>
+								<button type="button" class="button fpdmk-bulk-action" data-action="set-categories"><span class="dashicons dashicons-category"></span> <?php esc_html_e( 'Applica categorie predefinite', 'fp-dmk' ); ?></button>
+								<button type="button" class="button fpdmk-bulk-action is-danger" data-action="remove"><span class="dashicons dashicons-trash"></span> <?php esc_html_e( 'Rimuovi', 'fp-dmk' ); ?></button>
+							</div>
 							<div class="fpdmk-bulk-table-wrap">
 								<table class="fpdmk-table fpdmk-bulk-table is-hidden" id="fpdmk-bulk-table">
 									<thead>
 										<tr>
+											<th class="fpdmk-bulk-col-check">
+												<label class="screen-reader-text" for="fpdmk-bulk-master-check"><?php esc_html_e( 'Seleziona tutto', 'fp-dmk' ); ?></label>
+												<input type="checkbox" id="fpdmk-bulk-master-check">
+											</th>
 											<th class="fpdmk-bulk-col-file"><?php esc_html_e( 'File', 'fp-dmk' ); ?></th>
 											<th class="fpdmk-bulk-col-title"><?php esc_html_e( 'Titolo', 'fp-dmk' ); ?></th>
 											<th class="fpdmk-bulk-col-desc"><?php esc_html_e( 'Descrizione', 'fp-dmk' ); ?></th>
@@ -383,6 +396,10 @@ final class BulkUploadPage {
 
 			<script type="text/html" id="tmpl-fpdmk-bulk-row">
 				<tr data-row-id="{{ data.rowId }}">
+					<td class="fpdmk-bulk-col-check">
+						<label class="screen-reader-text"><?php esc_html_e( 'Seleziona riga', 'fp-dmk' ); ?></label>
+						<input type="checkbox" class="fpdmk-bulk-row-check">
+					</td>
 					<td>
 						<input type="hidden" name="items[{{ data.rowId }}][attachment_id]" value="{{ data.id }}">
 						<strong>{{ data.filename }}</strong>

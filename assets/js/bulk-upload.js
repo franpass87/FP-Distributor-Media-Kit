@@ -65,6 +65,9 @@
 		$empty.classList.toggle( 'is-hidden', hasAnyRows() );
 		$submit.disabled = n === 0;
 		applyFolderFilter();
+		if ( typeof updateBulkbar === 'function' ) {
+			updateBulkbar();
+		}
 	}
 
 	function applyFolderFilter() {
@@ -460,7 +463,7 @@
 		var tr = document.createElement( 'tr' );
 		tr.className = 'fpdmk-bulk-row fpdmk-bulk-placeholder';
 		var td = document.createElement( 'td' );
-		td.colSpan = 7;
+		td.colSpan = 8;
 		var wrap = document.createElement( 'div' );
 		wrap.className = 'fpdmk-bulk-placeholder-inner';
 		var label = document.createElement( 'span' );
@@ -720,22 +723,165 @@
 		} );
 	}
 
+	function removeRow( tr ) {
+		if ( ! tr ) {
+			return;
+		}
+		var hid = tr.querySelector( 'input[type="hidden"]' );
+		if ( hid && hid.value ) {
+			delete addedIds[ hid.value ];
+		}
+		tr.parentNode.removeChild( tr );
+	}
+
 	function bindRemove() {
 		$tbody.addEventListener( 'click', function ( e ) {
 			var btn = e.target.closest( '.fpdmk-bulk-remove' );
 			if ( ! btn ) {
 				return;
 			}
-			var tr = btn.closest( 'tr' );
-			if ( ! tr ) {
+			removeRow( btn.closest( 'tr' ) );
+			refreshUI();
+			updateBulkbar();
+		} );
+	}
+
+	var $masterCheck = document.getElementById( 'fpdmk-bulk-master-check' );
+	var $bulkbar = document.getElementById( 'fpdmk-bulk-bulkbar' );
+	var $selCount = document.getElementById( 'fpdmk-bulk-sel-count' );
+
+	function readyRows() {
+		return Array.prototype.slice.call(
+			$tbody.querySelectorAll( 'tr.fpdmk-bulk-row:not(.fpdmk-bulk-placeholder)' )
+		);
+	}
+
+	function selectedRows() {
+		return readyRows().filter( function ( tr ) {
+			var cb = tr.querySelector( '.fpdmk-bulk-row-check' );
+			return cb && cb.checked;
+		} );
+	}
+
+	function updateBulkbar() {
+		var sel = selectedRows();
+		var n = sel.length;
+		if ( $selCount ) {
+			$selCount.textContent = String( n );
+		}
+		if ( $bulkbar ) {
+			$bulkbar.classList.toggle( 'is-hidden', n === 0 );
+		}
+		if ( $masterCheck ) {
+			var rows = readyRows();
+			if ( rows.length === 0 ) {
+				$masterCheck.checked = false;
+				$masterCheck.indeterminate = false;
+			} else if ( n === 0 ) {
+				$masterCheck.checked = false;
+				$masterCheck.indeterminate = false;
+			} else if ( n === rows.length ) {
+				$masterCheck.checked = true;
+				$masterCheck.indeterminate = false;
+			} else {
+				$masterCheck.checked = false;
+				$masterCheck.indeterminate = true;
+			}
+		}
+	}
+
+	function bindSelection() {
+		$tbody.addEventListener( 'change', function ( e ) {
+			if ( e.target && e.target.classList && e.target.classList.contains( 'fpdmk-bulk-row-check' ) ) {
+				updateBulkbar();
+			}
+		} );
+		if ( $masterCheck ) {
+			$masterCheck.addEventListener( 'change', function () {
+				var on = $masterCheck.checked;
+				readyRows().forEach( function ( tr ) {
+					var cb = tr.querySelector( '.fpdmk-bulk-row-check' );
+					if ( cb ) {
+						cb.checked = on;
+					}
+				} );
+				updateBulkbar();
+			} );
+		}
+	}
+
+	function applyBulkAction( action ) {
+		var rows = selectedRows();
+		if ( rows.length === 0 ) {
+			return;
+		}
+		if ( action === 'set-folder' ) {
+			var fid = String( selectedFolderId );
+			rows.forEach( function ( tr ) {
+				var sel = tr.querySelector( 'select[name$="[folder_term]"]' );
+				if ( sel ) {
+					sel.value = fid;
+				}
+			} );
+			applyFolderFilter();
+			return;
+		}
+		if ( action === 'set-language' ) {
+			if ( ! $defLang ) {
 				return;
 			}
-			var hid = tr.querySelector( 'input[type="hidden"]' );
-			if ( hid && hid.value ) {
-				delete addedIds[ hid.value ];
+			var lang = $defLang.value;
+			rows.forEach( function ( tr ) {
+				var sel = tr.querySelector( 'select[name$="[language]"]' );
+				if ( sel ) {
+					sel.value = lang;
+				}
+			} );
+			return;
+		}
+		if ( action === 'set-categories' ) {
+			if ( ! $defCats ) {
+				return;
 			}
-			tr.parentNode.removeChild( tr );
+			var selectedCats = [];
+			Array.prototype.forEach.call( $defCats.options, function ( o ) {
+				if ( o.selected ) {
+					selectedCats.push( o.value );
+				}
+			} );
+			rows.forEach( function ( tr ) {
+				var sel = tr.querySelector( 'select[name$="[categories][]"]' );
+				if ( ! sel ) {
+					return;
+				}
+				Array.prototype.forEach.call( sel.options, function ( o ) {
+					o.selected = selectedCats.indexOf( o.value ) !== -1;
+				} );
+			} );
+			return;
+		}
+		if ( action === 'remove' ) {
+			var msg = ( i18n.confirmBulkRemove || '' ).replace( '%d', String( rows.length ) );
+			if ( msg && ! window.confirm( msg ) ) {
+				return;
+			}
+			rows.forEach( removeRow );
 			refreshUI();
+			updateBulkbar();
+			return;
+		}
+	}
+
+	function bindBulkActions() {
+		if ( ! $bulkbar ) {
+			return;
+		}
+		$bulkbar.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest( '.fpdmk-bulk-action' );
+			if ( ! btn ) {
+				return;
+			}
+			applyBulkAction( btn.getAttribute( 'data-action' ) );
 		} );
 	}
 
@@ -833,6 +979,9 @@
 	bindDropzone();
 	bindMediaPicker();
 	bindRemove();
+	bindSelection();
+	bindBulkActions();
 	bindFolderCreate();
 	refreshUI();
+	updateBulkbar();
 } )();
