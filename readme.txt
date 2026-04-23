@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: media kit, distributor, download, private area, user approval
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.9.0
+Stable tag: 1.9.2
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com

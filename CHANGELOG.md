@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.2] - 2026-04-21
+
+### Changed
+
+- Pagina **Caricamento multiplo**: layout tipo explorer con **albero cartelle** a sinistra (espansione nodi, cartella attiva, drop target per righe), **zona drag-and-drop** per upload diretto nella Libreria media via REST (`/wp/v2/media`, fino a **3 upload in parallelo**), filtro opzionale «solo righe con la cartella selezionata», accessibilità tastiera sulla dropzone. Script dedicato `assets/js/bulk-upload.js` + `AssetManager::get_folder_tree_nested()` per i dati gerarchici.
+
 ## [1.9.0] - 2026-04-21
 
 ### Added

@@ -515,6 +515,56 @@ final class AssetManager {
 		}
 	}
 
+	/**
+	 * Albero cartelle annidato per UI (explorer / JSON in admin).
+	 *
+	 * @return list<array{id:int,name:string,slug:string,children:list<array<string,mixed>>}>
+	 */
+	public static function get_folder_tree_nested(): array {
+		$terms = get_terms(
+			[
+				'taxonomy'   => self::TAXONOMY_FOLDER,
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			]
+		);
+		if ( ! is_array( $terms ) || is_wp_error( $terms ) ) {
+			return [];
+		}
+		$by_parent = [];
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
+				continue;
+			}
+			$by_parent[ (int) $term->parent ][] = $term;
+		}
+		return self::build_folder_tree_nodes( $by_parent, 0 );
+	}
+
+	/**
+	 * @param array<int, list<\WP_Term>> $by_parent
+	 * @return list<array{id:int,name:string,slug:string,children:list<array<string,mixed>>}>
+	 */
+	private static function build_folder_tree_nodes( array $by_parent, int $parent_id ): array {
+		if ( empty( $by_parent[ $parent_id ] ) ) {
+			return [];
+		}
+		$nodes = [];
+		foreach ( $by_parent[ $parent_id ] as $t ) {
+			if ( ! $t instanceof \WP_Term ) {
+				continue;
+			}
+			$nodes[] = [
+				'id'       => (int) $t->term_id,
+				'name'     => $t->name,
+				'slug'     => $t->slug,
+				'children' => self::build_folder_tree_nodes( $by_parent, (int) $t->term_id ),
+			];
+		}
+		return $nodes;
+	}
+
 	public static function columns( array $columns ): array {
 		$new = [];
 		foreach ( $columns as $k => $v ) {
