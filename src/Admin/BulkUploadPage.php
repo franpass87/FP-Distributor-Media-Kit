@@ -102,6 +102,7 @@ final class BulkUploadPage {
 					'deleteEmpty'       => __( 'Eliminare la cartella «%s»?', 'fp-dmk' ),
 					'deleteWithAssets'  => __( 'La cartella «%1$s» contiene %2$d asset. Verranno spostati nella cartella superiore (o scollegati, se radice). Procedere?', 'fp-dmk' ),
 					'deleteHasChildren' => __( 'Elimina prima le sottocartelle oppure spostale altrove.', 'fp-dmk' ),
+					'dragGhost'         => __( '%d file selezionati', 'fp-dmk' ),
 				],
 			]
 		);

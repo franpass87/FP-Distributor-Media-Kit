@@ -32,6 +32,7 @@
 	var addedIds = {};
 	var frame;
 	var dragSourceRow = null;
+	var dragSourceRows = null;
 	var dragSourceFolderId = null;
 	var MAX_PARALLEL = 3;
 	var selectedFolderId = $defFold ? parseInt( $defFold.value, 10 ) || 0 : 0;
@@ -196,11 +197,7 @@
 				e.preventDefault();
 				btn.classList.remove( 'is-drop-target' );
 				if ( dragSourceRow ) {
-					var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
-					if ( sel ) {
-						sel.value = String( node.id );
-					}
-					dragSourceRow = null;
+					assignFolderToDraggedRows( String( node.id ) );
 					return;
 				}
 				if ( dragSourceFolderId !== null && dragSourceFolderId !== node.id ) {
@@ -374,6 +371,53 @@
 			.catch( function () {
 				window.alert( i18n.networkError || 'Network error' );
 			} );
+	}
+
+	/**
+	 * Applica la cartella (id come stringa) alla riga trascinata, o a tutte le righe selezionate
+	 * se il drag era partito da una riga facente parte del set selezionato.
+	 */
+	function assignFolderToDraggedRows( folderIdStr ) {
+		var targets;
+		if ( dragSourceRows && dragSourceRows.length > 0 ) {
+			targets = dragSourceRows;
+		} else if ( dragSourceRow ) {
+			targets = [ dragSourceRow ];
+		} else {
+			return;
+		}
+		targets.forEach( function ( tr ) {
+			var sel = tr.querySelector( 'select[name$="[folder_term]"]' );
+			if ( sel ) {
+				sel.value = folderIdStr;
+			}
+		} );
+		dragSourceRow = null;
+		dragSourceRows = null;
+		applyFolderFilter();
+	}
+
+	var dragGhostEl = null;
+	/**
+	 * Sostituisce l'immagine di drag nativa con un badge contatore: meglio per drag multipli.
+	 * Creiamo un elemento off-screen e lo usiamo come setDragImage.
+	 */
+	function renderDragGhost( e, n ) {
+		try {
+			dragGhostEl = document.createElement( 'div' );
+			dragGhostEl.className = 'fpdmk-bulk-drag-ghost';
+			dragGhostEl.textContent = ( i18n.dragGhost || '%d files' ).replace( '%d', String( n ) );
+			document.body.appendChild( dragGhostEl );
+			e.dataTransfer.setDragImage( dragGhostEl, 10, 10 );
+		} catch ( err ) {
+			/* browser potrebbe non supportare setDragImage: ignoriamo */
+		}
+	}
+	function removeDragGhost() {
+		if ( dragGhostEl && dragGhostEl.parentNode ) {
+			dragGhostEl.parentNode.removeChild( dragGhostEl );
+		}
+		dragGhostEl = null;
 	}
 
 	/**
@@ -598,11 +642,7 @@
 			e.preventDefault();
 			rootBtn.classList.remove( 'is-drop-target' );
 			if ( dragSourceRow ) {
-				var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
-				if ( sel ) {
-					sel.value = '0';
-				}
-				dragSourceRow = null;
+				assignFolderToDraggedRows( '0' );
 				return;
 			}
 			if ( dragSourceFolderId !== null ) {
@@ -727,7 +767,22 @@
 		}
 		tr.addEventListener( 'dragstart', function ( e ) {
 			dragSourceRow = tr;
+			dragSourceFolderId = null;
 			e.dataTransfer.effectAllowed = 'move';
+			// Se la riga trascinata è selezionata, coinvolgi l'intero set multiplo.
+			var cb = tr.querySelector( '.fpdmk-bulk-row-check' );
+			if ( cb && cb.checked ) {
+				var sel = selectedRows();
+				if ( sel.length > 1 ) {
+					dragSourceRows = sel;
+					sel.forEach( function ( r ) { r.classList.add( 'is-dragging' ); } );
+					renderDragGhost( e, sel.length );
+				} else {
+					dragSourceRows = null;
+				}
+			} else {
+				dragSourceRows = null;
+			}
 			try {
 				e.dataTransfer.setData( 'text/plain', rowId );
 			} catch ( err ) {
@@ -737,7 +792,12 @@
 		} );
 		tr.addEventListener( 'dragend', function () {
 			tr.classList.remove( 'is-dragging' );
+			if ( dragSourceRows ) {
+				dragSourceRows.forEach( function ( r ) { r.classList.remove( 'is-dragging' ); } );
+			}
 			dragSourceRow = null;
+			dragSourceRows = null;
+			removeDragGhost();
 			if ( $treeRoot ) {
 				$treeRoot.querySelectorAll( '.is-drop-target' ).forEach( function ( el ) {
 					el.classList.remove( 'is-drop-target' );

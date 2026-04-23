@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.16.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · drag multiplo**: se trascini una riga che fa parte del set selezionato (checkbox attiva), tutte le righe selezionate vengono spostate insieme nella cartella target. Durante il drag multipli viene mostrato un **badge ghost** con il contatore («N file selezionati»). Se la riga trascinata non è selezionata, il comportamento resta singolo come prima.
+
 ## [1.15.0] - 2026-04-23
 
 ### Added

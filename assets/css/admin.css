@@ -917,6 +917,20 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	opacity: 0.55;
 	cursor: grabbing;
 }
+/* Ghost mostrato durante drag multiplo di righe (setDragImage) */
+.fpdmk-bulk-drag-ghost {
+	position: absolute;
+	top: -1000px;
+	left: -1000px;
+	padding: 6px 14px;
+	background: var(--fpdms-gradient-primary);
+	color: #fff;
+	font-weight: 600;
+	font-size: 0.85rem;
+	border-radius: var(--radius-pill);
+	box-shadow: var(--shadow-md);
+	pointer-events: none;
+}
 .fpdmk-bulk-pane {
 	flex: 1;
 	min-width: 0;
