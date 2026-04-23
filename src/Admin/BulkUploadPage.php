@@ -332,6 +332,7 @@ final class BulkUploadPage {
 						<div class="fpdmk-bulk-pane">
 							<div class="fpdmk-bulk-toolbar">
 								<button type="button" class="fpdmk-btn fpdmk-btn-secondary" id="fpdmk-bulk-pick"><span class="dashicons dashicons-admin-media"></span> <?php esc_html_e( 'Libreria media', 'fp-dmk' ); ?></button>
+								<nav id="fpdmk-bulk-breadcrumb" class="fpdmk-bulk-breadcrumb" aria-label="<?php esc_attr_e( 'Percorso cartella selezionata', 'fp-dmk' ); ?>"></nav>
 								<label class="fpdmk-bulk-filter-label">
 									<input type="checkbox" id="fpdmk-bulk-filter-folder" value="1">
 									<?php esc_html_e( 'Filtra elenco per cartella selezionata', 'fp-dmk' ); ?>

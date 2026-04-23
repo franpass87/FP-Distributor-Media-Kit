@@ -917,6 +917,45 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	opacity: 0.55;
 	cursor: grabbing;
 }
+/* Breadcrumb cartella attiva nella toolbar */
+.fpdmk-bulk-breadcrumb {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border: 1px solid var(--fpdms-border);
+	border-radius: var(--radius-pill);
+	background: var(--fpdms-bg-white);
+	font-size: 0.85rem;
+	color: var(--fpdms-text-muted);
+	min-height: 28px;
+}
+.fpdmk-bulk-breadcrumb-segment {
+	background: transparent;
+	border: none;
+	color: var(--fpdms-primary);
+	cursor: pointer;
+	padding: 2px 6px;
+	border-radius: var(--radius-md);
+	font-size: 0.85rem;
+}
+.fpdmk-bulk-breadcrumb-segment:hover {
+	background: var(--fpdms-info-bg);
+}
+.fpdmk-bulk-breadcrumb-segment.is-current {
+	color: var(--fpdms-text);
+	cursor: default;
+	font-weight: 600;
+}
+.fpdmk-bulk-breadcrumb-segment.is-current:hover {
+	background: transparent;
+}
+.fpdmk-bulk-breadcrumb-sep {
+	color: var(--fpdms-text-muted);
+	font-size: 0.85rem;
+	user-select: none;
+}
 /* Ghost mostrato durante drag multiplo di righe (setDragImage) */
 .fpdmk-bulk-drag-ghost {
 	position: absolute;

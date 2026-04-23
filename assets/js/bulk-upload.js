@@ -27,6 +27,7 @@
 	var $treeRoot = document.getElementById( 'fpdmk-bulk-tree' );
 	var $filterFolder = document.getElementById( 'fpdmk-bulk-filter-folder' );
 	var $status = document.getElementById( 'fpdmk-bulk-status' );
+	var $breadcrumb = document.getElementById( 'fpdmk-bulk-breadcrumb' );
 	var tpl = wp.template( 'fpdmk-bulk-row' );
 	var rowSeq = 0;
 	var addedIds = {};
@@ -102,9 +103,70 @@
 			} );
 		}
 		applyFolderFilter();
+		updateBreadcrumb( folderId );
 	}
 
-	function renderTreeNodes( nodes, ul, depth ) {
+	/**
+	 * Ricostruisce il breadcrumb risalendo `data-parent-id` dai nodi.
+	 * Ogni segmento è un bottone cliccabile che seleziona la cartella corrispondente.
+	 */
+	function updateBreadcrumb( folderId ) {
+		if ( ! $breadcrumb ) {
+			return;
+		}
+		$breadcrumb.innerHTML = '';
+
+		function makeSegment( id, label, isCurrent ) {
+			var btn = document.createElement( 'button' );
+			btn.type = 'button';
+			btn.className = 'fpdmk-bulk-breadcrumb-segment' + ( isCurrent ? ' is-current' : '' );
+			btn.textContent = label;
+			if ( ! isCurrent ) {
+				btn.addEventListener( 'click', function () {
+					syncTreeSelection( id );
+				} );
+			} else {
+				btn.setAttribute( 'aria-current', 'location' );
+			}
+			return btn;
+		}
+		function makeSep() {
+			var sep = document.createElement( 'span' );
+			sep.className = 'fpdmk-bulk-breadcrumb-sep';
+			sep.setAttribute( 'aria-hidden', 'true' );
+			sep.textContent = '›';
+			return sep;
+		}
+
+		var rootLabel = i18n.rootFolder || 'Root';
+		$breadcrumb.appendChild( makeSegment( 0, rootLabel, folderId === 0 ) );
+		if ( folderId === 0 || ! $treeRoot ) {
+			return;
+		}
+		// Risalgo dalla cartella corrente al root collezionando gli id.
+		var chain = [];
+		var cursor = folderId;
+		while ( cursor && cursor !== 0 ) {
+			var btn = $treeRoot.querySelector( '.fpdmk-tree-node[data-folder-id="' + cursor + '"]' );
+			if ( ! btn ) {
+				break;
+			}
+			chain.push( { id: cursor, name: btn.dataset.nodeName || btn.textContent } );
+			var pid = parseInt( btn.getAttribute( 'data-parent-id' ), 10 );
+			if ( isNaN( pid ) || pid === 0 ) {
+				break;
+			}
+			cursor = pid;
+		}
+		chain.reverse();
+		chain.forEach( function ( seg, idx ) {
+			$breadcrumb.appendChild( makeSep() );
+			$breadcrumb.appendChild( makeSegment( seg.id, seg.name, idx === chain.length - 1 ) );
+		} );
+	}
+
+	function renderTreeNodes( nodes, ul, depth, parentId ) {
+		var effectiveParent = typeof parentId === 'number' ? parentId : 0;
 		nodes.forEach( function ( node ) {
 			var li = document.createElement( 'li' );
 			li.className = 'fpdmk-tree-item';
@@ -138,6 +200,8 @@
 			btn.type = 'button';
 			btn.className = 'fpdmk-tree-node';
 			btn.setAttribute( 'data-folder-id', String( node.id ) );
+			btn.setAttribute( 'data-parent-id', String( effectiveParent ) );
+			btn.dataset.nodeName = node.name;
 			btn.setAttribute( 'draggable', cfg.canCreateFolders ? 'true' : 'false' );
 			if ( cfg.canCreateFolders ) {
 				btn.addEventListener( 'dragstart', function ( e ) {
@@ -242,7 +306,7 @@
 				var sub = document.createElement( 'ul' );
 				sub.className = 'fpdmk-tree-children';
 				sub.setAttribute( 'role', 'group' );
-				renderTreeNodes( node.children, sub, depth + 1 );
+				renderTreeNodes( node.children, sub, depth + 1, node.id );
 				li.appendChild( sub );
 			}
 			ul.appendChild( li );
@@ -528,6 +592,13 @@
 		// Sposta il <li> e aggiorna depth ricorsivamente su tutti i discendenti.
 		targetUl.appendChild( movedLi );
 		applyDepthDelta( movedLi, delta );
+		if ( movedBtn ) {
+			movedBtn.setAttribute( 'data-parent-id', String( newParentId ) );
+		}
+		// Se la cartella spostata era selezionata, ricostruisci il breadcrumb.
+		if ( selectedFolderId === termId ) {
+			updateBreadcrumb( termId );
+		}
 
 		// Se il vecchio parent-ul è ora vuoto e non è il root, converti il toggle in is-leaf.
 		if ( oldParentUl && oldParentUl.classList.contains( 'fpdmk-tree-children' ) && oldParentUl.children.length === 0 ) {
@@ -1369,7 +1440,7 @@
 			return;
 		}
 		var node = { id: termId, name: name, slug: '', count: 0, count_deep: 0, children: [] };
-		renderTreeNodes( [ node ], ul, childDepth );
+		renderTreeNodes( [ node ], ul, childDepth, parentId );
 	}
 
 	function broadcastFolder( termId, name, depth, parentId ) {

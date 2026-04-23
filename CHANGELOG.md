@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.17.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · breadcrumb cartella attiva** nella toolbar: mostra il percorso («Radice › Brochure › 2026») con ogni segmento cliccabile per saltare a quel livello. Si aggiorna automaticamente dopo selezione, creazione, spostamento o eliminazione di cartelle.
+
 ## [1.16.0] - 2026-04-23
 
 ### Added
