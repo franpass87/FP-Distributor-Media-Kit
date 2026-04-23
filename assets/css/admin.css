@@ -831,6 +831,9 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 }
 .fpdmk-bulk-tree .fpdmk-tree-node {
 	flex: 1;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	text-align: left;
 	padding: 4px 6px;
 	border-radius: var(--radius-md);
@@ -839,6 +842,28 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	cursor: pointer;
 	font-size: 0.9rem;
 	color: var(--fpdms-text);
+}
+.fpdmk-bulk-tree .fpdmk-tree-node-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.fpdmk-bulk-tree .fpdmk-tree-node-count {
+	flex: 0 0 auto;
+	padding: 1px 7px;
+	border-radius: var(--radius-pill);
+	background: var(--fpdms-border-light);
+	color: var(--fpdms-text-muted);
+	font-size: 11px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.5;
+}
+.fpdmk-bulk-tree .fpdmk-tree-node.is-active .fpdmk-tree-node-count {
+	background: rgba( 255, 255, 255, 0.55 );
+	color: var(--fpdms-info-text);
 }
 .fpdmk-bulk-pane {
 	flex: 1;

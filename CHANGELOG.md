@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · albero cartelle**: ogni nodo mostra a destra un **badge con il conteggio degli asset** contenuti (ricorsivo, somma asset della cartella + discendenti). Nodo attivo: badge invertito per leggibilità.
+- `AssetManager::get_folder_tree_nested()` espone i nuovi campi `count` (asset diretti, da `WP_Term->count`) e `count_deep` (cumulativo).
+
 ## [1.12.0] - 2026-04-23
 
 ### Added

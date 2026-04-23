@@ -519,7 +519,11 @@ final class AssetManager {
 	/**
 	 * Albero cartelle annidato per UI (explorer / JSON in admin).
 	 *
-	 * @return list<array{id:int,name:string,slug:string,children:list<array<string,mixed>>}>
+	 * Include per ogni nodo:
+	 *   - `count`: numero di asset assegnati direttamente a quella cartella
+	 *   - `count_deep`: totale includendo tutti i discendenti (utile per mostrare "Cartella (123)")
+	 *
+	 * @return list<array{id:int,name:string,slug:string,count:int,count_deep:int,children:list<array<string,mixed>>}>
 	 */
 	public static function get_folder_tree_nested(): array {
 		$terms = get_terms(
@@ -545,7 +549,7 @@ final class AssetManager {
 
 	/**
 	 * @param array<int, list<\WP_Term>> $by_parent
-	 * @return list<array{id:int,name:string,slug:string,children:list<array<string,mixed>>}>
+	 * @return list<array{id:int,name:string,slug:string,count:int,count_deep:int,children:list<array<string,mixed>>}>
 	 */
 	private static function build_folder_tree_nodes( array $by_parent, int $parent_id ): array {
 		if ( empty( $by_parent[ $parent_id ] ) ) {
@@ -556,11 +560,19 @@ final class AssetManager {
 			if ( ! $t instanceof \WP_Term ) {
 				continue;
 			}
+			$children      = self::build_folder_tree_nodes( $by_parent, (int) $t->term_id );
+			$count_direct  = (int) $t->count;
+			$count_deep    = $count_direct;
+			foreach ( $children as $child ) {
+				$count_deep += (int) $child['count_deep'];
+			}
 			$nodes[] = [
-				'id'       => (int) $t->term_id,
-				'name'     => $t->name,
-				'slug'     => $t->slug,
-				'children' => self::build_folder_tree_nodes( $by_parent, (int) $t->term_id ),
+				'id'         => (int) $t->term_id,
+				'name'       => $t->name,
+				'slug'       => $t->slug,
+				'count'      => $count_direct,
+				'count_deep' => $count_deep,
+				'children'   => $children,
 			];
 		}
 		return $nodes;

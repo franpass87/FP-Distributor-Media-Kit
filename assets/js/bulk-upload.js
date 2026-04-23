@@ -137,7 +137,17 @@
 			btn.className = 'fpdmk-tree-node';
 			btn.setAttribute( 'data-folder-id', String( node.id ) );
 			btn.setAttribute( 'draggable', 'false' );
-			btn.textContent = node.name;
+			var nameSpan = document.createElement( 'span' );
+			nameSpan.className = 'fpdmk-tree-node-name';
+			nameSpan.textContent = node.name;
+			btn.appendChild( nameSpan );
+			var totalCount = typeof node.count_deep === 'number' ? node.count_deep : ( typeof node.count === 'number' ? node.count : 0 );
+			if ( totalCount > 0 ) {
+				var countEl = document.createElement( 'span' );
+				countEl.className = 'fpdmk-tree-node-count';
+				countEl.textContent = String( totalCount );
+				btn.appendChild( countEl );
+			}
 			btn.addEventListener( 'click', function () {
 				syncTreeSelection( node.id );
 			} );
@@ -913,7 +923,7 @@
 		if ( ! ul ) {
 			return;
 		}
-		var node = { id: termId, name: name, slug: '', children: [] };
+		var node = { id: termId, name: name, slug: '', count: 0, count_deep: 0, children: [] };
 		renderTreeNodes( [ node ], ul, childDepth );
 	}
 
