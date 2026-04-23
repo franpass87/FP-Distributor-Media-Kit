@@ -285,7 +285,7 @@
 		return '';
 	}
 
-	function addRow( att ) {
+	function addRow( att, preset ) {
 		if ( ! att || ! att.id ) {
 			return;
 		}
@@ -354,8 +354,12 @@
 			}
 		} );
 		tr.querySelector( '.fpdmk-bulk-lang-cell' ).appendChild( cloneSelect( $defLang, '[language]', rowId, false ) );
-		tr.querySelector( '.fpdmk-bulk-folder-cell' ).appendChild( cloneSelect( $defFold, '[folder_term]', rowId, false ) );
+		var folderSel = cloneSelect( $defFold, '[folder_term]', rowId, false );
+		tr.querySelector( '.fpdmk-bulk-folder-cell' ).appendChild( folderSel );
 		tr.querySelector( '.fpdmk-bulk-cats-cell' ).appendChild( cloneSelect( $defCats, '[categories]', rowId, true ) );
+		if ( preset && preset.folderId ) {
+			folderSel.value = String( preset.folderId );
+		}
 		$tbody.appendChild( tr );
 		refreshUI();
 	}
@@ -607,10 +611,239 @@
 		$dropzone.addEventListener( 'drop', function ( e ) {
 			e.preventDefault();
 			$dropzone.classList.remove( 'is-dragover' );
-			if ( e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length ) {
+			if ( ! e.dataTransfer ) {
+				return;
+			}
+			var items = e.dataTransfer.items;
+			var canScanDir = items && items.length && typeof items[ 0 ].webkitGetAsEntry === 'function';
+			if ( canScanDir ) {
+				scanDroppedItems( items ).then( function ( result ) {
+					if ( result.hasDirectories ) {
+						handleDirectoryDrop( result );
+					} else if ( result.files.length > 0 ) {
+						processFiles( result.files.map( function ( x ) { return x.file; } ) );
+					}
+				} );
+				return;
+			}
+			if ( e.dataTransfer.files && e.dataTransfer.files.length ) {
 				processFiles( e.dataTransfer.files );
 			}
 		} );
+	}
+
+	/**
+	 * Scansione ricorsiva di un DataTransferItemList con webkitGetAsEntry.
+	 * Limiti: max 2000 file, profondità massima 20, per evitare abusi.
+	 * Ritorna `{files: [{file, folderPath:[string]}], hasDirectories}` con `folderPath` array
+	 * dei segmenti (cartella radice + eventuali sottocartelle); vuoto se il file era al top level.
+	 */
+	function scanDroppedItems( itemList ) {
+		var MAX_FILES = 2000;
+		var MAX_DEPTH = 20;
+		var collected = [];
+		var hasDirectories = false;
+		var entries = [];
+		for ( var i = 0; i < itemList.length; i++ ) {
+			var en = itemList[ i ].webkitGetAsEntry();
+			if ( en ) {
+				entries.push( en );
+				if ( en.isDirectory ) {
+					hasDirectories = true;
+				}
+			}
+		}
+
+		function readDir( dirReader ) {
+			return new Promise( function ( resolve, reject ) {
+				var all = [];
+				function readBatch() {
+					dirReader.readEntries( function ( batch ) {
+						if ( ! batch.length ) {
+							resolve( all );
+							return;
+						}
+						for ( var j = 0; j < batch.length; j++ ) {
+							all.push( batch[ j ] );
+						}
+						readBatch();
+					}, reject );
+				}
+				readBatch();
+			} );
+		}
+
+		function walk( entry, path, depth ) {
+			if ( collected.length >= MAX_FILES ) {
+				return Promise.resolve();
+			}
+			if ( entry.isFile ) {
+				return new Promise( function ( resolve ) {
+					entry.file(
+						function ( file ) {
+							collected.push( { file: file, folderPath: path.slice() } );
+							resolve();
+						},
+						function () { resolve(); }
+					);
+				} );
+			}
+			if ( entry.isDirectory ) {
+				if ( depth >= MAX_DEPTH ) {
+					return Promise.resolve();
+				}
+				var childPath = path.concat( [ entry.name ] );
+				var reader = entry.createReader();
+				return readDir( reader ).then( function ( children ) {
+					return children.reduce( function ( p, child ) {
+						return p.then( function () {
+							return walk( child, childPath, depth + 1 );
+						} );
+					}, Promise.resolve() );
+				} );
+			}
+			return Promise.resolve();
+		}
+
+		return entries
+			.reduce( function ( p, en ) {
+				return p.then( function () {
+					return walk( en, [], 0 );
+				} );
+			}, Promise.resolve() )
+			.then( function () {
+				return { files: collected, hasDirectories: hasDirectories };
+			} );
+	}
+
+	/**
+	 * Mostra conferma, crea le cartelle server-side, carica i file col folderId corretto.
+	 */
+	function handleDirectoryDrop( result ) {
+		var files = result.files.filter( function ( x ) { return isFileAllowed( x.file ); } );
+		if ( files.length === 0 ) {
+			setStatus( i18n.noValidFiles || '', 'error' );
+			return;
+		}
+		var uniquePaths = {};
+		files.forEach( function ( x ) {
+			if ( x.folderPath && x.folderPath.length ) {
+				uniquePaths[ x.folderPath.join( '/' ) ] = x.folderPath;
+			}
+		} );
+		var pathsArr = Object.keys( uniquePaths ).map( function ( k ) { return uniquePaths[ k ]; } );
+		var foldersCount = pathsArr.length;
+
+		if ( ! cfg.canCreateFolders && foldersCount > 0 ) {
+			var msgDenied = ( i18n.folderCreateDenied || 'Permesso negato per creare cartelle. Verranno caricati solo i file al livello principale.' );
+			setStatus( msgDenied, 'error' );
+			pathsArr = [];
+			files = files.filter( function ( x ) { return ! x.folderPath || x.folderPath.length === 0; } );
+			if ( files.length === 0 ) {
+				return;
+			}
+		}
+
+		var confirmMsg = ( i18n.confirmDirectoryDrop || '' )
+			.replace( '%1$d', String( files.length ) )
+			.replace( '%2$d', String( foldersCount ) );
+		if ( confirmMsg && ! window.confirm( confirmMsg ) ) {
+			return;
+		}
+
+		function startUploads( pathMap ) {
+			setStatus( i18n.uploading || '', 'info' );
+			$table.classList.remove( 'is-hidden' );
+			$empty.classList.add( 'is-hidden' );
+
+			var queue = files.slice();
+			var inflight = 0;
+			var errors = 0;
+			var completed = 0;
+			var total = queue.length;
+
+			function startOneDir( item ) {
+				var ph = makePlaceholderRow( item.file );
+				var folderId = 0;
+				if ( item.folderPath && item.folderPath.length && pathMap ) {
+					var info = pathMap[ item.folderPath.join( '/' ) ];
+					if ( info && info.term_id ) {
+						folderId = info.term_id;
+					}
+				}
+				uploadOne( item.file, ph.setProgress )
+					.then( function ( json ) {
+						ph.remove();
+						addRow( mapRestToAtt( json, item.file ), { folderId: folderId } );
+					} )
+					.catch( function ( err ) {
+						errors++;
+						ph.setError( err.message || 'Error' );
+						setStatus( item.file.name + ': ' + ( err.message || 'Error' ), 'error' );
+					} )
+					.finally( function () {
+						inflight--;
+						completed++;
+						if ( completed === total ) {
+							if ( errors === 0 ) {
+								setStatus( i18n.uploadDone || '', 'success' );
+							}
+						} else {
+							pumpDir();
+						}
+					} );
+			}
+			function pumpDir() {
+				while ( inflight < MAX_PARALLEL && queue.length > 0 ) {
+					inflight++;
+					startOneDir( queue.shift() );
+				}
+			}
+			pumpDir();
+		}
+
+		if ( pathsArr.length === 0 ) {
+			startUploads( null );
+			return;
+		}
+		setStatus( i18n.creatingFolders || '', 'info' );
+		var body = new URLSearchParams();
+		body.append( 'action', 'fp_dmk_ensure_folder_paths' );
+		body.append( '_nonce', cfg.folderNonce );
+		pathsArr.forEach( function ( parts, idx ) {
+			parts.forEach( function ( segment ) {
+				body.append( 'paths[' + idx + '][]', segment );
+			} );
+		} );
+		fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( res ) {
+				if ( ! res || ! res.success ) {
+					setStatus(
+						res && res.data && res.data.message ? res.data.message : ( i18n.folderCreateError || '' ),
+						'error'
+					);
+					return;
+				}
+				if ( res.data && Array.isArray( res.data.created ) ) {
+					res.data.created.forEach( function ( node ) {
+						var padArr = new Array( node.depth + 1 ).join( '— ' );
+						appendFolderOption( $defFold, node.term_id, padArr + node.name, node.depth, false );
+						$tbody.querySelectorAll( 'select[name$="[folder_term]"]' ).forEach( function ( s ) {
+							appendFolderOption( s, node.term_id, padArr + node.name, node.depth, false );
+						} );
+						var parentSel = document.querySelector( '.fpdmk-folder-new-parent' );
+						if ( parentSel ) {
+							appendFolderOption( parentSel, node.term_id, padArr + node.name, node.depth, false );
+						}
+						insertTreeNode( node.term_id, node.name, node.parent || 0 );
+					} );
+				}
+				startUploads( res.data && res.data.paths ? res.data.paths : null );
+			} )
+			.catch( function () {
+				setStatus( i18n.networkError || '', 'error' );
+			} );
 	}
 
 	function appendFolderOption( select, termId, label, depth, markSelected ) {

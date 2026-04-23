@@ -47,6 +47,7 @@ final class AssetManager {
 		add_filter( 'manage_edit-' . self::CPT . '_sortable_columns', [ self::class, 'sortable_columns' ] );
 		add_action( 'transition_post_status', [ self::class, 'on_publish' ], 10, 3 );
 		add_action( 'wp_ajax_fp_dmk_create_folder', [ self::class, 'ajax_create_folder' ] );
+		add_action( 'wp_ajax_fp_dmk_ensure_folder_paths', [ self::class, 'ajax_ensure_folder_paths' ] );
 	}
 
 	public static function register_cpt(): void {
@@ -681,6 +682,142 @@ final class AssetManager {
 				'depth'   => self::folder_term_depth( $term ),
 				'label'   => self::get_folder_breadcrumb_label( $term ),
 				'existed' => false,
+			]
+		);
+	}
+
+	/**
+	 * AJAX: crea/trova in batch la catena di cartelle corrispondente a uno o più percorsi.
+	 *
+	 * Input atteso (POST):
+	 *   - `_nonce`: nonce `fp_dmk_create_folder` (stesso pool di `ajax_create_folder`)
+	 *   - `paths`: array di array di stringhe (es. `[["2026","Q1"],["2026","Q2","Draft"]]`)
+	 *
+	 * Risposta: mappa `"segment/sub" => { term_id, depth, created, existed, parts }` con il
+	 * percorso come chiave per consentire al frontend di associare i file alla cartella corretta.
+	 *
+	 * Usato dallo «Commit C» del bulk upload quando l'utente trascina una directory dal desktop:
+	 * consente di ricreare lato WordPress la gerarchia delle sottocartelle prima di caricare i file.
+	 */
+	public static function ajax_ensure_folder_paths(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_folder', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$raw_paths = isset( $_POST['paths'] ) && is_array( $_POST['paths'] ) ? wp_unslash( $_POST['paths'] ) : [];
+		if ( empty( $raw_paths ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nessun percorso fornito.', 'fp-dmk' ) ], 400 );
+		}
+
+		$parent_root = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+		if ( $parent_root > 0 ) {
+			$root_term = get_term( $parent_root, self::TAXONOMY_FOLDER );
+			if ( ! $root_term instanceof \WP_Term || is_wp_error( $root_term ) ) {
+				$parent_root = 0;
+			}
+		}
+
+		// Cache locale parent_id => [ lower(name) => term_id ] per evitare query ripetute.
+		$children_cache = [];
+		$results        = [];
+		$created_nodes  = [];
+
+		foreach ( $raw_paths as $path ) {
+			if ( ! is_array( $path ) || empty( $path ) ) {
+				continue;
+			}
+			$parent_id    = $parent_root;
+			$clean_parts  = [];
+			$any_created  = false;
+			$any_existed  = true;
+			foreach ( $path as $segment ) {
+				$name = sanitize_text_field( (string) $segment );
+				if ( $name === '' ) {
+					continue;
+				}
+				$clean_parts[] = $name;
+				$key           = strtolower( $name );
+
+				if ( ! isset( $children_cache[ $parent_id ] ) ) {
+					$children_cache[ $parent_id ] = [];
+					$children                     = get_terms(
+						[
+							'taxonomy'   => self::TAXONOMY_FOLDER,
+							'hide_empty' => false,
+							'parent'     => $parent_id,
+						]
+					);
+					if ( is_array( $children ) ) {
+						foreach ( $children as $child ) {
+							if ( $child instanceof \WP_Term ) {
+								$children_cache[ $parent_id ][ strtolower( $child->name ) ] = (int) $child->term_id;
+							}
+						}
+					}
+				}
+
+				if ( isset( $children_cache[ $parent_id ][ $key ] ) ) {
+					$parent_id = $children_cache[ $parent_id ][ $key ];
+					continue;
+				}
+
+				$insert = wp_insert_term( $name, self::TAXONOMY_FOLDER, [ 'parent' => $parent_id ] );
+				if ( is_wp_error( $insert ) ) {
+					$existing_id = $insert->get_error_data( 'term_exists' );
+					if ( $existing_id ) {
+						$parent_id                                   = (int) $existing_id;
+						$children_cache[ $parent_id ][ $key ]        = $parent_id;
+						continue;
+					}
+					wp_send_json_error(
+						[
+							'message' => sprintf(
+								/* translators: 1: path segment, 2: error message */
+								__( 'Errore creando la cartella «%1$s»: %2$s', 'fp-dmk' ),
+								$name,
+								$insert->get_error_message()
+							),
+						],
+						400
+					);
+				}
+				$new_id = isset( $insert['term_id'] ) ? (int) $insert['term_id'] : 0;
+				if ( $new_id <= 0 ) {
+					wp_send_json_error( [ 'message' => __( 'Errore creando la cartella.', 'fp-dmk' ) ], 500 );
+				}
+				$children_cache[ $parent_id ][ $key ] = $new_id;
+				$parent_id                            = $new_id;
+				$any_created                          = true;
+				$any_existed                          = false;
+				$new_term                             = get_term( $new_id, self::TAXONOMY_FOLDER );
+				if ( $new_term instanceof \WP_Term ) {
+					$created_nodes[] = [
+						'term_id' => $new_id,
+						'name'    => $new_term->name,
+						'parent'  => (int) $new_term->parent,
+						'depth'   => self::folder_term_depth( $new_term ),
+					];
+				}
+			}
+			if ( empty( $clean_parts ) ) {
+				continue;
+			}
+			$path_key             = implode( '/', $clean_parts );
+			$results[ $path_key ] = [
+				'term_id' => $parent_id,
+				'parts'   => $clean_parts,
+				'created' => $any_created,
+				'existed' => $any_existed,
+			];
+		}
+
+		wp_send_json_success(
+			[
+				'paths'   => $results,
+				'created' => $created_nodes,
 			]
 		);
 	}

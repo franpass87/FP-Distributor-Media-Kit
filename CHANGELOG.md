@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.12.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo**: supporto al **drop di directory intere** dal sistema operativo (Chromium, Firefox, Safari). Il plugin scansiona ricorsivamente la struttura via `webkitGetAsEntry` (limiti di sicurezza: 2000 file, profondità 20), chiede conferma con riepilogo file/cartelle, crea in batch le cartelle mancanti nella tassonomia tramite nuovo endpoint AJAX `fp_dmk_ensure_folder_paths`, quindi carica ogni file associandolo automaticamente alla sotto-cartella corrispondente. Richiede la capability `manage_fp_dmk_categories` per creare cartelle: senza, i file nelle sottocartelle vengono scartati e vengono caricati solo quelli al livello radice.
+
 ## [1.11.0] - 2026-04-23
 
 ### Added

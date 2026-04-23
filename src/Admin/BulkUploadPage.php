@@ -94,6 +94,9 @@ final class BulkUploadPage {
 					'filterByFolder'    => __( 'Mostra solo le righe con questa cartella', 'fp-dmk' ),
 					'dragRowHint'       => __( 'Trascina una riga su una cartella per assegnarla.', 'fp-dmk' ),
 					'confirmBulkRemove' => __( 'Rimuovere %d file dalla coda?', 'fp-dmk' ),
+					'confirmDirectoryDrop' => __( 'Caricare %1$d file creando %2$d cartella/e ricalcate dalla struttura?', 'fp-dmk' ),
+					'creatingFolders'   => __( 'Creazione cartelle in corso…', 'fp-dmk' ),
+					'folderCreateDenied' => __( 'Non hai i permessi per creare cartelle: verranno caricati solo i file al livello principale.', 'fp-dmk' ),
 				],
 			]
 		);
@@ -332,7 +335,7 @@ final class BulkUploadPage {
 							<div id="fpdmk-bulk-dropzone" class="fpdmk-bulk-dropzone" tabindex="0" role="button" aria-label="<?php esc_attr_e( 'Zona caricamento file', 'fp-dmk' ); ?>">
 								<span class="dashicons dashicons-upload fpdmk-bulk-dropzone-icon" aria-hidden="true"></span>
 								<strong class="fpdmk-bulk-dropzone-title"><?php esc_html_e( 'Trascina qui i file o clicca per sfogliare', 'fp-dmk' ); ?></strong>
-								<span class="fpdmk-bulk-dropzone-hint"><?php esc_html_e( 'Upload nella Libreria media (max 3 in parallelo). Tipi: PDF, immagini, SVG, MP4, WebM, TXT.', 'fp-dmk' ); ?></span>
+								<span class="fpdmk-bulk-dropzone-hint"><?php esc_html_e( 'Upload nella Libreria media (max 3 in parallelo). Se trascini cartelle, la struttura viene ricreata automaticamente. Tipi: PDF, immagini, SVG, MP4, WebM, TXT.', 'fp-dmk' ); ?></span>
 							</div>
 							<input type="file" id="fpdmk-bulk-file-input" class="fpdmk-bulk-file-input-hidden" multiple accept="<?php echo esc_attr( $file_accept ); ?>">
 							<p id="fpdmk-bulk-status" class="fpdmk-bulk-status" role="status" aria-live="polite"></p>
