@@ -50,11 +50,19 @@
 		}
 	}
 
+	function countReadyRows() {
+		return $tbody.querySelectorAll( 'tr.fpdmk-bulk-row:not(.fpdmk-bulk-placeholder)' ).length;
+	}
+
+	function hasAnyRows() {
+		return $tbody.querySelectorAll( 'tr' ).length > 0;
+	}
+
 	function refreshUI() {
-		var n = $tbody.querySelectorAll( 'tr' ).length;
+		var n = countReadyRows();
 		$count.textContent = n + ' ' + ( i18n.filesLabel || '' );
-		$table.classList.toggle( 'is-hidden', n === 0 );
-		$empty.classList.toggle( 'is-hidden', n > 0 );
+		$table.classList.toggle( 'is-hidden', ! hasAnyRows() );
+		$empty.classList.toggle( 'is-hidden', hasAnyRows() );
 		$submit.disabled = n === 0;
 		applyFolderFilter();
 	}
@@ -243,6 +251,37 @@
 		return s;
 	}
 
+	/**
+	 * Immagine miniatura (se disponibile) per la prima colonna.
+	 */
+	function thumbUrlFromAtt( att ) {
+		if ( ! att ) {
+			return '';
+		}
+		if ( att.sizes && att.sizes.thumbnail && att.sizes.thumbnail.url ) {
+			return att.sizes.thumbnail.url;
+		}
+		if ( att.media_details && att.media_details.sizes ) {
+			var s = att.media_details.sizes;
+			if ( s.thumbnail && s.thumbnail.source_url ) {
+				return s.thumbnail.source_url;
+			}
+			if ( s.medium && s.medium.source_url ) {
+				return s.medium.source_url;
+			}
+		}
+		var mime = att.mime || att.mime_type || '';
+		if ( mime.indexOf( 'image/' ) === 0 ) {
+			if ( att.source_url ) {
+				return att.source_url;
+			}
+			if ( att.url ) {
+				return att.url;
+			}
+		}
+		return '';
+	}
+
 	function addRow( att ) {
 		if ( ! att || ! att.id ) {
 			return;
@@ -254,7 +293,7 @@
 		rowSeq++;
 		var rowId = 'r' + rowSeq;
 		var filename = att.filename || att.title || 'attachment-' + att.id;
-		var mime = att.mime || '';
+		var mime = att.mime || att.mime_type || '';
 		var html = tpl( {
 			rowId: rowId,
 			id: att.id,
@@ -269,6 +308,25 @@
 		tr.classList.add( 'fpdmk-bulk-row' );
 		tr.setAttribute( 'draggable', 'true' );
 		tr.dataset.rowId = rowId;
+		var fileCell = tr.querySelector( 'td:first-child' );
+		if ( fileCell ) {
+			var thumbUrl = thumbUrlFromAtt( att );
+			var thumb = document.createElement( 'span' );
+			thumb.className = 'fpdmk-bulk-thumb' + ( thumbUrl ? '' : ' is-placeholder' );
+			if ( thumbUrl ) {
+				var img = document.createElement( 'img' );
+				img.src = thumbUrl;
+				img.alt = '';
+				img.loading = 'lazy';
+				thumb.appendChild( img );
+			} else {
+				var icon = document.createElement( 'span' );
+				icon.className = 'dashicons ' + ( mime.indexOf( 'video/' ) === 0 ? 'dashicons-format-video' : 'dashicons-media-default' );
+				icon.setAttribute( 'aria-hidden', 'true' );
+				thumb.appendChild( icon );
+			}
+			fileCell.insertBefore( thumb, fileCell.firstChild );
+		}
 		tr.addEventListener( 'dragstart', function ( e ) {
 			dragSourceRow = tr;
 			e.dataTransfer.effectAllowed = 'move';
@@ -348,25 +406,99 @@
 		};
 	}
 
-	function uploadOne( file ) {
-		var fd = new FormData();
-		fd.append( 'file', file, file.name );
-		return fetch( cfg.restMediaUrl, {
-			method: 'POST',
-			credentials: 'same-origin',
-			headers: {
-				'X-WP-Nonce': cfg.restNonce,
-			},
-			body: fd,
-		} ).then( function ( res ) {
-			return res.json().then( function ( body ) {
-				if ( ! res.ok ) {
-					var msg = ( body && body.message ) ? body.message : res.statusText;
-					throw new Error( msg );
+	/**
+	 * Upload via XMLHttpRequest per avere i progress events (fetch non li supporta).
+	 * Risolve con il JSON della risposta; rigetta con Error con messaggio leggibile.
+	 */
+	function uploadOne( file, onProgress ) {
+		return new Promise( function ( resolve, reject ) {
+			var fd = new FormData();
+			fd.append( 'file', file, file.name );
+			var xhr = new XMLHttpRequest();
+			xhr.open( 'POST', cfg.restMediaUrl, true );
+			xhr.setRequestHeader( 'X-WP-Nonce', cfg.restNonce );
+			xhr.withCredentials = true;
+			if ( typeof onProgress === 'function' && xhr.upload ) {
+				xhr.upload.addEventListener( 'progress', function ( ev ) {
+					if ( ev.lengthComputable ) {
+						onProgress( ev.loaded / ev.total );
+					}
+				} );
+			}
+			xhr.onload = function () {
+				var body = null;
+				try {
+					body = xhr.responseText ? JSON.parse( xhr.responseText ) : null;
+				} catch ( err ) {
+					/* leave body null */
 				}
-				return body;
-			} );
+				if ( xhr.status >= 200 && xhr.status < 300 && body ) {
+					if ( typeof onProgress === 'function' ) {
+						onProgress( 1 );
+					}
+					resolve( body );
+					return;
+				}
+				var msg = ( body && body.message ) ? body.message : ( xhr.statusText || 'Upload error' );
+				reject( new Error( msg ) );
+			};
+			xhr.onerror = function () {
+				reject( new Error( i18n.networkError || 'Network error' ) );
+			};
+			xhr.onabort = function () {
+				reject( new Error( 'aborted' ) );
+			};
+			xhr.send( fd );
 		} );
+	}
+
+	/**
+	 * Crea/rimuove una riga placeholder visualizzata durante l'upload (con progress bar).
+	 * Non ha id attachment: serve solo come feedback; sostituita o rimossa al completamento.
+	 */
+	function makePlaceholderRow( file ) {
+		var tr = document.createElement( 'tr' );
+		tr.className = 'fpdmk-bulk-row fpdmk-bulk-placeholder';
+		var td = document.createElement( 'td' );
+		td.colSpan = 7;
+		var wrap = document.createElement( 'div' );
+		wrap.className = 'fpdmk-bulk-placeholder-inner';
+		var label = document.createElement( 'span' );
+		label.className = 'fpdmk-bulk-placeholder-name';
+		label.textContent = file.name;
+		var bar = document.createElement( 'div' );
+		bar.className = 'fpdmk-bulk-progress';
+		var fill = document.createElement( 'span' );
+		fill.className = 'fpdmk-bulk-progress-fill';
+		fill.style.width = '0%';
+		bar.appendChild( fill );
+		var pct = document.createElement( 'span' );
+		pct.className = 'fpdmk-bulk-progress-pct';
+		pct.textContent = '0%';
+		wrap.appendChild( label );
+		wrap.appendChild( bar );
+		wrap.appendChild( pct );
+		td.appendChild( wrap );
+		tr.appendChild( td );
+		$tbody.appendChild( tr );
+		return {
+			row: tr,
+			setProgress: function ( ratio ) {
+				var p = Math.max( 0, Math.min( 1, ratio || 0 ) );
+				fill.style.width = ( p * 100 ).toFixed( 1 ) + '%';
+				pct.textContent = Math.round( p * 100 ) + '%';
+			},
+			setError: function ( msg ) {
+				tr.classList.add( 'is-error' );
+				pct.textContent = '!';
+				label.textContent = file.name + ' — ' + msg;
+			},
+			remove: function () {
+				if ( tr.parentNode ) {
+					tr.parentNode.removeChild( tr );
+				}
+			},
+		};
 	}
 
 	function processFiles( files ) {
@@ -385,6 +517,8 @@
 			return;
 		}
 		setStatus( i18n.uploading || '', 'info' );
+		$table.classList.remove( 'is-hidden' );
+		$empty.classList.add( 'is-hidden' );
 		var queue = list.slice();
 		var inflight = 0;
 		var errors = 0;
@@ -392,12 +526,15 @@
 		var total = queue.length;
 
 		function startOne( file ) {
-			uploadOne( file )
+			var ph = makePlaceholderRow( file );
+			uploadOne( file, ph.setProgress )
 				.then( function ( json ) {
+					ph.remove();
 					addRow( mapRestToAtt( json, file ) );
 				} )
 				.catch( function ( err ) {
 					errors++;
+					ph.setError( err.message || 'Error' );
 					setStatus( file.name + ': ' + ( err.message || 'Error' ), 'error' );
 				} )
 				.finally( function () {
@@ -672,6 +809,25 @@
 	if ( $filterFolder ) {
 		$filterFolder.addEventListener( 'change', applyFolderFilter );
 	}
+
+	var submittingForm = false;
+	var $form = document.getElementById( 'fpdmk-bulk-form' );
+	if ( $form ) {
+		$form.addEventListener( 'submit', function () {
+			submittingForm = true;
+		} );
+	}
+	window.addEventListener( 'beforeunload', function ( e ) {
+		if ( submittingForm ) {
+			return undefined;
+		}
+		if ( countReadyRows() === 0 ) {
+			return undefined;
+		}
+		e.preventDefault();
+		e.returnValue = '';
+		return '';
+	} );
 
 	buildFolderTree();
 	bindDropzone();

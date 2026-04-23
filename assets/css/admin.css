@@ -966,6 +966,84 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	flex-direction: column;
 	align-items: stretch;
 }
+/* Thumbnail preview nella colonna File */
+.fpdmk-bulk-thumb {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	margin-right: 10px;
+	border-radius: var(--radius-md);
+	background: var(--fpdms-bg-light);
+	border: 1px solid var(--fpdms-border);
+	overflow: hidden;
+	flex: 0 0 auto;
+	vertical-align: middle;
+}
+.fpdmk-bulk-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+.fpdmk-bulk-thumb.is-placeholder .dashicons {
+	color: var(--fpdms-text-muted);
+}
+.fpdmk-bulk-table td:first-child strong {
+	vertical-align: middle;
+}
+/* Righe placeholder con progress bar durante upload */
+.fpdmk-bulk-placeholder td {
+	padding: 8px 12px;
+	background: var(--fpdms-bg-light);
+}
+.fpdmk-bulk-placeholder-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.fpdmk-bulk-placeholder-name {
+	flex: 1 1 220px;
+	min-width: 0;
+	font-size: 0.9rem;
+	color: var(--fpdms-text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.fpdmk-bulk-progress {
+	flex: 2 1 220px;
+	height: 8px;
+	background: var(--fpdms-border-light);
+	border-radius: var(--radius-pill);
+	overflow: hidden;
+	position: relative;
+}
+.fpdmk-bulk-progress-fill {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: var(--fpdms-gradient-primary);
+	transition: width 0.2s linear;
+}
+.fpdmk-bulk-progress-pct {
+	flex: 0 0 42px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	font-size: 0.85rem;
+	color: var(--fpdms-text-muted);
+}
+.fpdmk-bulk-placeholder.is-error .fpdmk-bulk-progress-fill {
+	background: var(--fpdms-danger);
+}
+.fpdmk-bulk-placeholder.is-error .fpdmk-bulk-progress-pct {
+	color: var(--fpdms-danger-text);
+}
+.fpdmk-bulk-placeholder.is-error .fpdmk-bulk-placeholder-name {
+	color: var(--fpdms-danger-text);
+}
 .fpdmk-bulk-footer-actions {
 	display: flex;
 	flex-wrap: wrap;

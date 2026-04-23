@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.10.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo**: feedback UX durante l'upload — riga placeholder per ogni file con **barra di avanzamento** in tempo reale (via `XMLHttpRequest.upload.onprogress`, fino a 3 in parallelo), **anteprima thumbnail** nella prima colonna per le immagini (fallback con icona dashicons per gli altri tipi), **conferma `beforeunload`** se si prova a lasciare la pagina con righe pronte e non ancora salvate.
+
 ## [1.9.2] - 2026-04-21
 
 ### Changed
