@@ -32,6 +32,7 @@
 	var addedIds = {};
 	var frame;
 	var dragSourceRow = null;
+	var dragSourceFolderId = null;
 	var MAX_PARALLEL = 3;
 	var selectedFolderId = $defFold ? parseInt( $defFold.value, 10 ) || 0 : 0;
 
@@ -136,7 +137,30 @@
 			btn.type = 'button';
 			btn.className = 'fpdmk-tree-node';
 			btn.setAttribute( 'data-folder-id', String( node.id ) );
-			btn.setAttribute( 'draggable', 'false' );
+			btn.setAttribute( 'draggable', cfg.canCreateFolders ? 'true' : 'false' );
+			if ( cfg.canCreateFolders ) {
+				btn.addEventListener( 'dragstart', function ( e ) {
+					dragSourceFolderId = node.id;
+					dragSourceRow = null;
+					e.stopPropagation();
+					e.dataTransfer.effectAllowed = 'move';
+					try {
+						e.dataTransfer.setData( 'text/plain', 'folder:' + node.id );
+					} catch ( err ) {
+						/* ignore */
+					}
+					btn.classList.add( 'is-dragging' );
+				} );
+				btn.addEventListener( 'dragend', function () {
+					btn.classList.remove( 'is-dragging' );
+					dragSourceFolderId = null;
+					if ( $treeRoot ) {
+						$treeRoot.querySelectorAll( '.is-drop-target' ).forEach( function ( el ) {
+							el.classList.remove( 'is-drop-target' );
+						} );
+					}
+				} );
+			}
 			var nameSpan = document.createElement( 'span' );
 			nameSpan.className = 'fpdmk-tree-node-name';
 			nameSpan.textContent = node.name;
@@ -157,6 +181,12 @@
 					e.preventDefault();
 					e.dataTransfer.dropEffect = 'move';
 					btn.classList.add( 'is-drop-target' );
+					return;
+				}
+				if ( dragSourceFolderId !== null && dragSourceFolderId !== node.id && ! isDescendantOf( node.id, dragSourceFolderId ) ) {
+					e.preventDefault();
+					e.dataTransfer.dropEffect = 'move';
+					btn.classList.add( 'is-drop-target' );
 				}
 			} );
 			btn.addEventListener( 'dragleave', function () {
@@ -165,14 +195,19 @@
 			btn.addEventListener( 'drop', function ( e ) {
 				e.preventDefault();
 				btn.classList.remove( 'is-drop-target' );
-				if ( ! dragSourceRow ) {
+				if ( dragSourceRow ) {
+					var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
+					if ( sel ) {
+						sel.value = String( node.id );
+					}
+					dragSourceRow = null;
 					return;
 				}
-				var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
-				if ( sel ) {
-					sel.value = String( node.id );
+				if ( dragSourceFolderId !== null && dragSourceFolderId !== node.id ) {
+					var sourceId = dragSourceFolderId;
+					dragSourceFolderId = null;
+					requestMoveFolder( sourceId, node.id );
 				}
-				dragSourceRow = null;
 			} );
 
 			row.appendChild( toggle );
@@ -342,6 +377,149 @@
 	}
 
 	/**
+	 * Anti-ciclo lato client: blocca il drop se il target è un discendente (o è uguale) del source.
+	 */
+	function isDescendantOf( candidateDescendantId, ancestorId ) {
+		if ( ! $treeRoot ) {
+			return false;
+		}
+		if ( candidateDescendantId === ancestorId ) {
+			return true;
+		}
+		var ancestorBtn = $treeRoot.querySelector( '.fpdmk-tree-node[data-folder-id="' + ancestorId + '"]' );
+		if ( ! ancestorBtn ) {
+			return false;
+		}
+		var ancestorLi = ancestorBtn.closest( 'li.fpdmk-tree-item' );
+		if ( ! ancestorLi ) {
+			return false;
+		}
+		return !! ancestorLi.querySelector( '.fpdmk-tree-node[data-folder-id="' + candidateDescendantId + '"]' );
+	}
+
+	/**
+	 * Sposta via AJAX e, in caso di successo, riorganizza il DOM dell'albero.
+	 */
+	function requestMoveFolder( termId, newParentId ) {
+		var body = new URLSearchParams();
+		body.append( 'action', 'fp_dmk_move_folder' );
+		body.append( '_nonce', cfg.folderNonce );
+		body.append( 'term_id', String( termId ) );
+		body.append( 'new_parent', String( newParentId ) );
+		fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( res ) {
+				if ( ! res || ! res.success ) {
+					window.alert( res && res.data && res.data.message ? res.data.message : ( i18n.folderCreateError || 'Error' ) );
+					return;
+				}
+				if ( res.data && res.data.changed === false ) {
+					return;
+				}
+				moveFolderInTreeDom( termId, newParentId, Number( res.data.depth ) || 0 );
+			} )
+			.catch( function () {
+				window.alert( i18n.networkError || 'Network error' );
+			} );
+	}
+
+	/**
+	 * Sposta il <li> della cartella sotto il nuovo parent nell'albero e aggiorna la depth dei discendenti.
+	 * Aggiorna inoltre il pad delle option corrispondenti nella select default; le select delle righe
+	 * file verranno allineate col loro label al prossimo ricarico pagina (non critico, l'ordine non cambia).
+	 */
+	function moveFolderInTreeDom( termId, newParentId, newDepth ) {
+		if ( ! $treeRoot ) {
+			return;
+		}
+		var movedBtn = $treeRoot.querySelector( '.fpdmk-tree-node[data-folder-id="' + termId + '"]' );
+		if ( ! movedBtn ) {
+			return;
+		}
+		var movedLi = movedBtn.closest( 'li.fpdmk-tree-item' );
+		if ( ! movedLi ) {
+			return;
+		}
+		var oldParentUl = movedLi.parentNode;
+
+		var targetUl;
+		if ( newParentId === 0 ) {
+			targetUl = $treeRoot.querySelector( '.fpdmk-tree-root-ul' );
+		} else {
+			var parentBtn = $treeRoot.querySelector( '.fpdmk-tree-node[data-folder-id="' + newParentId + '"]' );
+			if ( ! parentBtn ) {
+				return;
+			}
+			var parentLi = parentBtn.closest( 'li.fpdmk-tree-item' );
+			if ( ! parentLi ) {
+				return;
+			}
+			targetUl = parentLi.querySelector( ':scope > .fpdmk-tree-children' );
+			if ( ! targetUl ) {
+				targetUl = document.createElement( 'ul' );
+				targetUl.className = 'fpdmk-tree-children';
+				targetUl.setAttribute( 'role', 'group' );
+				parentLi.appendChild( targetUl );
+				var prow = parentLi.querySelector( ':scope > .fpdmk-tree-row' );
+				var ptog = prow && prow.querySelector( '.fpdmk-tree-toggle' );
+				if ( ptog ) {
+					ptog.classList.remove( 'is-leaf' );
+					ptog.textContent = '▾';
+				}
+			}
+			targetUl.classList.remove( 'is-collapsed' );
+		}
+		if ( ! targetUl || targetUl === oldParentUl ) {
+			return;
+		}
+
+		// Recupera vecchia profondità della cartella spostata per calcolare l'offset.
+		var movedRow = movedLi.querySelector( ':scope > .fpdmk-tree-row' );
+		var oldDepth = movedRow ? parseInt( movedRow.getAttribute( 'data-depth' ), 10 ) : 0;
+		if ( isNaN( oldDepth ) ) {
+			oldDepth = 0;
+		}
+		var delta = newDepth - oldDepth;
+
+		// Sposta il <li> e aggiorna depth ricorsivamente su tutti i discendenti.
+		targetUl.appendChild( movedLi );
+		applyDepthDelta( movedLi, delta );
+
+		// Se il vecchio parent-ul è ora vuoto e non è il root, converti il toggle in is-leaf.
+		if ( oldParentUl && oldParentUl.classList.contains( 'fpdmk-tree-children' ) && oldParentUl.children.length === 0 ) {
+			var oldGrand = oldParentUl.parentNode;
+			var oldRow = oldGrand && oldGrand.querySelector( ':scope > .fpdmk-tree-row' );
+			var oldTog = oldRow && oldRow.querySelector( '.fpdmk-tree-toggle' );
+			if ( oldTog ) {
+				oldTog.classList.add( 'is-leaf' );
+				oldTog.textContent = '·';
+			}
+			if ( oldParentUl.parentNode ) {
+				oldParentUl.parentNode.removeChild( oldParentUl );
+			}
+		}
+	}
+
+	/**
+	 * Somma delta alle depth memorizzate su data-depth (row) e allinea anche lo stile
+	 * (CSS variabile --fpdmk-tree-depth) per ogni nodo ricorsivamente.
+	 */
+	function applyDepthDelta( li, delta ) {
+		if ( ! li || delta === 0 ) {
+			return;
+		}
+		var rows = li.querySelectorAll( '.fpdmk-tree-row' );
+		rows.forEach( function ( r ) {
+			var d = parseInt( r.getAttribute( 'data-depth' ), 10 );
+			if ( isNaN( d ) ) { d = 0; }
+			var nd = d + delta;
+			if ( nd < 0 ) { nd = 0; }
+			r.setAttribute( 'data-depth', String( nd ) );
+			r.style.setProperty( '--fpdmk-tree-depth', String( nd ) );
+		} );
+	}
+
+	/**
 	 * Rimuove una cartella da tree e da tutte le select dopo eliminazione server-side.
 	 */
 	function removeFolderFromUI( termId ) {
@@ -405,6 +583,12 @@
 				e.preventDefault();
 				e.dataTransfer.dropEffect = 'move';
 				rootBtn.classList.add( 'is-drop-target' );
+				return;
+			}
+			if ( dragSourceFolderId !== null ) {
+				e.preventDefault();
+				e.dataTransfer.dropEffect = 'move';
+				rootBtn.classList.add( 'is-drop-target' );
 			}
 		} );
 		rootBtn.addEventListener( 'dragleave', function () {
@@ -413,14 +597,19 @@
 		rootBtn.addEventListener( 'drop', function ( e ) {
 			e.preventDefault();
 			rootBtn.classList.remove( 'is-drop-target' );
-			if ( ! dragSourceRow ) {
+			if ( dragSourceRow ) {
+				var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
+				if ( sel ) {
+					sel.value = '0';
+				}
+				dragSourceRow = null;
 				return;
 			}
-			var sel = dragSourceRow.querySelector( 'select[name$="[folder_term]"]' );
-			if ( sel ) {
-				sel.value = '0';
+			if ( dragSourceFolderId !== null ) {
+				var sourceId = dragSourceFolderId;
+				dragSourceFolderId = null;
+				requestMoveFolder( sourceId, 0 );
 			}
-			dragSourceRow = null;
 		} );
 		$treeRoot.appendChild( rootBtn );
 

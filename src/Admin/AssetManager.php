@@ -50,6 +50,7 @@ final class AssetManager {
 		add_action( 'wp_ajax_fp_dmk_ensure_folder_paths', [ self::class, 'ajax_ensure_folder_paths' ] );
 		add_action( 'wp_ajax_fp_dmk_rename_folder', [ self::class, 'ajax_rename_folder' ] );
 		add_action( 'wp_ajax_fp_dmk_delete_folder', [ self::class, 'ajax_delete_folder' ] );
+		add_action( 'wp_ajax_fp_dmk_move_folder', [ self::class, 'ajax_move_folder' ] );
 	}
 
 	public static function register_cpt(): void {
@@ -975,6 +976,85 @@ final class AssetManager {
 				'moved_assets' => $moved_assets,
 				'asset_count'  => is_array( $assets ) ? count( $assets ) : 0,
 				'orphan_action'=> $orphan,
+			]
+		);
+	}
+
+	/**
+	 * AJAX: sposta una cartella sotto un nuovo parent.
+	 *
+	 * Validazioni:
+	 *   - il termine esiste nella taxonomy cartelle;
+	 *   - il nuovo parent esiste (o è 0 = radice);
+	 *   - il nuovo parent NON è il termine stesso né un suo discendente (evita cicli);
+	 *   - se parent identico al corrente, no-op con `changed=false`.
+	 */
+	public static function ajax_move_folder(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_folder', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$term_id   = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0;
+		$new_parent = isset( $_POST['new_parent'] ) ? absint( $_POST['new_parent'] ) : 0;
+		if ( $term_id <= 0 ) {
+			wp_send_json_error( [ 'message' => __( 'Parametri non validi.', 'fp-dmk' ) ], 400 );
+		}
+		$term = get_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( ! $term instanceof \WP_Term || is_wp_error( $term ) ) {
+			wp_send_json_error( [ 'message' => __( 'Cartella non trovata.', 'fp-dmk' ) ], 404 );
+		}
+
+		if ( (int) $term->parent === $new_parent ) {
+			wp_send_json_success(
+				[
+					'term_id' => $term_id,
+					'parent'  => $new_parent,
+					'depth'   => self::folder_term_depth( $term ),
+					'changed' => false,
+				]
+			);
+		}
+
+		if ( $new_parent > 0 ) {
+			if ( $new_parent === $term_id ) {
+				wp_send_json_error( [ 'message' => __( 'Non puoi spostare una cartella dentro se stessa.', 'fp-dmk' ) ], 400 );
+			}
+			$parent_term = get_term( $new_parent, self::TAXONOMY_FOLDER );
+			if ( ! $parent_term instanceof \WP_Term || is_wp_error( $parent_term ) ) {
+				wp_send_json_error( [ 'message' => __( 'Cartella di destinazione non trovata.', 'fp-dmk' ) ], 404 );
+			}
+			// Verifica anti-ciclo: il nuovo parent non deve essere un discendente del termine.
+			$ancestors = get_ancestors( $new_parent, self::TAXONOMY_FOLDER, 'taxonomy' );
+			if ( in_array( $term_id, array_map( 'absint', (array) $ancestors ), true ) ) {
+				wp_send_json_error(
+					[ 'message' => __( 'Non puoi spostare una cartella dentro una delle sue sottocartelle.', 'fp-dmk' ) ],
+					400
+				);
+			}
+		}
+
+		$updated = wp_update_term( $term_id, self::TAXONOMY_FOLDER, [ 'parent' => $new_parent ] );
+		if ( is_wp_error( $updated ) ) {
+			wp_send_json_error( [ 'message' => $updated->get_error_message() ], 400 );
+		}
+		$fresh = get_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( ! $fresh instanceof \WP_Term ) {
+			wp_send_json_error( [ 'message' => __( 'Errore aggiornamento termine.', 'fp-dmk' ) ], 500 );
+		}
+
+		// La cache degli ancestor/breadcrumb per i discendenti viene invalidata da core WP,
+		// ma per sicurezza puliamo la cache della taxonomy.
+		clean_term_cache( $term_id, self::TAXONOMY_FOLDER, true );
+
+		wp_send_json_success(
+			[
+				'term_id' => (int) $fresh->term_id,
+				'parent'  => (int) $fresh->parent,
+				'depth'   => self::folder_term_depth( $fresh ),
+				'changed' => true,
 			]
 		);
 	}

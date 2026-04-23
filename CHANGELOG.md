@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · albero cartelle**: spostamento delle cartelle tramite **drag-and-drop del nodo** su un altro nodo (o sulla radice per promuoverla al livello superiore). Validazione anti-ciclo lato client (blocco visivo del drop target) e server (un nodo non può finire dentro un suo discendente). Il DOM viene riorganizzato in tempo reale con aggiornamento della profondità di tutti i discendenti; le etichette delle select cartella restano valide (value = term_id) e l'indentazione `—` si riallinea al prossimo ricarico pagina.
+- Nuovo endpoint AJAX `fp_dmk_move_folder` (stesso nonce/capability degli altri endpoint cartelle).
+
 ## [1.14.0] - 2026-04-23
 
 ### Added

@@ -336,7 +336,7 @@ final class BulkUploadPage {
 									<?php esc_html_e( 'Filtra elenco per cartella selezionata', 'fp-dmk' ); ?>
 								</label>
 							</div>
-							<p class="description fpdmk-bulk-drag-hint"><?php esc_html_e( 'Trascina una riga della tabella su una cartella nell’albero per impostare la cartella di quell’asset.', 'fp-dmk' ); ?></p>
+							<p class="description fpdmk-bulk-drag-hint"><?php esc_html_e( 'Trascina una riga della tabella su una cartella per impostare la cartella dell’asset; trascina una cartella su un’altra per spostarla (o sulla radice per portarla al livello superiore).', 'fp-dmk' ); ?></p>
 							<div id="fpdmk-bulk-dropzone" class="fpdmk-bulk-dropzone" tabindex="0" role="button" aria-label="<?php esc_attr_e( 'Zona caricamento file', 'fp-dmk' ); ?>">
 								<span class="dashicons dashicons-upload fpdmk-bulk-dropzone-icon" aria-hidden="true"></span>
 								<strong class="fpdmk-bulk-dropzone-title"><?php esc_html_e( 'Trascina qui i file o clicca per sfogliare', 'fp-dmk' ); ?></strong>
