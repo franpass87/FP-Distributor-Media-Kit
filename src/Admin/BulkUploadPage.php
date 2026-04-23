@@ -97,6 +97,11 @@ final class BulkUploadPage {
 					'confirmDirectoryDrop' => __( 'Caricare %1$d file creando %2$d cartella/e ricalcate dalla struttura?', 'fp-dmk' ),
 					'creatingFolders'   => __( 'Creazione cartelle in corso…', 'fp-dmk' ),
 					'folderCreateDenied' => __( 'Non hai i permessi per creare cartelle: verranno caricati solo i file al livello principale.', 'fp-dmk' ),
+					'renameFolder'      => __( 'Rinomina cartella', 'fp-dmk' ),
+					'deleteFolder'      => __( 'Elimina cartella', 'fp-dmk' ),
+					'deleteEmpty'       => __( 'Eliminare la cartella «%s»?', 'fp-dmk' ),
+					'deleteWithAssets'  => __( 'La cartella «%1$s» contiene %2$d asset. Verranno spostati nella cartella superiore (o scollegati, se radice). Procedere?', 'fp-dmk' ),
+					'deleteHasChildren' => __( 'Elimina prima le sottocartelle oppure spostale altrove.', 'fp-dmk' ),
 				],
 			]
 		);

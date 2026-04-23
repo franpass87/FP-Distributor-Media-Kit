@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.14.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · albero cartelle**: azioni di gestione direttamente dai nodi (appaiono in hover/focus):
+  - **Rinomina** inline con input sibling al nodo (invio = salva, Esc = annulla).
+  - **Elimina** con conferma: se la cartella è vuota chiede semplice conferma; se contiene asset avverte quanti e li sposta nella cartella superiore (o li scollega se la cartella era in radice); se ci sono sottocartelle blocca l'operazione.
+- Nuovi endpoint AJAX server-side: `fp_dmk_rename_folder`, `fp_dmk_delete_folder` (riutilizzano il nonce `fp_dmk_create_folder`, capability `manage_fp_dmk_categories`).
+
 ## [1.13.0] - 2026-04-23
 
 ### Added

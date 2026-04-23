@@ -48,6 +48,8 @@ final class AssetManager {
 		add_action( 'transition_post_status', [ self::class, 'on_publish' ], 10, 3 );
 		add_action( 'wp_ajax_fp_dmk_create_folder', [ self::class, 'ajax_create_folder' ] );
 		add_action( 'wp_ajax_fp_dmk_ensure_folder_paths', [ self::class, 'ajax_ensure_folder_paths' ] );
+		add_action( 'wp_ajax_fp_dmk_rename_folder', [ self::class, 'ajax_rename_folder' ] );
+		add_action( 'wp_ajax_fp_dmk_delete_folder', [ self::class, 'ajax_delete_folder' ] );
 	}
 
 	public static function register_cpt(): void {
@@ -830,6 +832,149 @@ final class AssetManager {
 			[
 				'paths'   => $results,
 				'created' => $created_nodes,
+			]
+		);
+	}
+
+	/**
+	 * AJAX: rinomina una cartella ({@see self::TAXONOMY_FOLDER}).
+	 *
+	 * Riutilizza il nonce `fp_dmk_create_folder`. Se esiste già una cartella con lo stesso
+	 * nome/slug sotto lo stesso parent, ritorna errore leggibile invece di un WP_Error grezzo.
+	 */
+	public static function ajax_rename_folder(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_folder', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$term_id  = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0;
+		$new_name = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['name'] ) ) : '';
+		if ( $term_id <= 0 || $new_name === '' ) {
+			wp_send_json_error( [ 'message' => __( 'Parametri non validi.', 'fp-dmk' ) ], 400 );
+		}
+		$term = get_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( ! $term instanceof \WP_Term || is_wp_error( $term ) ) {
+			wp_send_json_error( [ 'message' => __( 'Cartella non trovata.', 'fp-dmk' ) ], 404 );
+		}
+
+		$result = wp_update_term( $term_id, self::TAXONOMY_FOLDER, [ 'name' => $new_name ] );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( [ 'message' => $result->get_error_message() ], 400 );
+		}
+		$fresh = get_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( ! $fresh instanceof \WP_Term ) {
+			wp_send_json_error( [ 'message' => __( 'Errore aggiornamento termine.', 'fp-dmk' ) ], 500 );
+		}
+		wp_send_json_success(
+			[
+				'term_id' => (int) $fresh->term_id,
+				'name'    => $fresh->name,
+				'parent'  => (int) $fresh->parent,
+				'depth'   => self::folder_term_depth( $fresh ),
+			]
+		);
+	}
+
+	/**
+	 * AJAX: elimina una cartella; richiede che non abbia sottocartelle.
+	 *
+	 * Parametri POST:
+	 *   - `term_id`: id cartella
+	 *   - `orphan_action`: come gestire gli asset contenuti. Valori ammessi:
+	 *       - `move_to_parent` (default): gli asset vengono riassegnati alla cartella padre (o scollegati se root)
+	 *       - `detach`: rimuove solo l'associazione cartella (asset restano ma senza cartella)
+	 */
+	public static function ajax_delete_folder(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_folder', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$term_id = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0;
+		$orphan  = isset( $_POST['orphan_action'] ) ? sanitize_key( (string) $_POST['orphan_action'] ) : 'move_to_parent';
+		if ( ! in_array( $orphan, [ 'move_to_parent', 'detach' ], true ) ) {
+			$orphan = 'move_to_parent';
+		}
+		if ( $term_id <= 0 ) {
+			wp_send_json_error( [ 'message' => __( 'Parametri non validi.', 'fp-dmk' ) ], 400 );
+		}
+		$term = get_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( ! $term instanceof \WP_Term || is_wp_error( $term ) ) {
+			wp_send_json_error( [ 'message' => __( 'Cartella non trovata.', 'fp-dmk' ) ], 404 );
+		}
+
+		$children = get_terms(
+			[
+				'taxonomy'   => self::TAXONOMY_FOLDER,
+				'hide_empty' => false,
+				'parent'     => $term_id,
+				'fields'     => 'ids',
+			]
+		);
+		if ( ! is_wp_error( $children ) && is_array( $children ) && count( $children ) > 0 ) {
+			wp_send_json_error(
+				[
+					'message' => sprintf(
+						/* translators: %d: number of subfolders */
+						__( 'La cartella contiene %d sottocartella/e: eliminale o spostale prima.', 'fp-dmk' ),
+						count( $children )
+					),
+				],
+				409
+			);
+		}
+
+		// Gestione asset contenuti direttamente.
+		$assets = get_posts(
+			[
+				'post_type'      => self::CPT,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'tax_query'      => [
+					[
+						'taxonomy' => self::TAXONOMY_FOLDER,
+						'field'    => 'term_id',
+						'terms'    => [ $term_id ],
+					],
+				],
+			]
+		);
+		$parent_id    = (int) $term->parent;
+		$moved_assets = 0;
+		if ( is_array( $assets ) && ! empty( $assets ) ) {
+			foreach ( $assets as $post_id ) {
+				if ( $orphan === 'move_to_parent' && $parent_id > 0 ) {
+					wp_set_object_terms( (int) $post_id, [ $parent_id ], self::TAXONOMY_FOLDER, false );
+				} else {
+					wp_set_object_terms( (int) $post_id, [], self::TAXONOMY_FOLDER, false );
+				}
+				$moved_assets++;
+			}
+		}
+
+		$deleted = wp_delete_term( $term_id, self::TAXONOMY_FOLDER );
+		if ( is_wp_error( $deleted ) || $deleted === 0 || $deleted === false ) {
+			wp_send_json_error(
+				[
+					'message' => is_wp_error( $deleted ) ? $deleted->get_error_message() : __( 'Impossibile eliminare la cartella.', 'fp-dmk' ),
+				],
+				500
+			);
+		}
+
+		wp_send_json_success(
+			[
+				'term_id'      => $term_id,
+				'parent'       => $parent_id,
+				'moved_assets' => $moved_assets,
+				'asset_count'  => is_array( $assets ) ? count( $assets ) : 0,
+				'orphan_action'=> $orphan,
 			]
 		);
 	}

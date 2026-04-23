@@ -148,6 +148,7 @@
 				countEl.textContent = String( totalCount );
 				btn.appendChild( countEl );
 			}
+			btn.dataset.directCount = String( typeof node.count === 'number' ? node.count : 0 );
 			btn.addEventListener( 'click', function () {
 				syncTreeSelection( node.id );
 			} );
@@ -176,6 +177,33 @@
 
 			row.appendChild( toggle );
 			row.appendChild( btn );
+			if ( cfg.canCreateFolders ) {
+				var actions = document.createElement( 'span' );
+				actions.className = 'fpdmk-tree-node-actions';
+				var renameBtn = document.createElement( 'button' );
+				renameBtn.type = 'button';
+				renameBtn.className = 'fpdmk-tree-action-btn fpdmk-tree-action-rename';
+				renameBtn.title = i18n.renameFolder || 'Rinomina';
+				renameBtn.setAttribute( 'aria-label', i18n.renameFolder || 'Rinomina' );
+				renameBtn.innerHTML = '<span class="dashicons dashicons-edit" aria-hidden="true"></span>';
+				renameBtn.addEventListener( 'click', function ( e ) {
+					e.stopPropagation();
+					startRenameNode( btn, node.id, nameSpan );
+				} );
+				var deleteBtn = document.createElement( 'button' );
+				deleteBtn.type = 'button';
+				deleteBtn.className = 'fpdmk-tree-action-btn fpdmk-tree-action-delete';
+				deleteBtn.title = i18n.deleteFolder || 'Elimina';
+				deleteBtn.setAttribute( 'aria-label', i18n.deleteFolder || 'Elimina' );
+				deleteBtn.innerHTML = '<span class="dashicons dashicons-trash" aria-hidden="true"></span>';
+				deleteBtn.addEventListener( 'click', function ( e ) {
+					e.stopPropagation();
+					confirmDeleteNode( li, btn, node );
+				} );
+				actions.appendChild( renameBtn );
+				actions.appendChild( deleteBtn );
+				row.appendChild( actions );
+			}
 			li.appendChild( row );
 
 			if ( hasKids ) {
@@ -186,6 +214,174 @@
 				li.appendChild( sub );
 			}
 			ul.appendChild( li );
+		} );
+	}
+
+	/**
+	 * Rinomina inline: nasconde il button e inserisce un input sibling.
+	 * Evita l'HTML invalido di input annidati in button e i glitch di focus.
+	 */
+	function startRenameNode( nodeBtn, termId, nameSpan ) {
+		if ( ! nodeBtn || ! nameSpan ) {
+			return;
+		}
+		var row = nodeBtn.parentNode;
+		if ( ! row || row.querySelector( '.fpdmk-tree-rename-input' ) ) {
+			return;
+		}
+		var currentName = nameSpan.textContent;
+		var input = document.createElement( 'input' );
+		input.type = 'text';
+		input.className = 'fpdmk-tree-rename-input';
+		input.value = currentName;
+		nodeBtn.style.display = 'none';
+		row.insertBefore( input, nodeBtn );
+		input.focus();
+		input.select();
+		var done = false;
+		function finish( newName ) {
+			if ( done ) { return; }
+			done = true;
+			if ( input.parentNode ) {
+				input.parentNode.removeChild( input );
+			}
+			nodeBtn.style.display = '';
+			if ( ! newName || newName === currentName ) {
+				return;
+			}
+			var body = new URLSearchParams();
+			body.append( 'action', 'fp_dmk_rename_folder' );
+			body.append( '_nonce', cfg.folderNonce );
+			body.append( 'term_id', String( termId ) );
+			body.append( 'name', newName );
+			fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( res ) {
+					if ( ! res || ! res.success ) {
+						window.alert( res && res.data && res.data.message ? res.data.message : ( i18n.folderCreateError || 'Error' ) );
+						return;
+					}
+					var newLabel = res.data.name;
+					nameSpan.textContent = newLabel;
+					var depth = Number( res.data.depth ) || 0;
+					var pad = ''; for ( var i = 0; i < depth; i++ ) { pad += '— '; }
+					var fullLabel = pad + newLabel;
+					[ $defFold, document.querySelector( '.fpdmk-folder-new-parent' ) ].forEach( function ( sel ) {
+						if ( ! sel ) { return; }
+						var opt = sel.querySelector( 'option[value="' + termId + '"]' );
+						if ( opt ) { opt.textContent = fullLabel; }
+					} );
+					$tbody.querySelectorAll( 'select[name$="[folder_term]"] option[value="' + termId + '"]' ).forEach( function ( o ) {
+						o.textContent = fullLabel;
+					} );
+				} )
+				.catch( function () {
+					window.alert( i18n.networkError || 'Network error' );
+				} );
+		}
+		input.addEventListener( 'keydown', function ( e ) {
+			if ( e.key === 'Enter' ) {
+				e.preventDefault();
+				finish( input.value.trim() );
+			} else if ( e.key === 'Escape' ) {
+				e.preventDefault();
+				finish( null );
+			}
+		} );
+		input.addEventListener( 'blur', function () {
+			finish( input.value.trim() );
+		} );
+	}
+
+	/**
+	 * Conferma eliminazione con scelta su cosa fare degli asset contenuti.
+	 */
+	function confirmDeleteNode( li, nodeBtn, node ) {
+		if ( ! li || ! nodeBtn || ! node ) {
+			return;
+		}
+		// Verifica sottocartelle lato client prima di chiamare il server.
+		var hasChildren = !! li.querySelector( ':scope > .fpdmk-tree-children > li' );
+		if ( hasChildren ) {
+			window.alert( i18n.deleteHasChildren || 'Non puoi eliminare una cartella che contiene sottocartelle.' );
+			return;
+		}
+		var direct = Number( nodeBtn.dataset.directCount ) || 0;
+		var orphan = 'move_to_parent';
+		if ( direct > 0 ) {
+			var msg = ( i18n.deleteWithAssets || '' ).replace( '%1$s', node.name ).replace( '%2$d', String( direct ) );
+			if ( ! window.confirm( msg ) ) {
+				return;
+			}
+		} else {
+			var msgEmpty = ( i18n.deleteEmpty || '' ).replace( '%s', node.name );
+			if ( ! window.confirm( msgEmpty ) ) {
+				return;
+			}
+		}
+		var body = new URLSearchParams();
+		body.append( 'action', 'fp_dmk_delete_folder' );
+		body.append( '_nonce', cfg.folderNonce );
+		body.append( 'term_id', String( node.id ) );
+		body.append( 'orphan_action', orphan );
+		fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( res ) {
+				if ( ! res || ! res.success ) {
+					window.alert( res && res.data && res.data.message ? res.data.message : ( i18n.folderCreateError || 'Error' ) );
+					return;
+				}
+				removeFolderFromUI( node.id );
+				if ( selectedFolderId === node.id ) {
+					syncTreeSelection( 0 );
+				}
+			} )
+			.catch( function () {
+				window.alert( i18n.networkError || 'Network error' );
+			} );
+	}
+
+	/**
+	 * Rimuove una cartella da tree e da tutte le select dopo eliminazione server-side.
+	 */
+	function removeFolderFromUI( termId ) {
+		if ( ! $treeRoot ) {
+			return;
+		}
+		var btn = $treeRoot.querySelector( '.fpdmk-tree-node[data-folder-id="' + termId + '"]' );
+		if ( btn ) {
+			var li = btn.closest( 'li.fpdmk-tree-item' );
+			if ( li && li.parentNode ) {
+				var parentUl = li.parentNode;
+				li.parentNode.removeChild( li );
+				// Se il parent ul è di un parent-node e ora non ha più figli, converti il toggle in is-leaf.
+				if ( parentUl.classList.contains( 'fpdmk-tree-children' ) && parentUl.children.length === 0 ) {
+					var grandparentLi = parentUl.parentNode;
+					var ptog = grandparentLi && grandparentLi.querySelector( ':scope > .fpdmk-tree-row > .fpdmk-tree-toggle' );
+					if ( ptog ) {
+						ptog.classList.add( 'is-leaf' );
+						ptog.textContent = '·';
+					}
+					if ( parentUl.parentNode ) {
+						parentUl.parentNode.removeChild( parentUl );
+					}
+				}
+			}
+		}
+		// Rimuovi da default folder select, per-row folder selects e parent select del widget create.
+		[ $defFold, document.querySelector( '.fpdmk-folder-new-parent' ) ].forEach( function ( sel ) {
+			if ( ! sel ) { return; }
+			var opt = sel.querySelector( 'option[value="' + termId + '"]' );
+			if ( opt ) { opt.parentNode.removeChild( opt ); }
+		} );
+		$tbody.querySelectorAll( 'select[name$="[folder_term]"] option[value="' + termId + '"]' ).forEach( function ( opt ) {
+			opt.parentNode.removeChild( opt );
+		} );
+		// Se c'erano righe con quella cartella, il loro value è ora inesistente: ripristina a 0.
+		$tbody.querySelectorAll( 'select[name$="[folder_term]"]' ).forEach( function ( sel ) {
+			if ( sel.value === '' || ! sel.querySelector( 'option[value="' + sel.value + '"]' ) ) {
+				sel.value = '0';
+			}
 		} );
 	}
 

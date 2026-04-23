@@ -865,6 +865,51 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	background: rgba( 255, 255, 255, 0.55 );
 	color: var(--fpdms-info-text);
 }
+.fpdmk-bulk-tree .fpdmk-tree-node-actions {
+	display: inline-flex;
+	gap: 2px;
+	margin-left: 4px;
+	opacity: 0;
+	transition: opacity 0.12s ease-in-out;
+}
+.fpdmk-bulk-tree .fpdmk-tree-row:hover .fpdmk-tree-node-actions,
+.fpdmk-bulk-tree .fpdmk-tree-row:focus-within .fpdmk-tree-node-actions {
+	opacity: 1;
+}
+.fpdmk-bulk-tree .fpdmk-tree-action-btn {
+	border: 1px solid transparent;
+	background: transparent;
+	cursor: pointer;
+	padding: 2px 4px;
+	border-radius: var(--radius-md);
+	color: var(--fpdms-text-muted);
+	line-height: 1;
+}
+.fpdmk-bulk-tree .fpdmk-tree-action-btn:hover {
+	background: var(--fpdms-bg-white);
+	border-color: var(--fpdms-border);
+	color: var(--fpdms-text);
+}
+.fpdmk-bulk-tree .fpdmk-tree-action-btn.fpdmk-tree-action-delete:hover {
+	background: var(--fpdms-danger-bg);
+	border-color: var(--fpdms-danger);
+	color: var(--fpdms-danger-text);
+}
+.fpdmk-bulk-tree .fpdmk-tree-action-btn .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	line-height: 14px;
+}
+.fpdmk-bulk-tree .fpdmk-tree-rename-input {
+	flex: 1;
+	min-width: 0;
+	margin-right: 4px;
+	padding: 2px 6px;
+	border: 1px solid var(--fpdms-primary);
+	border-radius: var(--radius-md);
+	font-size: 0.9rem;
+}
 .fpdmk-bulk-pane {
 	flex: 1;
 	min-width: 0;
