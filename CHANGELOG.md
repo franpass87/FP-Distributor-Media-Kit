@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.18.0] - 2026-04-23
+
+### Added
+
+- **Caricamento multiplo · ordinamento colonne** nella tabella file in coda: File, Titolo, Lingua e Cartella sono ordinabili. Click sull'intestazione per alternare asc/desc, con indicatore ▲/▼ e `aria-sort`. Le nuove righe (aggiunte da upload o dalla Libreria media) vengono inserite nel posto giusto mantenendo l'ordine corrente.
+
 ## [1.17.0] - 2026-04-23
 
 ### Added

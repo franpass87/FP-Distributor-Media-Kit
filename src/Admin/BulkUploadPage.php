@@ -363,13 +363,13 @@ final class BulkUploadPage {
 												<label class="screen-reader-text" for="fpdmk-bulk-master-check"><?php esc_html_e( 'Seleziona tutto', 'fp-dmk' ); ?></label>
 												<input type="checkbox" id="fpdmk-bulk-master-check">
 											</th>
-											<th class="fpdmk-bulk-col-file"><?php esc_html_e( 'File', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-title"><?php esc_html_e( 'Titolo', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-desc"><?php esc_html_e( 'Descrizione', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-lang"><?php esc_html_e( 'Lingua', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-folder"><?php esc_html_e( 'Cartella', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-cats"><?php esc_html_e( 'Categorie', 'fp-dmk' ); ?></th>
-											<th class="fpdmk-bulk-col-actions" aria-label="<?php esc_attr_e( 'Azioni', 'fp-dmk' ); ?>"></th>
+											<th class="fpdmk-bulk-col-file fpdmk-bulk-sortable" data-sort-key="file" scope="col"><button type="button" class="fpdmk-bulk-sort-btn"><?php esc_html_e( 'File', 'fp-dmk' ); ?><span class="fpdmk-bulk-sort-indicator" aria-hidden="true"></span></button></th>
+											<th class="fpdmk-bulk-col-title fpdmk-bulk-sortable" data-sort-key="title" scope="col"><button type="button" class="fpdmk-bulk-sort-btn"><?php esc_html_e( 'Titolo', 'fp-dmk' ); ?><span class="fpdmk-bulk-sort-indicator" aria-hidden="true"></span></button></th>
+											<th class="fpdmk-bulk-col-desc" scope="col"><?php esc_html_e( 'Descrizione', 'fp-dmk' ); ?></th>
+											<th class="fpdmk-bulk-col-lang fpdmk-bulk-sortable" data-sort-key="language" scope="col"><button type="button" class="fpdmk-bulk-sort-btn"><?php esc_html_e( 'Lingua', 'fp-dmk' ); ?><span class="fpdmk-bulk-sort-indicator" aria-hidden="true"></span></button></th>
+											<th class="fpdmk-bulk-col-folder fpdmk-bulk-sortable" data-sort-key="folder" scope="col"><button type="button" class="fpdmk-bulk-sort-btn"><?php esc_html_e( 'Cartella', 'fp-dmk' ); ?><span class="fpdmk-bulk-sort-indicator" aria-hidden="true"></span></button></th>
+											<th class="fpdmk-bulk-col-cats" scope="col"><?php esc_html_e( 'Categorie', 'fp-dmk' ); ?></th>
+											<th class="fpdmk-bulk-col-actions" aria-label="<?php esc_attr_e( 'Azioni', 'fp-dmk' ); ?>" scope="col"></th>
 										</tr>
 									</thead>
 									<tbody></tbody>

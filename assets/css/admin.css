@@ -917,6 +917,40 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	opacity: 0.55;
 	cursor: grabbing;
 }
+/* Colonne ordinabili nella tabella file */
+.fpdmk-bulk-table th.fpdmk-bulk-sortable {
+	padding: 0;
+}
+.fpdmk-bulk-table .fpdmk-bulk-sort-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 10px 12px;
+	background: transparent;
+	border: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.fpdmk-bulk-table .fpdmk-bulk-sort-btn:hover {
+	background: rgba( 255, 255, 255, 0.08 );
+}
+.fpdmk-bulk-table .fpdmk-bulk-sort-indicator {
+	display: inline-block;
+	width: 10px;
+	font-size: 0.8em;
+	opacity: 0.55;
+}
+.fpdmk-bulk-table th.is-sorted-asc .fpdmk-bulk-sort-indicator::after {
+	content: '▲';
+	opacity: 1;
+}
+.fpdmk-bulk-table th.is-sorted-desc .fpdmk-bulk-sort-indicator::after {
+	content: '▼';
+	opacity: 1;
+}
 /* Breadcrumb cartella attiva nella toolbar */
 .fpdmk-bulk-breadcrumb {
 	display: inline-flex;

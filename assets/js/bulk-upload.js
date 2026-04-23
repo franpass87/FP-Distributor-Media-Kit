@@ -888,6 +888,9 @@
 		}
 		$tbody.appendChild( tr );
 		refreshUI();
+		if ( typeof applySort === 'function' ) {
+			applySort();
+		}
 	}
 
 	function isFileAllowed( file ) {
@@ -1734,6 +1737,86 @@
 		return '';
 	} );
 
+	var sortKey = null;
+	var sortDir = 1; // 1 = asc, -1 = desc
+
+	function rowSortValue( tr, key ) {
+		if ( ! tr ) {
+			return '';
+		}
+		if ( key === 'file' ) {
+			var strong = tr.querySelector( 'td:first-child strong' );
+			return strong ? strong.textContent.toLowerCase() : '';
+		}
+		if ( key === 'title' ) {
+			var inp = tr.querySelector( 'input[name$="[title]"]' );
+			return inp ? inp.value.toLowerCase() : '';
+		}
+		if ( key === 'language' ) {
+			var selL = tr.querySelector( 'select[name$="[language]"]' );
+			return selL ? selL.value.toLowerCase() : '';
+		}
+		if ( key === 'folder' ) {
+			var selF = tr.querySelector( 'select[name$="[folder_term]"]' );
+			if ( ! selF ) { return ''; }
+			var opt = selF.options[ selF.selectedIndex ];
+			return opt ? opt.textContent.toLowerCase() : '';
+		}
+		return '';
+	}
+
+	function applySort() {
+		if ( ! sortKey ) {
+			return;
+		}
+		var rows = Array.prototype.slice.call(
+			$tbody.querySelectorAll( 'tr.fpdmk-bulk-row:not(.fpdmk-bulk-placeholder)' )
+		);
+		rows.sort( function ( a, b ) {
+			var va = rowSortValue( a, sortKey );
+			var vb = rowSortValue( b, sortKey );
+			if ( va < vb ) { return -1 * sortDir; }
+			if ( va > vb ) { return 1 * sortDir; }
+			return 0;
+		} );
+		rows.forEach( function ( tr ) {
+			$tbody.appendChild( tr );
+		} );
+	}
+
+	function bindSorting() {
+		var headers = document.querySelectorAll( '.fpdmk-bulk-sortable' );
+		if ( ! headers.length ) {
+			return;
+		}
+		function updateIndicators() {
+			headers.forEach( function ( th ) {
+				th.classList.remove( 'is-sorted-asc', 'is-sorted-desc' );
+				if ( th.getAttribute( 'data-sort-key' ) === sortKey ) {
+					th.classList.add( sortDir === 1 ? 'is-sorted-asc' : 'is-sorted-desc' );
+					th.setAttribute( 'aria-sort', sortDir === 1 ? 'ascending' : 'descending' );
+				} else {
+					th.removeAttribute( 'aria-sort' );
+				}
+			} );
+		}
+		headers.forEach( function ( th ) {
+			var btn = th.querySelector( '.fpdmk-bulk-sort-btn' );
+			if ( ! btn ) { return; }
+			btn.addEventListener( 'click', function () {
+				var key = th.getAttribute( 'data-sort-key' );
+				if ( sortKey === key ) {
+					sortDir = sortDir === 1 ? -1 : 1;
+				} else {
+					sortKey = key;
+					sortDir = 1;
+				}
+				updateIndicators();
+				applySort();
+			} );
+		} );
+	}
+
 	buildFolderTree();
 	bindDropzone();
 	bindMediaPicker();
@@ -1741,6 +1824,7 @@
 	bindSelection();
 	bindBulkActions();
 	bindFolderCreate();
+	bindSorting();
 	refreshUI();
 	updateBulkbar();
 } )();
