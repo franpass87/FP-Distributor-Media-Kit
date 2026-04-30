@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.1] - 2026-04-30
+
+### Fixed
+
+- **Caricamento multiplo · colonna Cartelle**: niente scroll orizzontale indesiderato; `input.regular-text` e `select` del form «Nuova cartella» si adattano alla larghezza della sidebar (`min-width: 0`, `overflow-x: hidden` sulla colonna).
+
 ## [1.19.0] - 2026-04-30
 
 ### Fixed

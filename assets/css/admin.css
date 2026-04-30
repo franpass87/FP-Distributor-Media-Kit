@@ -742,6 +742,7 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 .fpdmk-bulk-sidebar {
 	flex: 0 0 280px;
 	max-width: 100%;
+	min-width: 0;
 	background: var(--fpdms-bg-light);
 	border-right: 1px solid var(--fpdms-border);
 	padding: 12px 10px 14px;
@@ -750,7 +751,8 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 	gap: 10px;
 	min-height: 280px;
 	max-height: 70vh;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 .fpdmk-bulk-sidebar-title {
 	font-weight: 700;
@@ -763,6 +765,7 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 .fpdmk-bulk-tree {
 	font-size: 0.9rem;
 	flex: 1;
+	min-width: 0;
 	min-height: 80px;
 }
 .fpdmk-bulk-tree .fpdmk-tree-root-node {
@@ -1129,6 +1132,21 @@ body.fpdmk-admin-shell.post-new-php.post-type-fp_dmk_asset #titlewrap #title:foc
 .fpdmk-folder-new-sidebar .fpdmk-folder-new-form {
 	flex-direction: column;
 	align-items: stretch;
+}
+/* Colonna «Cartelle»: .regular-text del core è ~25em e supera i 280px → scroll orizzontale */
+.fpdmk-bulk-upload-page .fpdmk-bulk-sidebar .fpdmk-folder-new-sidebar {
+	min-width: 0;
+	max-width: 100%;
+}
+.fpdmk-bulk-upload-page .fpdmk-bulk-sidebar .fpdmk-folder-new-form input.regular-text,
+.fpdmk-bulk-upload-page .fpdmk-bulk-sidebar .fpdmk-folder-new-form select {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+.fpdmk-bulk-upload-page .fpdmk-bulk-sidebar .fpdmk-folder-new-form .button {
+	box-sizing: border-box;
+	max-width: 100%;
 }
 /* Thumbnail preview nella colonna File */
 .fpdmk-bulk-thumb {
