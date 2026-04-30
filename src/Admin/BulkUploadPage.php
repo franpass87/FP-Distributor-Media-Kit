@@ -72,9 +72,11 @@ final class BulkUploadPage {
 				'allowedMimes'     => self::allowed_upload_mimes(),
 				'folderNonce'      => wp_create_nonce( 'fp_dmk_create_folder' ),
 				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'canCreateFolders' => current_user_can( 'manage_fp_dmk_categories' ),
-				'folderTree'       => AssetManager::get_folder_tree_nested(),
-				'i18n'             => [
+				'canCreateFolders'   => current_user_can( 'manage_fp_dmk_categories' ),
+				'canCreateCategories' => current_user_can( 'manage_fp_dmk_categories' ),
+				'categoryNonce'      => wp_create_nonce( 'fp_dmk_create_asset_category' ),
+				'folderTree'         => AssetManager::get_folder_tree_nested(),
+				'i18n'               => [
 					'filesLabel'        => __( 'file', 'fp-dmk' ),
 					'rootFolder'        => __( 'Radice (nessuna cartella)', 'fp-dmk' ),
 					'dropTitle'         => __( 'Trascina qui i file o clicca per sfogliare', 'fp-dmk' ),
@@ -102,7 +104,11 @@ final class BulkUploadPage {
 					'deleteEmpty'       => __( 'Eliminare la cartella «%s»?', 'fp-dmk' ),
 					'deleteWithAssets'  => __( 'La cartella «%1$s» contiene %2$d asset. Verranno spostati nella cartella superiore (o scollegati, se radice). Procedere?', 'fp-dmk' ),
 					'deleteHasChildren' => __( 'Elimina prima le sottocartelle oppure spostale altrove.', 'fp-dmk' ),
-					'dragGhost'         => __( '%d file selezionati', 'fp-dmk' ),
+					'dragGhost'           => __( '%d file selezionati', 'fp-dmk' ),
+					'creatingCategory'    => __( 'Creazione categoria in corso…', 'fp-dmk' ),
+					'categoryCreateError' => __( 'Errore durante la creazione della categoria.', 'fp-dmk' ),
+					'categoryExists'      => __( 'Categoria già esistente, selezionata.', 'fp-dmk' ),
+					'categoryCreated'     => __( 'Categoria creata e selezionata.', 'fp-dmk' ),
 				],
 			]
 		);
@@ -287,6 +293,30 @@ final class BulkUploadPage {
 									<?php endforeach; ?>
 								</select>
 								<span class="fpdmk-hint"><?php esc_html_e( 'Tieni premuto Ctrl/Cmd per selezione multipla.', 'fp-dmk' ); ?></span>
+								<?php if ( current_user_can( 'manage_fp_dmk_categories' ) ) : ?>
+									<div class="fpdmk-category-new fpdmk-folder-new-sidebar" data-target="#fpdmk_bulk_default_categories">
+										<button type="button" class="button fpdmk-category-new-toggle"><span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e( 'Nuova categoria', 'fp-dmk' ); ?></button>
+										<div class="fpdmk-category-new-form" hidden>
+											<input type="text" class="regular-text fpdmk-category-new-name" placeholder="<?php esc_attr_e( 'Nome categoria', 'fp-dmk' ); ?>">
+											<select class="fpdmk-category-new-parent">
+												<option value="0"><?php esc_html_e( '— Radice (nessun genitore) —', 'fp-dmk' ); ?></option>
+												<?php foreach ( $cat_terms as $term ) : ?>
+													<?php
+													if ( ! $term instanceof \WP_Term ) {
+														continue;
+													}
+													$depth = count( get_ancestors( $term->term_id, AssetManager::TAXONOMY ) );
+													$pad   = str_repeat( '— ', $depth );
+													?>
+													<option value="<?php echo (int) $term->term_id; ?>"><?php echo esc_html( $pad . $term->name ); ?></option>
+												<?php endforeach; ?>
+											</select>
+											<button type="button" class="button button-primary fpdmk-category-new-save"><?php esc_html_e( 'Crea', 'fp-dmk' ); ?></button>
+											<button type="button" class="button fpdmk-category-new-cancel"><?php esc_html_e( 'Annulla', 'fp-dmk' ); ?></button>
+											<span class="fpdmk-category-new-msg" role="status" aria-live="polite"></span>
+										</div>
+									</div>
+								<?php endif; ?>
 							</div>
 						</div>
 					</div>

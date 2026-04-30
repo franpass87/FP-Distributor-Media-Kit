@@ -15,6 +15,7 @@ final class UserApprovalPage {
 
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'register_menu' ], 5 );
+		add_action( 'admin_menu', [ $this, 'prune_classic_asset_submenus' ], 99 );
 		add_action( 'admin_init', [ $this, 'handle_approve' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ] );
 		add_filter( 'admin_body_class', [ $this, 'admin_body_class' ] );
@@ -31,22 +32,6 @@ final class UserApprovalPage {
 			'56.13'
 		);
 		remove_submenu_page( 'fp-dmk', 'fp-dmk' );
-		add_submenu_page(
-			'fp-dmk',
-			__( 'Categorie', 'fp-dmk' ),
-			__( 'Categorie', 'fp-dmk' ),
-			'manage_fp_dmk',
-			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY . '&post_type=' . AssetManager::CPT,
-			null
-		);
-		add_submenu_page(
-			'fp-dmk',
-			__( 'Cartelle', 'fp-dmk' ),
-			__( 'Cartelle', 'fp-dmk' ),
-			'manage_fp_dmk',
-			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY_FOLDER . '&post_type=' . AssetManager::CPT,
-			null
-		);
 		add_submenu_page(
 			'fp-dmk',
 			__( 'Caricamento multiplo', 'fp-dmk' ),
@@ -82,8 +67,40 @@ final class UserApprovalPage {
 	}
 
 	public function render_assets_redirect(): void {
-		wp_safe_redirect( admin_url( 'edit.php?post_type=' . AssetManager::CPT ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . BulkUploadPage::PAGE_SLUG ) );
 		exit;
+	}
+
+	/**
+	 * Rimuove dal menu le voci classiche (CPT elenco/nuovo e tassonomie) già coperte dal caricamento multiplo;
+	 * reintroduce una sola voce «Elenco asset» per correzioni e statistiche download in tabella.
+	 */
+	public function prune_classic_asset_submenus(): void {
+		if ( ! apply_filters( 'fp_dmk_bulk_first_admin_menu', true ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_fp_dmk' ) ) {
+			return;
+		}
+		$pt = AssetManager::CPT;
+		remove_submenu_page( 'fp-dmk', 'edit.php?post_type=' . $pt );
+		remove_submenu_page( 'fp-dmk', 'post-new.php?post_type=' . $pt );
+		remove_submenu_page(
+			'fp-dmk',
+			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY . '&post_type=' . $pt
+		);
+		remove_submenu_page(
+			'fp-dmk',
+			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY_FOLDER . '&post_type=' . $pt
+		);
+		add_submenu_page(
+			'fp-dmk',
+			__( 'Elenco asset', 'fp-dmk' ),
+			__( 'Elenco asset', 'fp-dmk' ),
+			'manage_fp_dmk',
+			'edit.php?post_type=' . $pt,
+			null
+		);
 	}
 
 	public function handle_approve(): void {

@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.8.0-blue)
+![Version](https://img.shields.io/badge/version-1.19.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -65,6 +65,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 | `apply_filters('fp_dmk_allowed_mime_types', $types)` | Estende i tipi file consentiti per upload |
 | `apply_filters('fp_dmk_email_subject', $subject)` | Personalizza l'oggetto email notifica |
 | `apply_filters('fp_dmk_allowed_asset_category_slugs', $slugs, $user_id, $segment_slug)` | Elenco slug categorie asset consentite per l’utente (solo con audience attiva) |
+| `apply_filters('fp_dmk_bulk_first_admin_menu', true)` | Se `false`, non accorpa il menu admin verso il caricamento multiplo (voci Categorie/Cartelle/CPT come prima) |
 
 ## Struttura
 

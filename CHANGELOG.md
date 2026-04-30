@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.19.0] - 2026-04-30
+
+### Changed
+
+- **Menu admin hub sul caricamento multiplo**: il click su **FP Media Kit** apre la pagina Caricamento multiplo; rimosse dal menu le voci duplicate **Categorie**, **Cartelle**, elenco CPT predefinito e **Aggiungi nuovo** (sostituiti da **Elenco asset** che punta alla lista classica per correzioni e colonne download). Le schermate tassonomie e l’editor singolo restano raggiungibili tramite URL diretto o da Elenco asset.
+
+### Added
+
+- **Nuova categoria** nel blocco impostazioni predefinite del caricamento multiplo (AJAX `fp_dmk_create_asset_category`, capability `manage_fp_dmk_categories`), con etichetta breadcrumb nelle select.
+
+### Developer
+
+- Filtro `fp_dmk_bulk_first_admin_menu` (default `true`): restituire `false` per ripristinare il menu senza accorpamento automatico.
+
 ## [1.18.0] - 2026-04-23
 
 ### Added

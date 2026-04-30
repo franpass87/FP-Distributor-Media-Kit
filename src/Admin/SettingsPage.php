@@ -385,7 +385,7 @@ final class SettingsPage {
 							</div>
 						<?php endforeach; ?>
 					<?php elseif ( $matrix_segments !== [] && $asset_terms === [] ) : ?>
-						<p class="description"><?php esc_html_e( 'Crea almeno una categoria asset (Media Kit → Categorie) per configurare i permessi per tipo.', 'fp-dmk' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Crea almeno una categoria asset dalla sezione «Nuova categoria» in Caricamento multiplo per configurare i permessi per tipo.', 'fp-dmk' ); ?></p>
 					<?php endif; ?>
 				</div>
 			</div>

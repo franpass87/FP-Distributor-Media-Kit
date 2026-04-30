@@ -47,6 +47,7 @@ final class AssetManager {
 		add_filter( 'manage_edit-' . self::CPT . '_sortable_columns', [ self::class, 'sortable_columns' ] );
 		add_action( 'transition_post_status', [ self::class, 'on_publish' ], 10, 3 );
 		add_action( 'wp_ajax_fp_dmk_create_folder', [ self::class, 'ajax_create_folder' ] );
+		add_action( 'wp_ajax_fp_dmk_create_asset_category', [ self::class, 'ajax_create_asset_category' ] );
 		add_action( 'wp_ajax_fp_dmk_ensure_folder_paths', [ self::class, 'ajax_ensure_folder_paths' ] );
 		add_action( 'wp_ajax_fp_dmk_rename_folder', [ self::class, 'ajax_rename_folder' ] );
 		add_action( 'wp_ajax_fp_dmk_delete_folder', [ self::class, 'ajax_delete_folder' ] );
@@ -251,7 +252,7 @@ final class AssetManager {
 						</div>
 					</div>
 				<?php endif; ?>
-				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Puoi crearne una nuova al volo oppure gestirle da FP Media Kit → Cartelle.', 'fp-dmk' ); ?></span>
+				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Puoi crearne una nuova al volo oppure dall’albero in Caricamento multiplo.', 'fp-dmk' ); ?></span>
 			</div>
 		</div>
 		<script>
@@ -699,6 +700,84 @@ final class AssetManager {
 				'existed' => false,
 			]
 		);
+	}
+
+	/**
+	 * AJAX: crea una categoria asset ({@see self::TAXONOMY}) per uso dal caricamento multiplo senza menu tassonomie.
+	 *
+	 * Stesso livello di permesso della gestione categorie (`manage_fp_dmk_categories`).
+	 */
+	public static function ajax_create_asset_category(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_create_asset_category', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk_categories' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$name   = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['name'] ) ) : '';
+		$parent = isset( $_POST['parent'] ) ? absint( $_POST['parent'] ) : 0;
+		if ( $name === '' ) {
+			wp_send_json_error( [ 'message' => __( 'Il nome della categoria è obbligatorio.', 'fp-dmk' ) ], 400 );
+		}
+
+		if ( $parent > 0 ) {
+			$parent_term = get_term( $parent, self::TAXONOMY );
+			if ( ! $parent_term instanceof \WP_Term || is_wp_error( $parent_term ) ) {
+				wp_send_json_error( [ 'message' => __( 'Categoria superiore non valida.', 'fp-dmk' ) ], 400 );
+			}
+		}
+
+		$result = wp_insert_term( $name, self::TAXONOMY, [ 'parent' => $parent ] );
+		if ( is_wp_error( $result ) ) {
+			$existing_id = $result->get_error_data( 'term_exists' );
+			if ( $existing_id ) {
+				$existing = get_term( (int) $existing_id, self::TAXONOMY );
+				if ( $existing instanceof \WP_Term && ! is_wp_error( $existing ) ) {
+					wp_send_json_success(
+						[
+							'term_id' => (int) $existing->term_id,
+							'name'    => $existing->name,
+							'label'   => self::get_category_breadcrumb_label( $existing ),
+							'existed' => true,
+						]
+					);
+				}
+			}
+			wp_send_json_error( [ 'message' => $result->get_error_message() ], 400 );
+		}
+
+		$term_id = isset( $result['term_id'] ) ? (int) $result['term_id'] : 0;
+		$term    = $term_id > 0 ? get_term( $term_id, self::TAXONOMY ) : null;
+		if ( ! $term instanceof \WP_Term ) {
+			wp_send_json_error( [ 'message' => __( 'Errore nel recupero della categoria creata.', 'fp-dmk' ) ], 500 );
+		}
+
+		wp_send_json_success(
+			[
+				'term_id' => (int) $term->term_id,
+				'name'    => $term->name,
+				'label'   => self::get_category_breadcrumb_label( $term ),
+				'existed' => false,
+			]
+		);
+	}
+
+	/**
+	 * Etichetta categoria con antenati (Genitore › Figlio) per select admin.
+	 */
+	public static function get_category_breadcrumb_label( \WP_Term $term ): string {
+		$chain = get_ancestors( $term->term_id, self::TAXONOMY );
+		$chain = array_reverse( array_map( 'absint', $chain ) );
+		$parts = [];
+		foreach ( $chain as $tid ) {
+			$t = get_term( $tid, self::TAXONOMY );
+			if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
+				$parts[] = $t->name;
+			}
+		}
+		$parts[] = $term->name;
+		return implode( ' › ', $parts );
 	}
 
 	/**

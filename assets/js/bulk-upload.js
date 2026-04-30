@@ -1464,6 +1464,35 @@
 		syncTreeSelection( termId );
 	}
 
+	function appendCategoryOption( sel, id, label ) {
+		if ( ! sel ) {
+			return;
+		}
+		if ( sel.querySelector( 'option[value="' + String( id ) + '"]' ) ) {
+			return;
+		}
+		var opt = document.createElement( 'option' );
+		opt.value = String( id );
+		opt.textContent = label;
+		sel.appendChild( opt );
+	}
+
+	function broadcastCategory( termId, label ) {
+		if ( ! $defCats ) {
+			return;
+		}
+		appendCategoryOption( $defCats, termId, label );
+		$tbody.querySelectorAll( 'select[name$="[categories][]"]' ).forEach( function ( s ) {
+			appendCategoryOption( s, termId, label );
+		} );
+		var parentSel = document.querySelector( '.fpdmk-category-new-parent' );
+		appendCategoryOption( parentSel, termId, label );
+		var o = $defCats.querySelector( 'option[value="' + String( termId ) + '"]' );
+		if ( o ) {
+			o.selected = true;
+		}
+	}
+
 	function bindMediaPicker() {
 		if ( ! $pickBtn ) {
 			return;
@@ -1714,6 +1743,73 @@
 		} );
 	}
 
+	function bindCategoryCreate() {
+		if ( ! cfg.canCreateCategories ) {
+			return;
+		}
+		var widget = document.querySelector( '.fpdmk-category-new' );
+		if ( ! widget ) {
+			return;
+		}
+		var toggle = widget.querySelector( '.fpdmk-category-new-toggle' );
+		var form = widget.querySelector( '.fpdmk-category-new-form' );
+		var nameInput = widget.querySelector( '.fpdmk-category-new-name' );
+		var parentSel = widget.querySelector( '.fpdmk-category-new-parent' );
+		var saveBtn = widget.querySelector( '.fpdmk-category-new-save' );
+		var cancelBtn = widget.querySelector( '.fpdmk-category-new-cancel' );
+		var msg = widget.querySelector( '.fpdmk-category-new-msg' );
+		toggle.addEventListener( 'click', function () {
+			form.hidden = false;
+			toggle.hidden = true;
+			nameInput.focus();
+		} );
+		cancelBtn.addEventListener( 'click', function () {
+			form.hidden = true;
+			toggle.hidden = false;
+			nameInput.value = '';
+			msg.textContent = '';
+		} );
+		saveBtn.addEventListener( 'click', function () {
+			var name = ( nameInput.value || '' ).trim();
+			if ( ! name ) {
+				nameInput.focus();
+				return;
+			}
+			saveBtn.disabled = true;
+			msg.textContent = i18n.creatingCategory || '';
+			var body = new URLSearchParams();
+			body.append( 'action', 'fp_dmk_create_asset_category' );
+			body.append( '_nonce', cfg.categoryNonce );
+			body.append( 'name', name );
+			body.append( 'parent', parentSel.value || '0' );
+			fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+				.then( function ( r ) {
+					return r.json();
+				} )
+				.then( function ( res ) {
+					saveBtn.disabled = false;
+					if ( ! res || ! res.success ) {
+						msg.textContent =
+							res && res.data && res.data.message
+								? res.data.message
+								: i18n.categoryCreateError || '';
+						return;
+					}
+					var d = res.data;
+					broadcastCategory( d.term_id, d.label || d.name );
+					nameInput.value = '';
+					parentSel.value = '0';
+					form.hidden = true;
+					toggle.hidden = false;
+					msg.textContent = d.existed ? i18n.categoryExists || '' : i18n.categoryCreated || '';
+				} )
+				.catch( function () {
+					saveBtn.disabled = false;
+					msg.textContent = i18n.networkError || '';
+				} );
+		} );
+	}
+
 	if ( $filterFolder ) {
 		$filterFolder.addEventListener( 'change', applyFolderFilter );
 	}
@@ -1824,6 +1920,7 @@
 	bindSelection();
 	bindBulkActions();
 	bindFolderCreate();
+	bindCategoryCreate();
 	bindSorting();
 	refreshUI();
 	updateBulkbar();
