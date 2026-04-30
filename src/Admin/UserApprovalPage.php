@@ -34,6 +34,22 @@ final class UserApprovalPage {
 		remove_submenu_page( 'fp-dmk', 'fp-dmk' );
 		add_submenu_page(
 			'fp-dmk',
+			__( 'Categorie', 'fp-dmk' ),
+			__( 'Categorie', 'fp-dmk' ),
+			'manage_fp_dmk',
+			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY . '&post_type=' . AssetManager::CPT,
+			null
+		);
+		add_submenu_page(
+			'fp-dmk',
+			__( 'Cartelle', 'fp-dmk' ),
+			__( 'Cartelle', 'fp-dmk' ),
+			'manage_fp_dmk',
+			'edit-tags.php?taxonomy=' . AssetManager::TAXONOMY_FOLDER . '&post_type=' . AssetManager::CPT,
+			null
+		);
+		add_submenu_page(
+			'fp-dmk',
 			__( 'Caricamento multiplo', 'fp-dmk' ),
 			__( 'Caricamento multiplo', 'fp-dmk' ),
 			'manage_fp_dmk',
@@ -67,7 +83,10 @@ final class UserApprovalPage {
 	}
 
 	public function render_assets_redirect(): void {
-		wp_safe_redirect( admin_url( 'admin.php?page=' . BulkUploadPage::PAGE_SLUG ) );
+		$url = apply_filters( 'fp_dmk_bulk_first_admin_menu', true )
+			? admin_url( 'admin.php?page=' . BulkUploadPage::PAGE_SLUG )
+			: admin_url( 'edit.php?post_type=' . AssetManager::CPT );
+		wp_safe_redirect( $url );
 		exit;
 	}
 

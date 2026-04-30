@@ -65,7 +65,7 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 | `apply_filters('fp_dmk_allowed_mime_types', $types)` | Estende i tipi file consentiti per upload |
 | `apply_filters('fp_dmk_email_subject', $subject)` | Personalizza l'oggetto email notifica |
 | `apply_filters('fp_dmk_allowed_asset_category_slugs', $slugs, $user_id, $segment_slug)` | Elenco slug categorie asset consentite per l’utente (solo con audience attiva) |
-| `apply_filters('fp_dmk_bulk_first_admin_menu', true)` | Se `false`, non accorpa il menu admin verso il caricamento multiplo (voci Categorie/Cartelle/CPT come prima) |
+| `apply_filters('fp_dmk_bulk_first_admin_menu', true)` | Se `false`, menu admin classico (nessun redirect al bulk dal top-level; voci Categorie, Cartelle, CPT e Aggiungi nuovo standard) |
 
 ## Struttura
 

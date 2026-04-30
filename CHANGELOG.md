@@ -2,6 +2,10 @@
 
 ## [1.19.0] - 2026-04-30
 
+### Fixed
+
+- Con `fp_dmk_bulk_first_admin_menu` = `false`, le voci **Categorie** e **Cartelle** restano registrate; il redirect del menu top torna all’elenco CPT.
+
 ### Changed
 
 - **Menu admin hub sul caricamento multiplo**: il click su **FP Media Kit** apre la pagina Caricamento multiplo; rimosse dal menu le voci duplicate **Categorie**, **Cartelle**, elenco CPT predefinito e **Aggiungi nuovo** (sostituiti da **Elenco asset** che punta alla lista classica per correzioni e colonne download). Le schermate tassonomie e l’editor singolo restano raggiungibili tramite URL diretto o da Elenco asset.
@@ -12,7 +16,7 @@
 
 ### Developer
 
-- Filtro `fp_dmk_bulk_first_admin_menu` (default `true`): restituire `false` per ripristinare il menu senza accorpamento automatico.
+- Filtro `fp_dmk_bulk_first_admin_menu` (default `true`): restituire `false` per ripristinare il menu classico (voci Categorie, Cartelle, elenco CPT e Aggiungi nuovo come generati da WordPress; niente voce «Elenco asset» aggiuntiva e il click sul menu top non reindirizza al bulk).
 
 ## [1.18.0] - 2026-04-23
 
