@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.3] - 2026-04-30
+
+### Fixed
+
+- **Caricamento multiplo · lingua predefinita**: il selettore non veniva ripristinato al ricarico della pagina; ora la scelta è salvata in **user meta** (`fp_dmk_bulk_default_language`) tramite AJAX al cambio valore e riapplicata al render (hint sotto al campo).
+
 ## [1.19.2] - 2026-04-30
 
 ### Added

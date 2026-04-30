@@ -736,6 +736,35 @@
 		} );
 	}
 
+	function bindDefaultLanguagePersist() {
+		if ( ! $defLang || ! cfg.bulkPrefsNonce ) {
+			return;
+		}
+		$defLang.addEventListener( 'change', function () {
+			var body = new URLSearchParams();
+			body.append( 'action', 'fp_dmk_save_bulk_default_language' );
+			body.append( '_nonce', cfg.bulkPrefsNonce );
+			body.append( 'language', $defLang.value || 'it' );
+			fetch( cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body } )
+				.then( function ( r ) {
+					return r.json();
+				} )
+				.then( function ( res ) {
+					if ( res && res.success ) {
+						setStatus( i18n.defaultLangSaved || '', 'success' );
+						window.setTimeout( function () {
+							setStatus( '', '' );
+						}, 2800 );
+					} else {
+						setStatus( i18n.defaultLangSaveErr || '', 'error' );
+					}
+				} )
+				.catch( function () {
+					setStatus( i18n.networkError || i18n.defaultLangSaveErr || '', 'error' );
+				} );
+		} );
+	}
+
 	function bindFzRemoteClick() {
 		if ( ! $fzRemoteTbody || $fzRemoteTbody.dataset.fpdmkBound === '1' ) {
 			return;
@@ -2000,6 +2029,7 @@
 	}
 
 	bindFzRemoteClick();
+	bindDefaultLanguagePersist();
 	buildFolderTree();
 	bindDropzone();
 	bindMediaPicker();

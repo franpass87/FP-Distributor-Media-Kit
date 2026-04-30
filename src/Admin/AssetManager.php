@@ -28,6 +28,11 @@ final class AssetManager {
 
 	public const LANGUAGES = [ 'it' => 'IT', 'en' => 'EN' ];
 
+	/**
+	 * User meta: lingua predefinita pagina Caricamento multiplo (ultima scelta utente).
+	 */
+	public const USER_META_BULK_DEFAULT_LANGUAGE = 'fp_dmk_bulk_default_language';
+
 	public const CATEGORY_SLUGS = [
 		'visual-assets'     => 'Visual Assets',
 		'tech-sheets'       => 'Tech Sheets',
@@ -52,6 +57,7 @@ final class AssetManager {
 		add_action( 'wp_ajax_fp_dmk_rename_folder', [ self::class, 'ajax_rename_folder' ] );
 		add_action( 'wp_ajax_fp_dmk_delete_folder', [ self::class, 'ajax_delete_folder' ] );
 		add_action( 'wp_ajax_fp_dmk_move_folder', [ self::class, 'ajax_move_folder' ] );
+		add_action( 'wp_ajax_fp_dmk_save_bulk_default_language', [ self::class, 'ajax_save_bulk_default_language' ] );
 	}
 
 	public static function register_cpt(): void {
@@ -761,6 +767,34 @@ final class AssetManager {
 				'existed' => false,
 			]
 		);
+	}
+
+	/**
+	 * AJAX: salva la lingua predefinita del caricamento multiplo nel profilo utente.
+	 *
+	 * Così al ricarico della pagina il selettore mantiene l’ultima scelta e le nuove righe
+	 * ereditano la stessa lingua dal selettore predefinito (clone lato JS).
+	 */
+	public static function ajax_save_bulk_default_language(): void {
+		if ( ! check_ajax_referer( 'fp_dmk_bulk_prefs', '_nonce', false ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce non valido.', 'fp-dmk' ) ], 400 );
+		}
+		if ( ! current_user_can( 'manage_fp_dmk' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permesso negato.', 'fp-dmk' ) ], 403 );
+		}
+
+		$lang = isset( $_POST['language'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['language'] ) ) : '';
+		if ( ! in_array( $lang, array_keys( self::LANGUAGES ), true ) ) {
+			wp_send_json_error( [ 'message' => __( 'Lingua non valida.', 'fp-dmk' ) ], 400 );
+		}
+
+		$uid = get_current_user_id();
+		if ( $uid <= 0 ) {
+			wp_send_json_error( [ 'message' => __( 'Utente non valido.', 'fp-dmk' ) ], 403 );
+		}
+
+		update_user_meta( $uid, self::USER_META_BULK_DEFAULT_LANGUAGE, $lang );
+		wp_send_json_success( [ 'language' => $lang ] );
 	}
 
 	/**

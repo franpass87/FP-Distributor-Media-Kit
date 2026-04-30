@@ -75,6 +75,7 @@ final class BulkUploadPage {
 				'canCreateFolders'   => current_user_can( 'manage_fp_dmk_categories' ),
 				'canCreateCategories' => current_user_can( 'manage_fp_dmk_categories' ),
 				'categoryNonce'      => wp_create_nonce( 'fp_dmk_create_asset_category' ),
+				'bulkPrefsNonce'     => wp_create_nonce( 'fp_dmk_bulk_prefs' ),
 				'folderTree'         => AssetManager::get_folder_tree_nested(),
 				'i18n'               => [
 					'filesLabel'        => __( 'file', 'fp-dmk' ),
@@ -109,6 +110,8 @@ final class BulkUploadPage {
 					'categoryCreateError' => __( 'Errore durante la creazione della categoria.', 'fp-dmk' ),
 					'categoryExists'      => __( 'Categoria già esistente, selezionata.', 'fp-dmk' ),
 					'categoryCreated'     => __( 'Categoria creata e selezionata.', 'fp-dmk' ),
+					'defaultLangSaved'   => __( 'Lingua predefinita salvata per il tuo utente.', 'fp-dmk' ),
+					'defaultLangSaveErr' => __( 'Impossibile salvare la lingua. Riprova.', 'fp-dmk' ),
 				],
 			]
 		);
@@ -232,6 +235,11 @@ final class BulkUploadPage {
 			$cat_terms = [];
 		}
 
+		$saved_bulk_lang = get_user_meta( get_current_user_id(), AssetManager::USER_META_BULK_DEFAULT_LANGUAGE, true );
+		if ( ! is_string( $saved_bulk_lang ) || ! array_key_exists( $saved_bulk_lang, AssetManager::LANGUAGES ) ) {
+			$saved_bulk_lang = 'it';
+		}
+
 		$file_accept = '.pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.mp4,.webm,.txt';
 
 		$created = isset( $_GET['fp_dmk_bulk_created'] ) ? absint( $_GET['fp_dmk_bulk_created'] ) : 0;
@@ -280,9 +288,10 @@ final class BulkUploadPage {
 								<label for="fpdmk_bulk_default_language"><?php esc_html_e( 'Lingua', 'fp-dmk' ); ?></label>
 								<select id="fpdmk_bulk_default_language">
 									<?php foreach ( AssetManager::LANGUAGES as $code => $label ) : ?>
-										<option value="<?php echo esc_attr( $code ); ?>"><?php echo esc_html( $label ); ?></option>
+										<option value="<?php echo esc_attr( $code ); ?>"<?php selected( $saved_bulk_lang, $code ); ?>><?php echo esc_html( $label ); ?></option>
 									<?php endforeach; ?>
 								</select>
+								<span class="fpdmk-hint"><?php esc_html_e( 'L’ultima scelta viene memorizzata sul tuo profilo utente.', 'fp-dmk' ); ?></span>
 							</div>
 							<div class="fpdmk-field fpdmk-field-fw">
 								<label for="fpdmk_bulk_default_categories"><?php esc_html_e( 'Categorie', 'fp-dmk' ); ?></label>
