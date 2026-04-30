@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.2] - 2026-04-30
+
+### Added
+
+- **Caricamento multiplo · vista “sito remoto”**: sotto breadcrumb e toolbar, tabella compatta (nome file + tipo MIME) con i file **in coda** assegnati alla **cartella selezionata** nell’albero; contatore e aggiornamento in tempo reale su cambio cartella, drag su cartella, select Cartella, azioni in blocco e ordinamento. Click su una riga dell’elenco evidenzia la riga corrispondente nella tabella principale.
+
 ## [1.19.1] - 2026-04-30
 
 ### Fixed

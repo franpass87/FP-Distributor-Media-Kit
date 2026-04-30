@@ -242,7 +242,7 @@ final class BulkUploadPage {
 			<div class="fpdmk-page-header">
 				<div class="fpdmk-page-header-content">
 					<h2 class="fpdmk-page-header-title" aria-hidden="true"><span class="dashicons dashicons-upload"></span> <?php esc_html_e( 'Caricamento multiplo', 'fp-dmk' ); ?></h2>
-					<p><?php esc_html_e( 'Esplora le cartelle a sinistra, trascina i file nella zona centrale o scegli dalla Libreria media. Puoi trascinare una riga su una cartella per assegnarla.', 'fp-dmk' ); ?></p>
+					<p><?php esc_html_e( 'Esplora le cartelle a sinistra: sotto il percorso vedi in tempo reale i file in coda per la cartella selezionata (come elenco remoto in un client FTP). Trascina nella zona centrale o usa la Libreria media; puoi trascinare una riga su una cartella per assegnarla.', 'fp-dmk' ); ?></p>
 				</div>
 				<span class="fpdmk-page-header-badge">v<?php echo esc_html( FP_DMK_VERSION ); ?></span>
 			</div>
@@ -369,6 +369,24 @@ final class BulkUploadPage {
 								</label>
 							</div>
 							<p class="description fpdmk-bulk-drag-hint"><?php esc_html_e( 'Trascina una riga della tabella su una cartella per impostare la cartella dell’asset; trascina una cartella su un’altra per spostarla (o sulla radice per portarla al livello superiore).', 'fp-dmk' ); ?></p>
+							<div class="fpdmk-bulk-fz-remote" aria-labelledby="fpdmk-bulk-fz-remote-heading">
+								<div class="fpdmk-bulk-fz-remote-head">
+									<span id="fpdmk-bulk-fz-remote-heading" class="fpdmk-bulk-fz-remote-title"><?php esc_html_e( 'File in coda per questa cartella', 'fp-dmk' ); ?></span>
+									<span id="fpdmk-bulk-fz-remote-count" class="fpdmk-bulk-fz-remote-count" aria-live="polite">0</span>
+								</div>
+								<div class="fpdmk-bulk-fz-remote-scroll">
+									<table class="fpdmk-bulk-fz-table" id="fpdmk-bulk-fz-remote-table">
+										<thead>
+											<tr>
+												<th scope="col"><?php esc_html_e( 'Nome file', 'fp-dmk' ); ?></th>
+												<th scope="col"><?php esc_html_e( 'Tipo', 'fp-dmk' ); ?></th>
+											</tr>
+										</thead>
+										<tbody id="fpdmk-bulk-fz-remote-tbody"></tbody>
+									</table>
+								</div>
+								<p id="fpdmk-bulk-fz-remote-empty" class="description fpdmk-bulk-fz-remote-empty" hidden><?php esc_html_e( 'Nessun file in coda con questa cartella assegnata.', 'fp-dmk' ); ?></p>
+							</div>
 							<div id="fpdmk-bulk-dropzone" class="fpdmk-bulk-dropzone" tabindex="0" role="button" aria-label="<?php esc_attr_e( 'Zona caricamento file', 'fp-dmk' ); ?>">
 								<span class="dashicons dashicons-upload fpdmk-bulk-dropzone-icon" aria-hidden="true"></span>
 								<strong class="fpdmk-bulk-dropzone-title"><?php esc_html_e( 'Trascina qui i file o clicca per sfogliare', 'fp-dmk' ); ?></strong>

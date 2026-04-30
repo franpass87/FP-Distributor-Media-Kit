@@ -28,6 +28,10 @@
 	var $filterFolder = document.getElementById( 'fpdmk-bulk-filter-folder' );
 	var $status = document.getElementById( 'fpdmk-bulk-status' );
 	var $breadcrumb = document.getElementById( 'fpdmk-bulk-breadcrumb' );
+	var $fzRemoteTbody = document.getElementById( 'fpdmk-bulk-fz-remote-tbody' );
+	var $fzRemoteEmpty = document.getElementById( 'fpdmk-bulk-fz-remote-empty' );
+	var $fzRemoteCount = document.getElementById( 'fpdmk-bulk-fz-remote-count' );
+	var $fzRemoteTable = document.getElementById( 'fpdmk-bulk-fz-remote-table' );
 	var tpl = wp.template( 'fpdmk-bulk-row' );
 	var rowSeq = 0;
 	var addedIds = {};
@@ -68,6 +72,7 @@
 		$empty.classList.toggle( 'is-hidden', hasAnyRows() );
 		$submit.disabled = n === 0;
 		applyFolderFilter();
+		refreshFolderQueueList();
 		if ( typeof updateBulkbar === 'function' ) {
 			updateBulkbar();
 		}
@@ -88,6 +93,57 @@
 		} );
 	}
 
+	/**
+	 * Elenco “sito remoto” stile client FTP: file in coda con cartella = cartella selezionata nell’albero.
+	 */
+	function refreshFolderQueueList() {
+		if ( ! $fzRemoteTbody ) {
+			return;
+		}
+		$fzRemoteTbody.innerHTML = '';
+		var fid = String( selectedFolderId );
+		var n = 0;
+		$tbody.querySelectorAll( 'tr.fpdmk-bulk-row:not(.fpdmk-bulk-placeholder)' ).forEach( function ( tr ) {
+			var sel = tr.querySelector( 'select[name$="[folder_term]"]' );
+			var v = sel ? String( sel.value ) : '0';
+			if ( v !== fid ) {
+				return;
+			}
+			var nameEl = tr.querySelector( 'td:nth-child(2) strong' );
+			var hint = tr.querySelector( 'td:nth-child(2) .fpdmk-hint' );
+			var fname = nameEl ? nameEl.textContent.trim() : '';
+			var mime = '';
+			if ( hint && hint.textContent ) {
+				var hintParts = hint.textContent.split( '·' );
+				mime = hintParts.length > 1 ? hintParts[ hintParts.length - 1 ].trim() : hint.textContent.trim();
+			}
+			var sub = document.createElement( 'tr' );
+			sub.dataset.rowId = tr.dataset.rowId || '';
+			var tdN = document.createElement( 'td' );
+			tdN.textContent = fname;
+			var tdM = document.createElement( 'td' );
+			tdM.textContent = mime;
+			tdM.className = 'fpdmk-bulk-fz-mime';
+			sub.appendChild( tdN );
+			sub.appendChild( tdM );
+			$fzRemoteTbody.appendChild( sub );
+			n++;
+		} );
+		if ( $fzRemoteCount ) {
+			$fzRemoteCount.textContent = String( n );
+		}
+		if ( $fzRemoteEmpty ) {
+			$fzRemoteEmpty.hidden = n > 0;
+		}
+		if ( $fzRemoteTable ) {
+			$fzRemoteTable.classList.toggle( 'is-hidden', n === 0 );
+		}
+		var scroll = document.querySelector( '.fpdmk-bulk-fz-remote-scroll' );
+		if ( scroll ) {
+			scroll.classList.toggle( 'is-empty', n === 0 );
+		}
+	}
+
 	function syncTreeSelection( folderId ) {
 		selectedFolderId = folderId;
 		if ( $defFold ) {
@@ -104,6 +160,7 @@
 		}
 		applyFolderFilter();
 		updateBreadcrumb( folderId );
+		refreshFolderQueueList();
 	}
 
 	/**
@@ -459,6 +516,7 @@
 		dragSourceRow = null;
 		dragSourceRows = null;
 		applyFolderFilter();
+		refreshFolderQueueList();
 	}
 
 	var dragGhostEl = null;
@@ -674,6 +732,27 @@
 		$tbody.querySelectorAll( 'select[name$="[folder_term]"]' ).forEach( function ( sel ) {
 			if ( sel.value === '' || ! sel.querySelector( 'option[value="' + sel.value + '"]' ) ) {
 				sel.value = '0';
+			}
+		} );
+	}
+
+	function bindFzRemoteClick() {
+		if ( ! $fzRemoteTbody || $fzRemoteTbody.dataset.fpdmkBound === '1' ) {
+			return;
+		}
+		$fzRemoteTbody.dataset.fpdmkBound = '1';
+		$fzRemoteTbody.addEventListener( 'click', function ( e ) {
+			var sub = e.target.closest( 'tr' );
+			if ( ! sub || ! sub.dataset.rowId ) {
+				return;
+			}
+			var main = $tbody.querySelector( 'tr[data-row-id="' + sub.dataset.rowId + '"]' );
+			if ( main ) {
+				main.scrollIntoView( { behavior: 'smooth', block: 'nearest' } );
+				main.classList.add( 'fpdmk-bulk-row-flash' );
+				window.setTimeout( function () {
+					main.classList.remove( 'fpdmk-bulk-row-flash' );
+				}, 1400 );
 			}
 		} );
 	}
@@ -1583,8 +1662,13 @@
 
 	function bindSelection() {
 		$tbody.addEventListener( 'change', function ( e ) {
-			if ( e.target && e.target.classList && e.target.classList.contains( 'fpdmk-bulk-row-check' ) ) {
+			var t = e.target;
+			if ( t && t.classList && t.classList.contains( 'fpdmk-bulk-row-check' ) ) {
 				updateBulkbar();
+				return;
+			}
+			if ( t && t.name && t.name.indexOf( '[folder_term]' ) !== -1 ) {
+				refreshFolderQueueList();
 			}
 		} );
 		if ( $masterCheck ) {
@@ -1615,6 +1699,7 @@
 				}
 			} );
 			applyFolderFilter();
+			refreshFolderQueueList();
 			return;
 		}
 		if ( action === 'set-language' ) {
@@ -1878,6 +1963,7 @@
 		rows.forEach( function ( tr ) {
 			$tbody.appendChild( tr );
 		} );
+		refreshFolderQueueList();
 	}
 
 	function bindSorting() {
@@ -1913,6 +1999,7 @@
 		} );
 	}
 
+	bindFzRemoteClick();
 	buildFolderTree();
 	bindDropzone();
 	bindMediaPicker();
