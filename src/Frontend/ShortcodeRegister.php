@@ -17,7 +17,7 @@ final class ShortcodeRegister {
 		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
 		if ( is_user_logged_in() ) {
-			return '<p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Sei già registrato.', 'fp-dmk' ) . '</p>';
+			return '<div class="fpdmk-register-wrap fpdmk-ui"><p class="fpdmk-message fpdmk-message-info">' . esc_html__( 'Sei già registrato.', 'fp-dmk' ) . '</p></div>';
 		}
 
 		$redirect = isset( $atts['redirect'] ) ? esc_url( $atts['redirect'] ) : '';
@@ -41,7 +41,7 @@ final class ShortcodeRegister {
 		$success_raw = isset( $_GET['fp_dmk_registered'] ) ? sanitize_text_field( wp_unslash( $_GET['fp_dmk_registered'] ) ) : '';
 		$success = ( $success_raw === '1' );
 
-		$html = '<div class="fpdmk-register-wrap">';
+		$html = '<div class="fpdmk-register-wrap fpdmk-ui">';
 		if ( $success ) {
 			$html .= '<div class="fpdmk-message fpdmk-message-success">' . esc_html__( 'Registrazione completata. La tua richiesta è in attesa di approvazione da parte dell\'amministratore.', 'fp-dmk' ) . '</div>';
 			return $html . '</div>';

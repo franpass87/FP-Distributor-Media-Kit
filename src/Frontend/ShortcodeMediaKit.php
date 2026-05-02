@@ -19,11 +19,11 @@ final class ShortcodeMediaKit {
 		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
 		if ( ! is_user_logged_in() ) {
-			return '<p class="fpdmk-message fpdmk-message-error">' . esc_html__( 'Effettua l\'accesso per visualizzare il Media Kit.', 'fp-dmk' ) . '</p>';
+			return '<div class="fpdmk-media-kit fpdmk-ui"><p class="fpdmk-message fpdmk-message-error">' . esc_html__( 'Effettua l\'accesso per visualizzare il Media Kit.', 'fp-dmk' ) . '</p></div>';
 		}
 		$user_id = get_current_user_id();
 		if ( ! ApprovalService::is_approved( $user_id ) ) {
-			return '<p class="fpdmk-message fpdmk-message-warning">' . esc_html__( 'Il tuo account è in attesa di approvazione.', 'fp-dmk' ) . '</p>';
+			return '<div class="fpdmk-media-kit fpdmk-ui"><p class="fpdmk-message fpdmk-message-warning">' . esc_html__( 'Il tuo account è in attesa di approvazione.', 'fp-dmk' ) . '</p></div>';
 		}
 
 		$filter_cat    = isset( $atts['category'] ) ? sanitize_text_field( $atts['category'] ) : '';
@@ -160,7 +160,7 @@ final class ShortcodeMediaKit {
 
 		$has_active_filters = $filter_folder !== '' || $filter_cat !== '' || $filter_lang !== '';
 
-		$html = '<div class="fpdmk-media-kit">';
+		$html = '<div class="fpdmk-media-kit fpdmk-ui">';
 		$html .= '<header class="fpdmk-media-kit-header">';
 		$html .= '<div class="fpdmk-media-kit-hero">';
 		$html .= '<div class="fpdmk-media-kit-hero-text">';
@@ -389,7 +389,7 @@ final class ShortcodeMediaKit {
 		$lang       = (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true );
 		$lang_label = AssetManager::LANGUAGES[ $lang ] ?? $lang;
 
-		$html = '<div class="fpdmk-card">';
+		$html = '<article class="fpdmk-card fpdmk-card-asset">';
 		$html .= '<div class="fpdmk-card-body">';
 		$html .= '<h4 class="fpdmk-card-title">' . esc_html( $post->post_title ) . '</h4>';
 		if ( $desc !== '' ) {
@@ -407,7 +407,7 @@ final class ShortcodeMediaKit {
 			$html .= '<span class="fpdmk-card-no-file">' . esc_html__( 'Nessun file associato', 'fp-dmk' ) . '</span>';
 		}
 		$html .= '</div>';
-		$html .= '</div>';
+		$html .= '</article>';
 
 		return $html;
 	}

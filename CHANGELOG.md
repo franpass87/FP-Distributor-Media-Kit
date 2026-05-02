@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.6] - 2026-05-02
+
+### Changed
+
+- **Frontend (CSS + shortcode)**: classe **`fpdmk-ui`** su Media Kit, Login e Registrazione per tipografia di sistema e antialiasing; **login/registrazione** in pannello con bordo superiore a gradiente e ombra; messaggi e campi con **focus ring** accessibile; **select** native con freccia SVG, altezza touch; **card asset** come `<article>` con layout a colonna (pulsante Scarica in basso), hover con barra gradiente, **badge** per lingua; titoli sezione/cartella con accento laterale; griglia e vuoti più curati.
+
 ## [1.19.5] - 2026-05-02
 
 ### Fixed

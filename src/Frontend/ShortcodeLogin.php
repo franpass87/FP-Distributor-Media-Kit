@@ -21,12 +21,12 @@ final class ShortcodeLogin {
 			$approved = ApprovalService::is_approved( $user_id );
 			$media_kit_url = get_permalink( (int) get_option( 'fp_dmk_media_kit_page', 0 ) ) ?: home_url( '/' );
 			if ( $approved ) {
-				return '<div class="fpdmk-login-wrap"><p class="fpdmk-message fpdmk-message-success">' .
+				return '<div class="fpdmk-login-wrap fpdmk-ui"><p class="fpdmk-message fpdmk-message-success">' .
 					esc_html__( 'Sei già collegato.', 'fp-dmk' ) . ' ' .
 					'<a href="' . esc_url( $media_kit_url ) . '">' . esc_html__( 'Vai al Media Kit', 'fp-dmk' ) . '</a> | ' .
 					'<a href="' . esc_url( wp_logout_url( $media_kit_url ) ) . '">' . esc_html__( 'Esci', 'fp-dmk' ) . '</a></p></div>';
 			}
-			return '<div class="fpdmk-login-wrap"><p class="fpdmk-message fpdmk-message-warning">' .
+			return '<div class="fpdmk-login-wrap fpdmk-ui"><p class="fpdmk-message fpdmk-message-warning">' .
 				esc_html__( 'Il tuo account è in attesa di approvazione.', 'fp-dmk' ) . ' ' .
 				'<a href="' . esc_url( wp_logout_url( home_url() ) ) . '">' . esc_html__( 'Esci', 'fp-dmk' ) . '</a></p></div>';
 		}
@@ -43,7 +43,7 @@ final class ShortcodeLogin {
 		];
 		$error_msg = isset( $messages[ $error ] ) ? $messages[ $error ] : '';
 
-		$html = '<div class="fpdmk-login-wrap">';
+		$html = '<div class="fpdmk-login-wrap fpdmk-ui">';
 		if ( $error_msg ) {
 			$html .= '<div class="fpdmk-message fpdmk-message-error" role="alert">' . esc_html( $error_msg ) . '</div>';
 		}
