@@ -457,9 +457,10 @@ final class ShortcodeMediaKit {
 		}
 		$folder_terms = get_terms(
 			[
-				'taxonomy'   => AssetManager::TAXONOMY_FOLDER,
-				'hide_empty' => false,
-				'object_ids' => $post_ids,
+				'taxonomy'         => AssetManager::TAXONOMY_FOLDER,
+				'hide_empty'       => false,
+				'object_ids'       => $post_ids,
+				'suppress_filters' => true,
 			]
 		);
 		if ( ! is_array( $folder_terms ) || is_wp_error( $folder_terms ) ) {
@@ -492,11 +493,12 @@ final class ShortcodeMediaKit {
 		}
 		$raw = get_terms(
 			[
-				'taxonomy'   => AssetManager::TAXONOMY,
-				'hide_empty' => false,
-				'object_ids' => $post_ids,
-				'orderby'    => 'name',
-				'order'      => 'ASC',
+				'taxonomy'         => AssetManager::TAXONOMY,
+				'hide_empty'       => false,
+				'object_ids'       => $post_ids,
+				'orderby'          => 'name',
+				'order'            => 'ASC',
+				'suppress_filters' => true,
 			]
 		);
 		if ( ! is_array( $raw ) || is_wp_error( $raw ) ) {

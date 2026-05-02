@@ -101,7 +101,7 @@ final class AssetManager {
 			'public'            => false,
 			'show_ui'           => true,
 			'show_in_menu'      => true,
-			'show_admin_column' => true,
+			'show_admin_column' => false,
 			'show_in_rest'      => true,
 			'rest_base'         => 'fp_dmk_category',
 			'rewrite'           => false,
@@ -262,6 +262,43 @@ final class AssetManager {
 				<?php endif; ?>
 				<span class="fpdmk-hint"><?php esc_html_e( 'Raggruppa l’asset nel Media Kit frontend. Puoi crearne una nuova al volo oppure dall’albero in Caricamento multiplo.', 'fp-dmk' ); ?></span>
 			</div>
+			<?php
+			$material_terms = get_terms(
+				[
+					'taxonomy'               => self::TAXONOMY,
+					'hide_empty'             => false,
+					'orderby'                => 'name',
+					'order'                  => 'ASC',
+					'suppress_filters'       => true,
+					'update_term_meta_cache' => false,
+				]
+			);
+			if ( ! is_array( $material_terms ) || is_wp_error( $material_terms ) ) {
+				$material_terms = [];
+			}
+			$assigned_cat_ids = wp_list_pluck( self::get_asset_category_terms( $post->ID ), 'term_id' );
+			?>
+			<div class="fpdmk-field fpdmk-field-material-cats">
+				<span class="fpdmk-field-label-like"><?php esc_html_e( 'Categoria tipo materiale', 'fp-dmk' ); ?></span>
+				<input type="hidden" name="fp_dmk_category_metabox_present" value="1" />
+				<ul class="fpdmk-category-checklist">
+					<?php foreach ( $material_terms as $ct ) : ?>
+						<?php
+						if ( ! $ct instanceof \WP_Term ) {
+							continue;
+						}
+						$cid = (int) $ct->term_id;
+						?>
+						<li>
+							<label>
+								<input type="checkbox" name="fp_dmk_asset_category_ids[]" value="<?php echo esc_attr( (string) $cid ); ?>" <?php checked( in_array( $cid, $assigned_cat_ids, true ), true ); ?> />
+								<?php echo esc_html( $ct->name ); ?>
+							</label>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+				<p class="fpdmk-hint"><?php esc_html_e( 'Seleziona almeno una voce e clicca «Aggiorna»: così fp_dmk_category resta allineata anche se il pannello a blocchi non salva le tassonomie come previsto.', 'fp-dmk' ); ?></p>
+			</div>
 		</div>
 		<script>
 		(function() {
@@ -391,6 +428,22 @@ final class AssetManager {
 				wp_set_object_terms( $post_id, [], self::TAXONOMY_FOLDER );
 			}
 		}
+
+		if ( isset( $_POST['fp_dmk_category_metabox_present'] ) && (string) wp_unslash( $_POST['fp_dmk_category_metabox_present'] ) === '1' ) {
+			$cat_ids = [];
+			if ( isset( $_POST['fp_dmk_asset_category_ids'] ) && is_array( $_POST['fp_dmk_asset_category_ids'] ) ) {
+				$cat_ids = array_map( 'absint', wp_unslash( $_POST['fp_dmk_asset_category_ids'] ) );
+			}
+			$cat_ids = array_values( array_unique( array_filter( $cat_ids, static fn( int $x ): bool => $x > 0 ) ) );
+			$valid   = [];
+			foreach ( $cat_ids as $cid ) {
+				$t = get_term( $cid, self::TAXONOMY );
+				if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
+					$valid[] = $cid;
+				}
+			}
+			wp_set_object_terms( $post_id, $valid, self::TAXONOMY, false );
+		}
 	}
 
 	/**
@@ -469,11 +522,7 @@ final class AssetManager {
 	}
 
 	/**
-	 * Termini `fp_dmk_category` assegnati all’asset (lettura per frontend e controlli audience).
-	 *
-	 * Usa `wp_get_post_terms`; se non restituisce nulla, interroga `term_relationships` + `term_taxonomy`
-	 * così i termini risultano visibili anche quando la cache termini del post non è popolata o filtri
-	 * lasciano vuoto `get_the_terms` nello stesso contesto della richiesta.
+	 * Termini `fp_dmk_category` assegnati all’asset (solo lettura da DB, senza filtri/cache su get_terms).
 	 *
 	 * @return list<\WP_Term>
 	 */
@@ -482,70 +531,51 @@ final class AssetManager {
 			return [];
 		}
 
-		$terms = wp_get_post_terms(
-			$post_id,
-			self::TAXONOMY,
-			[
-				'orderby'                 => 'name',
-				'order'                   => 'ASC',
-				'update_term_meta_cache' => false,
-			]
-		);
-
-		if ( is_wp_error( $terms ) ) {
-			$terms = [];
-		}
-		if ( ! is_array( $terms ) ) {
-			$terms = [];
-		}
-
-		$terms = array_values(
-			array_filter(
-				$terms,
-				static fn( $t ): bool => $t instanceof \WP_Term && (int) $t->term_id > 0
-			)
-		);
-
-		if ( $terms !== [] ) {
-			return $terms;
-		}
-
 		global $wpdb;
-		$ids = $wpdb->get_col(
+		$tax = self::TAXONOMY;
+		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT tt.term_id FROM {$wpdb->term_relationships} AS tr
-				INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
-				WHERE tr.object_id = %d AND tt.taxonomy = %s",
-				$post_id,
-				self::TAXONOMY
-			)
+				"SELECT t.term_id, t.name, t.slug, tt.term_taxonomy_id, tt.parent, tt.count
+				FROM {$wpdb->term_relationships} AS tr
+				INNER JOIN {$wpdb->term_taxonomy} AS tt
+					ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+				INNER JOIN {$wpdb->terms} AS t ON t.term_id = tt.term_id
+				WHERE tr.object_id = %d
+				ORDER BY t.name ASC",
+				$tax,
+				$post_id
+			),
+			ARRAY_A
 		);
 
-		if ( ! is_array( $ids ) || $ids === [] ) {
+		if ( ! is_array( $rows ) || $rows === [] ) {
 			return [];
 		}
 
-		$out = [];
-		foreach ( array_map( 'intval', $ids ) as $tid ) {
-			if ( $tid <= 0 ) {
+		$out   = [];
+		$seen  = [];
+		foreach ( $rows as $r ) {
+			if ( ! is_array( $r ) ) {
 				continue;
 			}
-			$t = get_term( $tid, self::TAXONOMY );
-			if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
-				$out[] = $t;
+			$tid = isset( $r['term_id'] ) ? (int) $r['term_id'] : 0;
+			if ( $tid <= 0 || isset( $seen[ $tid ] ) ) {
+				continue;
 			}
+			$seen[ $tid ] = true;
+			$out[]        = new \WP_Term(
+				(object) [
+					'term_id'          => $tid,
+					'name'             => (string) ( $r['name'] ?? '' ),
+					'slug'             => (string) ( $r['slug'] ?? '' ),
+					'taxonomy'         => $tax,
+					'term_taxonomy_id' => (int) ( $r['term_taxonomy_id'] ?? 0 ),
+					'parent'           => (int) ( $r['parent'] ?? 0 ),
+					'count'            => (int) ( $r['count'] ?? 0 ),
+					'filter'           => 'raw',
+				]
+			);
 		}
-
-		usort(
-			$out,
-			static function ( $a, $b ): int {
-				if ( ! $a instanceof \WP_Term || ! $b instanceof \WP_Term ) {
-					return 0;
-				}
-
-				return strcasecmp( $a->name, $b->name );
-			}
-		);
 
 		return $out;
 	}
@@ -673,16 +703,18 @@ final class AssetManager {
 	}
 
 	public static function columns( array $columns ): array {
+		unset( $columns[ 'taxonomy-' . self::TAXONOMY ] );
 		$new = [];
 		foreach ( $columns as $k => $v ) {
 			$new[ $k ] = $v;
 			if ( $k === 'title' ) {
-				$new['fp_dmk_folder'] = __( 'Cartella', 'fp-dmk' );
-				$new['fp_dmk_category'] = __( 'Categoria', 'fp-dmk' );
-				$new['fp_dmk_language'] = __( 'Lingua', 'fp-dmk' );
+				$new['fp_dmk_folder']      = __( 'Cartella', 'fp-dmk' );
+				$new['fp_dmk_category']   = __( 'Categoria', 'fp-dmk' );
+				$new['fp_dmk_language']   = __( 'Lingua', 'fp-dmk' );
 				$new['fp_dmk_downloads'] = __( 'Download', 'fp-dmk' );
 			}
 		}
+
 		return $new;
 	}
 

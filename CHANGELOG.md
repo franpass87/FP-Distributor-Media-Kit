@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.20.8] - 2026-05-02
+
+### Fixed
+
+- **Admin elenco asset**: rimossa la **doppia colonna «Categoria»** — `show_admin_column` disattivato su `fp_dmk_category` e rimossa la colonna automatica `taxonomy-fp_dmk_category` dal filtro colonne (resta solo la colonna gestita dal plugin).
+- **`get_asset_category_terms()`**: lettura **solo da SQL** (`term_relationships` + `term_taxonomy` + `terms`) con oggetti `WP_Term` in `filter=raw`, senza passare da `get_term` / filtri che potevano svuotare i risultati in frontend.
+- **Metabox «Dettagli asset»**: aggiunta lista **checkbox** per `fp_dmk_category`; al salvataggio classico (`Aggiorna`) con nonce del metabox, `wp_set_object_terms` aggiorna sempre le categorie (anche svuota se nessuna spuntata). Salvataggi **solo REST** senza POST del metabox non toccano le categorie.
+
+### Changed
+
+- Stili checklist categorie in `admin.css`.
+
 ## [1.20.7] - 2026-05-02
 
 ### Fixed
