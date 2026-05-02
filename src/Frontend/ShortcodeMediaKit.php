@@ -315,10 +315,10 @@ final class ShortcodeMediaKit {
 			foreach ( $block['by_category'] as $cat_data ) {
 				$html .= '<section class="fpdmk-section fpdmk-section-nested">';
 				$html .= '<h4 class="fpdmk-section-title">' . esc_html( $cat_data['name'] ) . '</h4>';
-				$html .= '<div class="fpdmk-cards">';
+				$html .= '<div class="fpdmk-asset-list" role="list">';
 				foreach ( $cat_data['items'] as $post ) {
 					if ( $post instanceof \WP_Post ) {
-						$html .= self::render_card( $post, $zip_ok );
+						$html .= self::render_asset_list_row( $post, $zip_ok );
 					}
 				}
 				$html .= '</div>';
@@ -541,15 +541,16 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * Area superiore card: tipo materiale (`fp_dmk_category`) e, se assente, cartella catalogo (`fp_dmk_folder`).
+	 * Chip classificazione: tipo materiale (`fp_dmk_category`) e, se assente, cartella catalogo (`fp_dmk_folder`).
 	 *
 	 * Molti asset hanno solo la cartella assegnata in metabox senza termine «categoria»; in quel caso si mostra
 	 * il percorso cartella (come in admin) invece del fallback generico «Altro».
 	 *
 	 * @param \WP_Post $post Asset pubblicato.
+	 * @param string   $wrapper_class Classe contenitore chip (lista vs legacy card).
 	 * @return string Markup con chip leggibili.
 	 */
-	private static function render_card_category_region( \WP_Post $post ): string {
+	private static function render_card_category_region( \WP_Post $post, string $wrapper_class = 'fpdmk-card-category' ): string {
 		$labels            = [];
 		$from_folder_only = false;
 
@@ -589,20 +590,25 @@ final class ShortcodeMediaKit {
 		}
 		$aria = esc_attr( implode( ', ', $labels ) );
 
-		return '<div class="fpdmk-card-category" role="group" aria-label="' . esc_attr__( 'Classificazione', 'fp-dmk' ) . ': ' . $aria . '">' . $chips . '</div>';
+		return '<div class="' . esc_attr( $wrapper_class ) . '" role="group" aria-label="' . esc_attr__( 'Classificazione', 'fp-dmk' ) . ': ' . $aria . '">' . $chips . '</div>';
 	}
 
-	private static function render_card( \WP_Post $post, bool $zip_ok ): string {
+	/**
+	 * Riga elenco asset (sostituisce la card a griglia): più compatta, adatta a schermi larghi.
+	 *
+	 * @param \WP_Post $post   Asset pubblicato.
+	 * @param bool     $zip_ok Se il client può usare selezione multipla ZIP.
+	 */
+	private static function render_asset_list_row( \WP_Post $post, bool $zip_ok ): string {
 		$file_id    = (int) get_post_meta( $post->ID, AssetManager::META_FILE_ID, true );
 		$desc       = (string) get_post_meta( $post->ID, AssetManager::META_DESCRIPTION, true );
 		$lang       = (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true );
 		$lang_label = AssetManager::LANGUAGES[ $lang ] ?? $lang;
 
-		$html = '<article class="fpdmk-card fpdmk-card-asset">';
-		$html .= self::render_card_category_region( $post );
-		$html .= '<div class="fpdmk-card-body">';
-		if ( $zip_ok && $file_id > 0 ) {
-			$html .= '<div class="fpdmk-card-select">';
+		$bulk_pick = $zip_ok && $file_id > 0;
+		$html      = '<div class="fpdmk-asset-row' . ( $bulk_pick ? ' fpdmk-asset-row--bulk' : '' ) . '" role="listitem">';
+		if ( $bulk_pick ) {
+			$html .= '<div class="fpdmk-asset-row-check">';
 			$html .= '<input type="checkbox" class="fpdmk-card-checkbox" name="fpdmk_asset_pick[]" value="' . esc_attr( (string) $post->ID ) . '" id="fpdmk-asset-' . (int) $post->ID . '" aria-label="' . esc_attr(
 				sprintf(
 					/* translators: %s: asset title */
@@ -612,23 +618,27 @@ final class ShortcodeMediaKit {
 			) . '" />';
 			$html .= '</div>';
 		}
-		$html .= '<h4 class="fpdmk-card-title">' . esc_html( $post->post_title ) . '</h4>';
+		$html .= '<div class="fpdmk-asset-row-main">';
+		$html .= self::render_card_category_region( $post, 'fpdmk-asset-row-classif' );
+		$html .= '<h4 class="fpdmk-asset-row-title">' . esc_html( $post->post_title ) . '</h4>';
 		if ( $desc !== '' ) {
-			$html .= '<p class="fpdmk-card-desc">' . esc_html( $desc ) . '</p>';
+			$html .= '<p class="fpdmk-asset-row-desc">' . esc_html( $desc ) . '</p>';
 		}
-		$html .= '<span class="fpdmk-card-meta">' . esc_html( $lang_label ) . '</span>';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-asset-row-lang"><span class="fpdmk-asset-row-lang-badge">' . esc_html( $lang_label ) . '</span></div>';
+		$html .= '<div class="fpdmk-asset-row-action">';
 		if ( $file_id > 0 ) {
 			$nonce = wp_create_nonce( 'fp_dmk_download_' . $post->ID );
 			$url   = add_query_arg(
 				[ 'fp_dmk_download' => '1', 'asset_id' => $post->ID, 'nonce' => $nonce ],
 				home_url( '/' )
 			);
-			$html .= '<a href="' . esc_url( $url ) . '" class="fpdmk-btn fpdmk-btn-primary fpdmk-btn-download">' . esc_html__( 'Scarica', 'fp-dmk' ) . '</a>';
+			$html .= '<a href="' . esc_url( $url ) . '" class="fpdmk-btn fpdmk-btn-primary fpdmk-btn-download fpdmk-btn-download--row">' . esc_html__( 'Scarica', 'fp-dmk' ) . '</a>';
 		} else {
-			$html .= '<span class="fpdmk-card-no-file">' . esc_html__( 'Nessun file associato', 'fp-dmk' ) . '</span>';
+			$html .= '<span class="fpdmk-asset-row-no-file">' . esc_html__( 'Nessun file', 'fp-dmk' ) . '</span>';
 		}
 		$html .= '</div>';
-		$html .= '</article>';
+		$html .= '</div>';
 
 		return $html;
 	}

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.6] - 2026-05-02
+
+### Changed
+
+- **Media Kit (frontend)**: elenco asset in **righe compatte** (`.fpdmk-asset-list` / `.fpdmk-asset-row`) al posto della griglia di card; checkbox ZIP, chip classificazione, titolo, descrizione (max 2 righe), lingua e **Scarica** su una riga (flex, wrap su mobile). Classe checkbox **`.fpdmk-card-checkbox`** invariata per lo script bulk ZIP.
+
 ## [1.20.5] - 2026-05-02
 
 ### Fixed
