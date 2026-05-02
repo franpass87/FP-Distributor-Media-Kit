@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.4] - 2026-05-02
+
+### Changed
+
+- **Shortcode Media Kit (`[fp_dmk_media_kit]`)**: layout più chiaro — intestazione a fascia con titolo/descrizione e logout; filtri in **card** con titolo «Filtra i materiali», **etichette visibili** (Cartella, Categoria, Lingua), griglia responsive, pulsante **Applica filtri** in stile primario e link **Reimposta** quando i filtri GET sono attivi.
+- **Blocchi senza tassonomia cartella**: l’intestazione «Senza cartella» è sostituita da **«Materiali generali»** con breve **testo guida** che spiega che sono materiali non assegnati a una cartella nel catalogo ma comunque scaricabili; classe `fpdmk-folder-block--uncategorized` per evidenza visiva leggera.
+
 ## [1.19.3] - 2026-04-30
 
 ### Fixed

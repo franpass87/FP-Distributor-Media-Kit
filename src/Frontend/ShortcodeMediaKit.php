@@ -152,18 +152,27 @@ final class ShortcodeMediaKit {
 			$folder_for_select[] = $row;
 		}
 
+		$has_active_filters = $filter_folder !== '' || $filter_cat !== '' || $filter_lang !== '';
+
 		$html = '<div class="fpdmk-media-kit">';
-		$html .= '<div class="fpdmk-media-kit-header">';
+		$html .= '<header class="fpdmk-media-kit-header">';
+		$html .= '<div class="fpdmk-media-kit-hero">';
+		$html .= '<div class="fpdmk-media-kit-hero-text">';
 		$html .= '<h2 class="fpdmk-media-kit-title">' . esc_html__( 'Media Kit', 'fp-dmk' ) . '</h2>';
 		$html .= '<p class="fpdmk-media-kit-desc">' . esc_html__( 'Scarica gli asset e i materiali disponibili.', 'fp-dmk' ) . '</p>';
+		$html .= '</div>';
 		$html .= '<div class="fpdmk-media-kit-actions">';
-		$html .= '<a href="' . esc_url( wp_logout_url( get_permalink() ) ) . '" class="fpdmk-btn fpdmk-btn-secondary">' . esc_html__( 'Esci', 'fp-dmk' ) . '</a>';
+		$html .= '<a href="' . esc_url( wp_logout_url( get_permalink() ) ) . '" class="fpdmk-btn fpdmk-btn-secondary fpdmk-btn-logout">' . esc_html__( 'Esci', 'fp-dmk' ) . '</a>';
 		$html .= '</div>';
 		$html .= '</div>';
+		$html .= '</header>';
 
+		$html .= '<div class="fpdmk-filters-card">';
 		$html .= '<form method="get" action="' . esc_url( $current_url ) . '" class="fpdmk-filters">';
-		$html .= '<div class="fpdmk-filters-inner">';
-		$html .= '<label for="fp_dmk_filter_folder" class="screen-reader-text">' . esc_html__( 'Filtra per cartella', 'fp-dmk' ) . '</label>';
+		$html .= '<p class="fpdmk-filters-heading">' . esc_html__( 'Filtra i materiali', 'fp-dmk' ) . '</p>';
+		$html .= '<div class="fpdmk-filters-grid">';
+		$html .= '<div class="fpdmk-filter-field">';
+		$html .= '<label for="fp_dmk_filter_folder" class="fpdmk-filter-label">' . esc_html__( 'Cartella', 'fp-dmk' ) . '</label>';
 		$html .= '<select id="fp_dmk_filter_folder" name="fp_dmk_folder" class="fpdmk-select">';
 		$html .= '<option value="">' . esc_html__( 'Tutte le cartelle', 'fp-dmk' ) . '</option>';
 		foreach ( $folder_for_select as $row ) {
@@ -175,7 +184,9 @@ final class ShortcodeMediaKit {
 			$html .= '<option value="' . esc_attr( $t->slug ) . '"' . selected( $filter_folder, $t->slug, false ) . '>' . esc_html( $pad . $t->name ) . '</option>';
 		}
 		$html .= '</select>';
-		$html .= '<label for="fp_dmk_filter_cat" class="screen-reader-text">' . esc_html__( 'Filtra per categoria', 'fp-dmk' ) . '</label>';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-filter-field">';
+		$html .= '<label for="fp_dmk_filter_cat" class="fpdmk-filter-label">' . esc_html__( 'Categoria', 'fp-dmk' ) . '</label>';
 		$html .= '<select id="fp_dmk_filter_cat" name="fp_dmk_cat" class="fpdmk-select">';
 		$html .= '<option value="">' . esc_html__( 'Tutte le categorie', 'fp-dmk' ) . '</option>';
 		foreach ( $terms as $term ) {
@@ -184,28 +195,43 @@ final class ShortcodeMediaKit {
 			}
 		}
 		$html .= '</select>';
-		$html .= '<label for="fp_dmk_filter_lang" class="screen-reader-text">' . esc_html__( 'Filtra per lingua', 'fp-dmk' ) . '</label>';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-filter-field">';
+		$html .= '<label for="fp_dmk_filter_lang" class="fpdmk-filter-label">' . esc_html__( 'Lingua', 'fp-dmk' ) . '</label>';
 		$html .= '<select id="fp_dmk_filter_lang" name="fp_dmk_lang" class="fpdmk-select">';
 		$html .= '<option value="">' . esc_html__( 'Tutte le lingue', 'fp-dmk' ) . '</option>';
 		foreach ( AssetManager::LANGUAGES as $code => $label ) {
 			$html .= '<option value="' . esc_attr( $code ) . '"' . selected( $filter_lang, $code, false ) . '>' . esc_html( $label ) . '</option>';
 		}
 		$html .= '</select>';
-		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-secondary">' . esc_html__( 'Filtra', 'fp-dmk' ) . '</button>';
+		$html .= '</div>';
+		$html .= '</div>';
+		$html .= '<div class="fpdmk-filters-actions">';
+		$html .= '<button type="submit" class="fpdmk-btn fpdmk-btn-primary">' . esc_html__( 'Applica filtri', 'fp-dmk' ) . '</button>';
+		if ( $has_active_filters ) {
+			$html .= '<a class="fpdmk-link fpdmk-link-reset" href="' . esc_url( $current_url ) . '">' . esc_html__( 'Reimposta', 'fp-dmk' ) . '</a>';
+		}
 		$html .= '</div>';
 		$html .= '</form>';
+		$html .= '</div>';
 
 		foreach ( $folder_order as $folder_key ) {
 			if ( ! isset( $by_folder[ $folder_key ] ) ) {
 				continue;
 			}
-			$block        = $by_folder[ $folder_key ];
-			$folder_title = __( 'Senza cartella', 'fp-dmk' );
+			$block             = $by_folder[ $folder_key ];
+			$is_uncategorized  = ( $folder_key === 0 || ! $block['term'] instanceof \WP_Term );
+			$folder_title      = __( 'Materiali generali', 'fp-dmk' );
 			if ( $block['term'] instanceof \WP_Term ) {
 				$folder_title = AssetManager::get_folder_breadcrumb_label( $block['term'] );
 			}
-			$html .= '<div class="fpdmk-folder-block">';
+			$html .= '<div class="fpdmk-folder-block' . ( $is_uncategorized ? ' fpdmk-folder-block--uncategorized' : '' ) . '">';
+			$html .= '<div class="fpdmk-folder-head">';
 			$html .= '<h3 class="fpdmk-folder-title">' . esc_html( $folder_title ) . '</h3>';
+			if ( $is_uncategorized ) {
+				$html .= '<p class="fpdmk-folder-hint">' . esc_html__( 'Materiali non assegnati a una cartella nel catalogo: sono comunque disponibili per il download.', 'fp-dmk' ) . '</p>';
+			}
+			$html .= '</div>';
 			foreach ( $block['by_category'] as $cat_data ) {
 				$html .= '<section class="fpdmk-section fpdmk-section-nested">';
 				$html .= '<h4 class="fpdmk-section-title">' . esc_html( $cat_data['name'] ) . '</h4>';
@@ -233,7 +259,7 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * Ordine di visualizzazione blocchi cartella (alfabetico per percorso; «senza cartella» in coda).
+	 * Ordine di visualizzazione blocchi cartella (alfabetico per percorso; materiali senza cartella, chiave 0, in coda).
 	 *
 	 * @param list<int> $keys Chiavi folder (0 = nessuna cartella).
 	 * @return list<int>
