@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.1] - 2026-05-02
+
+### Fixed
+
+- **Shortcode Media Kit**: il filtro `posts_where` per la ricerca titolo/descrizione viene sempre rimosso tramite **`try/finally`**, così in caso di errore durante `WP_Query` non resta un WHERE residuo che altererebbe query successive nella stessa richiesta.
+
 ## [1.20.0] - 2026-05-02
 
 ### Added

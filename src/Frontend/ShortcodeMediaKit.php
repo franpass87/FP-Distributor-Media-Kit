@@ -101,18 +101,22 @@ final class ShortcodeMediaKit {
 		}
 
 		self::$media_kit_search_like = null;
+		$search_filter_active = false;
 		if ( $filter_search !== '' ) {
 			global $wpdb;
 			self::$media_kit_search_like = '%' . $wpdb->esc_like( $filter_search ) . '%';
 			add_filter( 'posts_where', [ self::class, 'filter_posts_where_search' ], 10, 2 );
+			$search_filter_active = true;
 		}
 
-		$query = new \WP_Query( $query_args );
-		$posts = $query->posts ?? [];
-
-		if ( self::$media_kit_search_like !== null ) {
-			remove_filter( 'posts_where', [ self::class, 'filter_posts_where_search' ], 10 );
-			self::$media_kit_search_like = null;
+		try {
+			$query = new \WP_Query( $query_args );
+			$posts = $query->posts ?? [];
+		} finally {
+			if ( $search_filter_active ) {
+				remove_filter( 'posts_where', [ self::class, 'filter_posts_where_search' ], 10 );
+				self::$media_kit_search_like = null;
+			}
 		}
 
 		if ( $filter_sort === 'lang' && is_array( $posts ) && $posts !== [] ) {

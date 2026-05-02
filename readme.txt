@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: media kit, distributor, download, private area, user approval
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.20.0
+Stable tag: 1.20.1
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -32,6 +32,9 @@ Plugin per creare un'area riservata "Media Kit" dove i distributori approvati po
 Shortcode: [fp_dmk_register], [fp_dmk_login], [fp_dmk_media_kit]
 
 == Changelog ==
+
+= 1.20.1 =
+* Fixed: rimozione filtro SQL ricerca Media Kit garantita con try/finally (evita WHERE residuo su altre query).
 
 = 1.20.0 =
 * Added: Media Kit — ricerca (fp_dmk_q), ordinamento (fp_dmk_sort), conteggio risultati, anteprime card, download ZIP multiplo (max 25) con log per file; widget bacheca attività; login/registrazione — mostra/nascondi password, indicatore forza password, link sito e privacy.
