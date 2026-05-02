@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.5] - 2026-05-02
+
+### Fixed
+
+- **Media Kit (card)**: se l’asset non ha termini su **`fp_dmk_category`** (colonna «Categoria» vuota in admin) ma ha una **cartella** (`fp_dmk_folder`), in cima alla card viene mostrato il **percorso cartella** (come il breadcrumb in elenco), non più il solo «Altro». «Altro» resta solo senza categoria né cartella.
+
 ## [1.20.4] - 2026-05-02
 
 ### Changed

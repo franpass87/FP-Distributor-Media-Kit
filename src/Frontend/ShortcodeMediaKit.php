@@ -541,42 +541,55 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * Area superiore card: categorie tassonomia asset (nessuna anteprima file/immagine).
+	 * Area superiore card: tipo materiale (`fp_dmk_category`) e, se assente, cartella catalogo (`fp_dmk_folder`).
+	 *
+	 * Molti asset hanno solo la cartella assegnata in metabox senza termine «categoria»; in quel caso si mostra
+	 * il percorso cartella (come in admin) invece del fallback generico «Altro».
 	 *
 	 * @param \WP_Post $post Asset pubblicato.
-	 * @return string Markup con etichette leggibili; se nessun termine, stessa etichetta usata nel raggruppamento («Altro»).
+	 * @return string Markup con chip leggibili.
 	 */
 	private static function render_card_category_region( \WP_Post $post ): string {
-		$raw = get_the_terms( $post->ID, AssetManager::TAXONOMY );
-		$labels = [];
-		if ( is_array( $raw ) && ! is_wp_error( $raw ) ) {
-			usort(
-				$raw,
-				static function ( $a, $b ): int {
-					if ( ! $a instanceof \WP_Term || ! $b instanceof \WP_Term ) {
-						return 0;
-					}
+		$labels            = [];
+		$from_folder_only = false;
 
-					return strcasecmp( $a->name, $b->name );
-				}
-			);
+		$raw = wp_get_object_terms(
+			$post->ID,
+			AssetManager::TAXONOMY,
+			[
+				'orderby' => 'name',
+				'order'   => 'ASC',
+			]
+		);
+		if ( is_array( $raw ) && ! is_wp_error( $raw ) ) {
 			foreach ( $raw as $t ) {
 				if ( $t instanceof \WP_Term && $t->name !== '' ) {
 					$labels[] = $t->name;
 				}
 			}
 		}
+
+		if ( $labels === [] ) {
+			$fterm = AssetManager::get_primary_folder_term_for_post( $post->ID );
+			if ( $fterm instanceof \WP_Term ) {
+				$labels[]          = AssetManager::get_folder_breadcrumb_label( $fterm );
+				$from_folder_only = true;
+			}
+		}
+
 		if ( $labels === [] ) {
 			$labels[] = __( 'Altro', 'fp-dmk' );
 		}
+
 		$labels = array_values( array_unique( $labels ) );
 		$chips  = '';
 		foreach ( $labels as $name ) {
-			$chips .= '<span class="fpdmk-card-category-chip">' . esc_html( $name ) . '</span>';
+			$class = 'fpdmk-card-category-chip' . ( $from_folder_only ? ' fpdmk-card-category-chip--folder' : '' );
+			$chips .= '<span class="' . esc_attr( $class ) . '">' . esc_html( $name ) . '</span>';
 		}
 		$aria = esc_attr( implode( ', ', $labels ) );
 
-		return '<div class="fpdmk-card-category" role="group" aria-label="' . esc_attr__( 'Categorie', 'fp-dmk' ) . ': ' . $aria . '">' . $chips . '</div>';
+		return '<div class="fpdmk-card-category" role="group" aria-label="' . esc_attr__( 'Classificazione', 'fp-dmk' ) . ': ' . $aria . '">' . $chips . '</div>';
 	}
 
 	private static function render_card( \WP_Post $post, bool $zip_ok ): string {
