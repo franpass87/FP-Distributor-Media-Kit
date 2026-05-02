@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.20.11-blue)
+![Version](https://img.shields.io/badge/version-1.21.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -45,15 +45,21 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 
 | Shortcode | Descrizione |
 |-----------|-------------|
-| `[fp_dmk_register]` | Form registrazione (email, password, nome; se abilitato: tipo di accesso) |
-| `[fp_dmk_login]` | Form login |
-| `[fp_dmk_media_kit]` | Griglia asset per cartella e categoria (solo utenti approvati); filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q` (ricerca), `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi shortcode opzionali: `category`, `language`, `folder` |
+| `[fp_dmk_register]` | Form registrazione (italiano; stesso output di `_it`) |
+| `[fp_dmk_register_it]` | Form registrazione — interfaccia italiana esplicita |
+| `[fp_dmk_register_en]` | Form registrazione — interfaccia inglese (stringhe inline + JS) |
+| `[fp_dmk_login]` | Form login (italiano; stesso output di `_it`) |
+| `[fp_dmk_login_it]` | Form login — interfaccia italiana esplicita |
+| `[fp_dmk_login_en]` | Form login — interfaccia inglese |
+| `[fp_dmk_media_kit]` | Griglia asset (italiano; stesso output di `_it`); filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |
+| `[fp_dmk_media_kit_it]` | Media Kit — interfaccia italiana esplicita |
+| `[fp_dmk_media_kit_en]` | Media Kit — interfaccia inglese |
 
 ## Pagine da configurare
 
-1. **Pagina Media Kit**: inserisci `[fp_dmk_media_kit]` — accesso limitato agli utenti approvati
-2. **Pagina Login**: inserisci `[fp_dmk_login]`
-3. **Pagina Registrazione**: inserisci `[fp_dmk_register]`
+1. **Pagina Media Kit**: inserisci `[fp_dmk_media_kit]` (oppure `[fp_dmk_media_kit_it]` / `[fp_dmk_media_kit_en]` sulla versione lingua della pagina)
+2. **Pagina Login**: inserisci `[fp_dmk_login]` oppure `[fp_dmk_login_it]` / `[fp_dmk_login_en]`
+3. **Pagina Registrazione**: inserisci `[fp_dmk_register]` oppure `[fp_dmk_register_it]` / `[fp_dmk_register_en]`
 
 Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 

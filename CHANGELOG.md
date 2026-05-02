@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.21.0] - 2026-05-02
+
+### Added
+
+- **Shortcode bilingue (3 pagine)**: `[fp_dmk_register_it]`, `[fp_dmk_register_en]`, `[fp_dmk_login_it]`, `[fp_dmk_login_en]`, `[fp_dmk_media_kit_it]`, `[fp_dmk_media_kit_en]` — gli shortcode senza suffisso e `*_it` restano in italiano; `*_en` applica traduzioni inglese (filtro `gettext` sul dominio `fp-dmk` + stringhe JS in `AppearanceService`). Classe `ShortcodeUiLang` con mappa messaggi; conteggio risultati Media Kit in inglese con plurali dedicati.
+
+### Changed
+
+- **Impostazioni**: hint pagine collegate aggiornati con riferimento agli shortcode `*_it` / `*_en`.
+
 ## [1.20.11] - 2026-05-02
 
 ### Fixed

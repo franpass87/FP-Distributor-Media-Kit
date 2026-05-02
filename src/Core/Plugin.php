@@ -21,6 +21,7 @@ use FP\DistributorMediaKit\Frontend\RestrictedContent;
 use FP\DistributorMediaKit\Frontend\ShortcodeLogin;
 use FP\DistributorMediaKit\Frontend\ShortcodeMediaKit;
 use FP\DistributorMediaKit\Frontend\ShortcodeRegister;
+use FP\DistributorMediaKit\Frontend\ShortcodeUiLang;
 use FP\DistributorMediaKit\User\MailApprovalController;
 use FP\DistributorMediaKit\User\RegistrationHandler;
 
@@ -78,10 +79,52 @@ final class Plugin {
 		RegistrationHandler::init();
 		MailApprovalController::init();
 
-		// Frontend shortcodes
+		// Frontend shortcodes (default = italiano; suffissi _it / _en per pagine bilingue)
 		add_shortcode( 'fp_dmk_register', [ ShortcodeRegister::class, 'render' ] );
 		add_shortcode( 'fp_dmk_login', [ ShortcodeLogin::class, 'render' ] );
 		add_shortcode( 'fp_dmk_media_kit', [ ShortcodeMediaKit::class, 'render' ] );
+		add_shortcode(
+			'fp_dmk_register_it',
+			static function ( $atts = [] ): string {
+				return ShortcodeRegister::render( ShortcodeUiLang::normalize_atts( $atts ) );
+			}
+		);
+		add_shortcode(
+			'fp_dmk_register_en',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::with_english_ui(
+					static fn(): string => ShortcodeRegister::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
+		add_shortcode(
+			'fp_dmk_login_it',
+			static function ( $atts = [] ): string {
+				return ShortcodeLogin::render( ShortcodeUiLang::normalize_atts( $atts ) );
+			}
+		);
+		add_shortcode(
+			'fp_dmk_login_en',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::with_english_ui(
+					static fn(): string => ShortcodeLogin::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
+		add_shortcode(
+			'fp_dmk_media_kit_it',
+			static function ( $atts = [] ): string {
+				return ShortcodeMediaKit::render( ShortcodeUiLang::normalize_atts( $atts ) );
+			}
+		);
+		add_shortcode(
+			'fp_dmk_media_kit_en',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::with_english_ui(
+					static fn(): string => ShortcodeMediaKit::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
 
 		// Restrict access to media kit page
 		RestrictedContent::init();

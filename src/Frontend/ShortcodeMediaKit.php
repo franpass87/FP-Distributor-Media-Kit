@@ -10,7 +10,7 @@ use FP\DistributorMediaKit\User\ApprovalService;
 use FP\DistributorMediaKit\User\AudienceService;
 
 /**
- * Shortcode [fp_dmk_media_kit] - Griglia asset per cartella e categoria.
+ * Shortcode [fp_dmk_media_kit] / [fp_dmk_media_kit_it] / [fp_dmk_media_kit_en] — asset per cartella e categoria.
  *
  * @package FP\DistributorMediaKit\Frontend
  */
@@ -229,13 +229,7 @@ final class ShortcodeMediaKit {
 
 		$html .= '<div class="fpdmk-toolbar">';
 		$html .= '<p class="fpdmk-results-count" role="status">';
-		$html .= esc_html(
-			sprintf(
-				/* translators: %d: number of materials */
-				_n( '%d materiale trovato', '%d materiali trovati', $post_count, 'fp-dmk' ),
-				$post_count
-			)
-		);
+		$html .= esc_html( self::format_results_count_label( $post_count ) );
 		$html .= '</p>';
 		if ( $zip_ok && $post_count > 0 ) {
 			$html .= '<div class="fpdmk-bulk-bar">';
@@ -424,6 +418,25 @@ final class ShortcodeMediaKit {
 		);
 
 		return $where;
+	}
+
+	/**
+	 * Etichetta conteggio risultati (plurale corretto anche per shortcode `*_en` senza ngettext).
+	 *
+	 * @param int $post_count Numero di materiali nella lista corrente.
+	 */
+	private static function format_results_count_label( int $post_count ): string {
+		if ( ShortcodeUiLang::is_english_ui() ) {
+			return $post_count === 1
+				? sprintf( '%d item found', $post_count )
+				: sprintf( '%d items found', $post_count );
+		}
+
+		return sprintf(
+			/* translators: %d: number of materials */
+			_n( '%d materiale trovato', '%d materiali trovati', $post_count, 'fp-dmk' ),
+			$post_count
+		);
 	}
 
 	/**

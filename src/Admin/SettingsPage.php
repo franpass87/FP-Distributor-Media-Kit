@@ -214,7 +214,7 @@ final class SettingsPage {
 									<option value="<?php echo (int) $p->ID; ?>" <?php selected( $opts['media_kit_page'], $p->ID ); ?>><?php echo esc_html( $p->post_title ); ?></option>
 								<?php endforeach; ?>
 							</select>
-							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_media_kit]. L\'accesso è limitato agli utenti approvati.', 'fp-dmk' ); ?></span>
+							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_media_kit] (oppure [fp_dmk_media_kit_it] / [fp_dmk_media_kit_en] per pagine bilingue). L\'accesso è limitato agli utenti approvati.', 'fp-dmk' ); ?></span>
 						</div>
 						<div class="fpdmk-field">
 							<label for="login_page"><?php esc_html_e( 'Pagina Login', 'fp-dmk' ); ?></label>
@@ -224,7 +224,7 @@ final class SettingsPage {
 									<option value="<?php echo (int) $p->ID; ?>" <?php selected( $opts['login_page'], $p->ID ); ?>><?php echo esc_html( $p->post_title ); ?></option>
 								<?php endforeach; ?>
 							</select>
-							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_login].', 'fp-dmk' ); ?></span>
+							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_login] o [fp_dmk_login_it] / [fp_dmk_login_en].', 'fp-dmk' ); ?></span>
 						</div>
 						<div class="fpdmk-field">
 							<label for="register_page"><?php esc_html_e( 'Pagina Registrazione', 'fp-dmk' ); ?></label>
@@ -234,7 +234,7 @@ final class SettingsPage {
 									<option value="<?php echo (int) $p->ID; ?>" <?php selected( $opts['register_page'], $p->ID ); ?>><?php echo esc_html( $p->post_title ); ?></option>
 								<?php endforeach; ?>
 							</select>
-							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_register].', 'fp-dmk' ); ?></span>
+							<span class="fpdmk-hint"><?php esc_html_e( 'Pagina con shortcode [fp_dmk_register] o [fp_dmk_register_it] / [fp_dmk_register_en].', 'fp-dmk' ); ?></span>
 						</div>
 					</div>
 				</div>
