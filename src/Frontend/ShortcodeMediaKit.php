@@ -147,13 +147,15 @@ final class ShortcodeMediaKit {
 					'by_category'   => [],
 				];
 			}
-			$terms = get_the_terms( $post->ID, AssetManager::TAXONOMY );
+			$terms    = AssetManager::get_asset_category_terms( $post->ID );
 			$cat_slug = 'uncategorized';
 			$cat_name = __( 'Altro', 'fp-dmk' );
-			if ( $terms && ! is_wp_error( $terms ) ) {
+			if ( $terms !== [] ) {
 				$t = reset( $terms );
-				$cat_slug = $t->slug;
-				$cat_name = $t->name;
+				if ( $t instanceof \WP_Term ) {
+					$cat_slug = $t->slug;
+					$cat_name = $t->name;
+				}
 			}
 			if ( ! isset( $by_folder[ $folder_key ]['by_category'][ $cat_slug ] ) ) {
 				$by_folder[ $folder_key ]['by_category'][ $cat_slug ] = [ 'name' => $cat_name, 'items' => [] ];
@@ -554,19 +556,9 @@ final class ShortcodeMediaKit {
 		$labels            = [];
 		$from_folder_only = false;
 
-		$raw = wp_get_object_terms(
-			$post->ID,
-			AssetManager::TAXONOMY,
-			[
-				'orderby' => 'name',
-				'order'   => 'ASC',
-			]
-		);
-		if ( is_array( $raw ) && ! is_wp_error( $raw ) ) {
-			foreach ( $raw as $t ) {
-				if ( $t instanceof \WP_Term && $t->name !== '' ) {
-					$labels[] = $t->name;
-				}
+		foreach ( AssetManager::get_asset_category_terms( $post->ID ) as $t ) {
+			if ( $t instanceof \WP_Term && $t->name !== '' ) {
+				$labels[] = $t->name;
 			}
 		}
 

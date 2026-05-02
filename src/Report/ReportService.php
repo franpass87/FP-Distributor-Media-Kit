@@ -68,10 +68,8 @@ final class ReportService {
 		$result = [];
 		foreach ( $rows as $r ) {
 			$post     = get_post( (int) $r['asset_id'] );
-			$terms    = $post ? get_the_terms( $post->ID, AssetManager::TAXONOMY ) : false;
-			$category = ( $terms && ! is_wp_error( $terms ) && ! empty( $terms ) )
-				? implode( ', ', wp_list_pluck( $terms, 'name' ) )
-				: '—';
+			$terms    = $post ? AssetManager::get_asset_category_terms( $post->ID ) : [];
+			$category = $terms !== [] ? implode( ', ', wp_list_pluck( $terms, 'name' ) ) : '—';
 
 			$result[] = (object) [
 				'asset_id'       => (int) $r['asset_id'],
@@ -206,10 +204,8 @@ final class ReportService {
 		foreach ( $rows as $r ) {
 			$asset_id = (int) $r['asset_id'];
 			$post     = get_post( $asset_id );
-			$terms    = $post ? get_the_terms( $post->ID, AssetManager::TAXONOMY ) : false;
-			$category = ( $terms && ! is_wp_error( $terms ) && ! empty( $terms ) )
-				? implode( ', ', wp_list_pluck( $terms, 'name' ) )
-				: '—';
+			$terms    = $post ? AssetManager::get_asset_category_terms( $post->ID ) : [];
+			$category = $terms !== [] ? implode( ', ', wp_list_pluck( $terms, 'name' ) ) : '—';
 
 			$dl_rows = $wpdb->get_results(
 				$wpdb->prepare(

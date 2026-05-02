@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.20.7] - 2026-05-02
+
+### Fixed
+
+- **Categorie asset (`fp_dmk_category`)**: nuovo **`AssetManager::get_asset_category_terms()`** — usa `wp_get_post_terms` e, se non restituisce termini, legge le relazioni da **`term_relationships` / `term_taxonomy`** (stesso dato dell’admin) così il Media Kit, i report e i controlli audience non dipendono dalla sola cache di `get_the_terms` in contesti dove risultava vuota.
+- **Registrazione tassonomia**: **`show_in_rest` + `rest_base`** su `fp_dmk_category` per allineamento con l’editor a blocchi (salvataggio assegnazioni via REST).
+
+### Changed
+
+- Colonna admin **Categoria**, shortcode (raggruppamento + chip), **`AudienceService::user_can_access_asset`** e **Report** usano `get_asset_category_terms()`.
+
 ## [1.20.6] - 2026-05-02
 
 ### Changed

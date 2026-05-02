@@ -102,6 +102,8 @@ final class AssetManager {
 			'show_ui'           => true,
 			'show_in_menu'      => true,
 			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rest_base'         => 'fp_dmk_category',
 			'rewrite'           => false,
 			'capabilities'      => [
 				'manage_terms' => 'manage_fp_dmk_categories',
@@ -467,6 +469,88 @@ final class AssetManager {
 	}
 
 	/**
+	 * Termini `fp_dmk_category` assegnati all’asset (lettura per frontend e controlli audience).
+	 *
+	 * Usa `wp_get_post_terms`; se non restituisce nulla, interroga `term_relationships` + `term_taxonomy`
+	 * così i termini risultano visibili anche quando la cache termini del post non è popolata o filtri
+	 * lasciano vuoto `get_the_terms` nello stesso contesto della richiesta.
+	 *
+	 * @return list<\WP_Term>
+	 */
+	public static function get_asset_category_terms( int $post_id ): array {
+		if ( $post_id <= 0 ) {
+			return [];
+		}
+
+		$terms = wp_get_post_terms(
+			$post_id,
+			self::TAXONOMY,
+			[
+				'orderby'                 => 'name',
+				'order'                   => 'ASC',
+				'update_term_meta_cache' => false,
+			]
+		);
+
+		if ( is_wp_error( $terms ) ) {
+			$terms = [];
+		}
+		if ( ! is_array( $terms ) ) {
+			$terms = [];
+		}
+
+		$terms = array_values(
+			array_filter(
+				$terms,
+				static fn( $t ): bool => $t instanceof \WP_Term && (int) $t->term_id > 0
+			)
+		);
+
+		if ( $terms !== [] ) {
+			return $terms;
+		}
+
+		global $wpdb;
+		$ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT tt.term_id FROM {$wpdb->term_relationships} AS tr
+				INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+				WHERE tr.object_id = %d AND tt.taxonomy = %s",
+				$post_id,
+				self::TAXONOMY
+			)
+		);
+
+		if ( ! is_array( $ids ) || $ids === [] ) {
+			return [];
+		}
+
+		$out = [];
+		foreach ( array_map( 'intval', $ids ) as $tid ) {
+			if ( $tid <= 0 ) {
+				continue;
+			}
+			$t = get_term( $tid, self::TAXONOMY );
+			if ( $t instanceof \WP_Term && ! is_wp_error( $t ) ) {
+				$out[] = $t;
+			}
+		}
+
+		usort(
+			$out,
+			static function ( $a, $b ): int {
+				if ( ! $a instanceof \WP_Term || ! $b instanceof \WP_Term ) {
+					return 0;
+				}
+
+				return strcasecmp( $a->name, $b->name );
+			}
+		);
+
+		return $out;
+	}
+
+	/**
 	 * Etichetta con percorso (Genitore › Figlio) per ordinamento e filtri.
 	 */
 	public static function get_folder_breadcrumb_label( \WP_Term $term ): string {
@@ -609,8 +693,8 @@ final class AssetManager {
 				echo $ft instanceof \WP_Term ? esc_html( self::get_folder_breadcrumb_label( $ft ) ) : '—';
 				break;
 			case 'fp_dmk_category':
-				$terms = get_the_terms( $post_id, self::TAXONOMY );
-				echo $terms && ! is_wp_error( $terms ) ? esc_html( implode( ', ', wp_list_pluck( $terms, 'name' ) ) ) : '—';
+				$terms = self::get_asset_category_terms( $post_id );
+				echo $terms !== [] ? esc_html( implode( ', ', wp_list_pluck( $terms, 'name' ) ) ) : '—';
 				break;
 			case 'fp_dmk_language':
 				$lang = get_post_meta( $post_id, self::META_LANGUAGE, true );

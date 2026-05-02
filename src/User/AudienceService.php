@@ -252,8 +252,8 @@ final class AudienceService {
 			return false;
 		}
 
-		$terms = get_the_terms( $asset_id, \FP\DistributorMediaKit\Admin\AssetManager::TAXONOMY );
-		if ( ! $terms || is_wp_error( $terms ) ) {
+		$terms = \FP\DistributorMediaKit\Admin\AssetManager::get_asset_category_terms( $asset_id );
+		if ( $terms === [] ) {
 			return false;
 		}
 		foreach ( $terms as $term ) {
