@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.11] - 2026-05-02
+
+### Fixed
+
+- **Media Kit — filtro Cartella**: stesso problema del filtro Categoria — `get_terms( object_ids )` restituiva elenco vuoto; ora si usa **`AssetManager::get_distinct_folder_term_ids_for_post_ids()`** (SQL su `term_relationships` + antenati per la gerarchia nel select).
+
 ## [1.20.10] - 2026-05-02
 
 ### Fixed

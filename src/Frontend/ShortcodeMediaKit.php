@@ -490,40 +490,11 @@ final class ShortcodeMediaKit {
 	/**
 	 * ID termini cartella (e antenati) collegati agli asset indicati.
 	 *
-	 * Usa `get_terms( object_ids )` così i select riflettono le relazioni in DB anche quando
-	 * `get_the_terms` / cartella “primaria” non restituiscono dati coerenti per ogni post.
-	 *
 	 * @param list<int> $post_ids
 	 * @return list<int>
 	 */
 	private static function collect_folder_term_ids_from_post_ids( array $post_ids ): array {
-		if ( $post_ids === [] ) {
-			return [];
-		}
-		$folder_terms = get_terms(
-			[
-				'taxonomy'         => AssetManager::TAXONOMY_FOLDER,
-				'hide_empty'       => false,
-				'object_ids'       => $post_ids,
-				'suppress_filters' => true,
-			]
-		);
-		if ( ! is_array( $folder_terms ) || is_wp_error( $folder_terms ) ) {
-			return [];
-		}
-		$out = [];
-		foreach ( $folder_terms as $t ) {
-			if ( ! $t instanceof \WP_Term ) {
-				continue;
-			}
-			$tid = (int) $t->term_id;
-			$out[] = $tid;
-			foreach ( get_ancestors( $tid, AssetManager::TAXONOMY_FOLDER, 'taxonomy' ) as $aid ) {
-				$out[] = (int) $aid;
-			}
-		}
-
-		return array_values( array_unique( array_filter( $out, static fn( int $x ): bool => $x > 0 ) ) );
+		return AssetManager::get_distinct_folder_term_ids_for_post_ids( $post_ids );
 	}
 
 	/**

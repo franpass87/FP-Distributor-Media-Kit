@@ -657,6 +657,62 @@ final class AssetManager {
 	}
 
 	/**
+	 * ID termini `fp_dmk_folder` collegati agli asset indicati, più gli antenati (per select gerarchica).
+	 *
+	 * Stesso problema di `get_terms( object_ids )` per le categorie: lettura diretta da `term_relationships`.
+	 *
+	 * @param list<int> $post_ids ID post (`fp_dmk_asset`).
+	 * @return list<int>
+	 */
+	public static function get_distinct_folder_term_ids_for_post_ids( array $post_ids ): array {
+		$post_ids = array_values(
+			array_unique(
+				array_filter(
+					array_map( static fn( $x ): int => absint( $x ), $post_ids ),
+					static fn( int $id ): bool => $id > 0
+				)
+			)
+		);
+		if ( $post_ids === [] ) {
+			return [];
+		}
+
+		global $wpdb;
+		$tax         = self::TAXONOMY_FOLDER;
+		$direct_tids = [];
+
+		foreach ( array_chunk( $post_ids, 400 ) as $chunk ) {
+			$placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
+			$sql          = "SELECT DISTINCT t.term_id
+				FROM {$wpdb->term_relationships} AS tr
+				INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+				INNER JOIN {$wpdb->terms} AS t ON t.term_id = tt.term_id
+				WHERE tr.object_id IN ($placeholders)";
+			$prepare      = array_merge( [ $tax ], $chunk );
+			$col          = $wpdb->get_col( $wpdb->prepare( $sql, $prepare ) );
+			if ( ! is_array( $col ) ) {
+				continue;
+			}
+			foreach ( $col as $id ) {
+				$tid = (int) $id;
+				if ( $tid > 0 ) {
+					$direct_tids[ $tid ] = true;
+				}
+			}
+		}
+
+		$out = [];
+		foreach ( array_keys( $direct_tids ) as $tid ) {
+			$out[] = $tid;
+			foreach ( get_ancestors( $tid, self::TAXONOMY_FOLDER, 'taxonomy' ) as $aid ) {
+				$out[] = (int) $aid;
+			}
+		}
+
+		return array_values( array_unique( array_filter( $out, static fn( int $x ): bool => $x > 0 ) ) );
+	}
+
+	/**
 	 * Etichetta con percorso (Genitore › Figlio) per ordinamento e filtri.
 	 */
 	public static function get_folder_breadcrumb_label( \WP_Term $term ): string {
