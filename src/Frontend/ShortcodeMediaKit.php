@@ -19,6 +19,18 @@ final class ShortcodeMediaKit {
 	/** @var ?string Pattern LIKE per ricerca titolo/descrizione (solo query principale). */
 	private static ?string $media_kit_search_like = null;
 
+	/** Contatore per ID univoci accordion nel markup dello shortcode. */
+	private static int $accordion_seq = 0;
+
+	/**
+	 * ID HTML univoco per controlli accordion (prefisso letterale + contatore).
+	 */
+	private static function accordion_el_id( string $prefix ): string {
+		self::$accordion_seq++;
+
+		return $prefix . self::$accordion_seq;
+	}
+
 	public static function render( array $atts ): string {
 		\FP\DistributorMediaKit\Frontend\AppearanceService::enqueue_with_custom_styles();
 
@@ -297,6 +309,8 @@ final class ShortcodeMediaKit {
 		$html .= '</form>';
 		$html .= '</div>';
 
+		self::$accordion_seq = 0;
+		$folder_index        = 0;
 		foreach ( $folder_order as $folder_key ) {
 			if ( ! isset( $by_folder[ $folder_key ] ) ) {
 				continue;
@@ -307,16 +321,42 @@ final class ShortcodeMediaKit {
 			if ( $block['term'] instanceof \WP_Term ) {
 				$folder_title = AssetManager::get_folder_breadcrumb_label( $block['term'] );
 			}
+			$folder_title_id = self::accordion_el_id( 'fpdmk-foldert-' );
+			$folder_btn_id   = self::accordion_el_id( 'fpdmk-folderbtn-' );
+			$folder_panel_id = self::accordion_el_id( 'fpdmk-folderpanel-' );
+			$folder_open     = ( $folder_index === 0 );
+
 			$html .= '<div class="fpdmk-folder-block' . ( $is_uncategorized ? ' fpdmk-folder-block--uncategorized' : '' ) . '">';
 			$html .= '<div class="fpdmk-folder-head">';
-			$html .= '<h3 class="fpdmk-folder-title">' . esc_html( $folder_title ) . '</h3>';
+			$html .= '<div class="fpdmk-folder-head-row">';
+			$html .= '<h3 class="fpdmk-folder-title" id="' . esc_attr( $folder_title_id ) . '">' . esc_html( $folder_title ) . '</h3>';
+			$html .= '<button type="button" class="fpdmk-accordion-trigger fpdmk-accordion-trigger--folder' . ( $folder_open ? '' : ' is-collapsed' ) . '" id="' . esc_attr( $folder_btn_id ) . '" aria-expanded="' . ( $folder_open ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $folder_panel_id ) . '" aria-labelledby="' . esc_attr( $folder_title_id ) . '" title="' . esc_attr__( 'Espandi o comprimi cartella', 'fp-dmk' ) . '">';
+			$html .= '<span class="fpdmk-accordion-icon" aria-hidden="true"></span>';
+			$html .= '<span class="fpdmk-sr-only">' . esc_html__( 'Espandi o comprimi cartella', 'fp-dmk' ) . '</span>';
+			$html .= '</button>';
+			$html .= '</div>';
 			if ( $is_uncategorized ) {
 				$html .= '<p class="fpdmk-folder-hint">' . esc_html__( 'Materiali non assegnati a una cartella nel catalogo: sono comunque disponibili per il download.', 'fp-dmk' ) . '</p>';
 			}
 			$html .= '</div>';
+			$html .= '<div id="' . esc_attr( $folder_panel_id ) . '" class="fpdmk-folder-panel" role="region"' . ( $folder_open ? '' : ' hidden' ) . '>';
+
+			$cat_index = 0;
 			foreach ( $block['by_category'] as $cat_data ) {
-				$html .= '<section class="fpdmk-section fpdmk-section-nested">';
-				$html .= '<h4 class="fpdmk-section-title">' . esc_html( $cat_data['name'] ) . '</h4>';
+				$sec_title_id = self::accordion_el_id( 'fpdmk-sectitle-' );
+				$sec_btn_id   = self::accordion_el_id( 'fpdmk-secbtn-' );
+				$sec_panel_id = self::accordion_el_id( 'fpdmk-secpanel-' );
+				$sec_open     = ( $cat_index === 0 );
+
+				$html .= '<section class="fpdmk-section fpdmk-section-nested fpdmk-accordion-section">';
+				$html .= '<div class="fpdmk-section-head-row">';
+				$html .= '<h4 class="fpdmk-section-title" id="' . esc_attr( $sec_title_id ) . '">' . esc_html( $cat_data['name'] ) . '</h4>';
+				$html .= '<button type="button" class="fpdmk-accordion-trigger fpdmk-accordion-trigger--section' . ( $sec_open ? '' : ' is-collapsed' ) . '" id="' . esc_attr( $sec_btn_id ) . '" aria-expanded="' . ( $sec_open ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $sec_panel_id ) . '" aria-labelledby="' . esc_attr( $sec_title_id ) . '" title="' . esc_attr__( 'Espandi o comprimi elenco', 'fp-dmk' ) . '">';
+				$html .= '<span class="fpdmk-accordion-icon" aria-hidden="true"></span>';
+				$html .= '<span class="fpdmk-sr-only">' . esc_html__( 'Espandi o comprimi elenco', 'fp-dmk' ) . '</span>';
+				$html .= '</button>';
+				$html .= '</div>';
+				$html .= '<div id="' . esc_attr( $sec_panel_id ) . '" class="fpdmk-section-panel" role="region"' . ( $sec_open ? '' : ' hidden' ) . '>';
 				$html .= '<div class="fpdmk-asset-list" role="list">';
 				foreach ( $cat_data['items'] as $post ) {
 					if ( $post instanceof \WP_Post ) {
@@ -324,9 +364,14 @@ final class ShortcodeMediaKit {
 					}
 				}
 				$html .= '</div>';
+				$html .= '</div>';
 				$html .= '</section>';
+				$cat_index++;
 			}
+
 			$html .= '</div>';
+			$html .= '</div>';
+			$folder_index++;
 		}
 
 		if ( empty( $by_folder ) ) {

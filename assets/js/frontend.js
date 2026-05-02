@@ -192,11 +192,38 @@
 		} );
 	}
 
+	function initMediaKitAccordion() {
+		document.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest( '.fpdmk-media-kit .fpdmk-accordion-trigger' );
+			if ( ! btn ) {
+				return;
+			}
+			var panelId = btn.getAttribute( 'aria-controls' );
+			if ( ! panelId ) {
+				return;
+			}
+			var panel = document.getElementById( panelId );
+			if ( ! panel ) {
+				return;
+			}
+			var open = btn.getAttribute( 'aria-expanded' ) === 'true';
+			var next = ! open;
+			btn.setAttribute( 'aria-expanded', next ? 'true' : 'false' );
+			panel.hidden = ! next;
+			if ( next ) {
+				btn.classList.remove( 'is-collapsed' );
+			} else {
+				btn.classList.add( 'is-collapsed' );
+			}
+		} );
+	}
+
 	function boot() {
 		initFormLoading();
 		initPasswordToggle();
 		initRegisterPasswordStrength();
 		initMediaKitBulk();
+		initMediaKitAccordion();
 	}
 
 	if ( document.readyState === 'loading' ) {
