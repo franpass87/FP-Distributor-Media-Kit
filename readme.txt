@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: media kit, distributor, download, private area, user approval
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.21.0
+Stable tag: 1.21.1
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -33,6 +33,9 @@ Shortcode: [fp_dmk_register], [fp_dmk_register_it], [fp_dmk_register_en], [fp_dm
 
 == Changelog ==
 
+= 1.21.1 =
+* Changed: Media Kit — accordion cartelle/categorie chiusi al caricamento pagina.
+
 = 1.21.0 =
 * Added: shortcode IT/EN per registrazione, login e Media Kit (`*_it`, `*_en`; default = italiano).
 
@@ -43,7 +46,7 @@ Shortcode: [fp_dmk_register], [fp_dmk_register_it], [fp_dmk_register_en], [fp_dm
 * Fixed: filtro Categoria Media Kit — opzioni select da SQL (term_relationships) al posto di get_terms(object_ids).
 
 = 1.20.9 =
-* Added: Media Kit — cartelle e categorie in accordion (primo blocco e prima categoria aperti di default).
+* Added: Media Kit — cartelle e categorie in accordion (da v1.21.1 tutti chiusi al caricamento).
 
 = 1.20.8 =
 * Fixed: colonna Categoria duplicata in elenco asset; lettura categorie da SQL; checkbox categoria nel metabox Dettagli asset con salvataggio wp_set_object_terms.

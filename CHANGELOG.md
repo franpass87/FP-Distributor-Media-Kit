@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.1] - 2026-05-02
+
+### Changed
+
+- **Media Kit (accordion)**: cartelle e sottosezioni categoria **partono tutte chiuse** (prima erano aperti il primo blocco e la prima categoria).
+
 ## [1.21.0] - 2026-05-02
 
 ### Added
@@ -26,7 +32,7 @@
 
 ### Added
 
-- **Media Kit (frontend)**: **accordion a due livelli** — ogni blocco cartella e ogni sottosezione categoria (es. «Tech Sheets») ha pulsante espandi/comprimi con `aria-expanded` / `aria-controls` / pannello `hidden`; il **primo blocco** e la **prima categoria** restano aperti di default per ridurre scroll e focalizzare la sezione desiderata.
+- **Media Kit (frontend)**: **accordion a due livelli** — ogni blocco cartella e ogni sottosezione categoria (es. «Tech Sheets») ha pulsante espandi/comprimi con `aria-expanded` / `aria-controls` / pannello `hidden` (stato iniziale aperti/chiusi: vedi v1.21.1).
 
 ## [1.20.8] - 2026-05-02
 
