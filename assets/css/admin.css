@@ -31,6 +31,8 @@
     --radius-xl: 16px;
     --radius-pill: 999px;
     --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    /* Pagine impostazioni: larghezza massima comoda su monitor ultralarge */
+    --fpdmk-admin-settings-max: min(100%, 1600px);
 }
 
 /* body[class*="fpdmk"] copre fpdmk-admin-shell + eventuali varianti quando menu sotto parent */
@@ -41,7 +43,7 @@ body[class*="fp-dmk"] #wpbody-content .wrap.fpdmk-admin-page {
 }
 
 .wrap.fpdmk-admin-page {
-    max-width: 1100px;
+    max-width: var(--fpdmk-admin-settings-max);
     margin: 24px 20px 40px;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -402,7 +404,9 @@ a.fpdmk-btn {
 /* Banner CPT/taxonomy (iniettato via admin_notices) */
 .fpdmk-cpt-banner-wrap {
 	margin: 20px 20px 0 0;
-	max-width: 1100px;
+	max-width: none;
+	width: 100%;
+	box-sizing: border-box;
 }
 body.fpdmk-admin-shell.edit-php .wrap > h1.wp-heading-inline,
 body.fpdmk-admin-shell.post-php .wrap > h1.wp-heading-inline,
@@ -449,7 +453,9 @@ body.fpdmk-admin-shell .fpdmk-cpt-page-header {
 body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wrap,
 body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_category .wrap,
 body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_folder .wrap {
-	max-width: 1100px;
+	max-width: none;
+	width: 100%;
+	box-sizing: border-box;
 }
 body.fpdmk-admin-shell.edit-php .wrap > hr.wp-header-end,
 body.fpdmk-admin-shell.edit-tags-php .wrap > hr.wp-header-end {
@@ -464,7 +470,9 @@ body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset #posts-filter {
 	padding: 0;
 	overflow: hidden;
 	margin: 0 20px 24px 0;
-	max-width: 1100px;
+	max-width: none;
+	width: auto;
+	box-sizing: border-box;
 }
 body.fpdmk-admin-shell.edit-php.post-type-fp_dmk_asset .wp-list-table.widefat {
 	border: none;
@@ -521,7 +529,9 @@ body.fpdmk-admin-shell.edit-tags-php.taxonomy-fp_dmk_folder #col-container {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 24px;
-	max-width: 1100px;
+	max-width: none;
+	width: 100%;
+	box-sizing: border-box;
 	margin: 0 20px 24px 0;
 }
 @media (max-width: 900px) {

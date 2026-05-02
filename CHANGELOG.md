@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.2] - 2026-05-02
+
+### Changed
+
+- **Admin CSS**: elenco **Media Kit Assets**, filtri `#posts-filter`, banner CPT e pagine tassonomie **Categorie/Cartelle** usano tutta la larghezza utile di `#wpbody-content` (rimosso `max-width: 1100px` che comprimeva tabella e controlli). Le pagine impostazioni con `.wrap.fpdmk-admin-page` passano a `max-width: min(100%, 1600px)`.
+
 ## [1.20.1] - 2026-05-02
 
 ### Fixed
