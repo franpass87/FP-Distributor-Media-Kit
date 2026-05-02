@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.20.3-blue)
+![Version](https://img.shields.io/badge/version-1.20.4-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -8,7 +8,7 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 
 - **Registrazione utenti** (frontend) con approvazione admin obbligatoria
 - **Login/Logout** dedicato
-- **Media Kit** protetto: solo utenti approvati; **ricerca** titolo/descrizione, **ordinamento** (titolo, data, lingua), conteggio risultati, **anteprime** (immagine allegata o tipo file), **download multiplo ZIP** (se l’estensione PHP Zip è disponibile)
+- **Media Kit** protetto: solo utenti approvati; **ricerca** titolo/descrizione, **ordinamento** (titolo, data, lingua), conteggio risultati, **categorie in evidenza** su ogni card (tassonomia asset), **download multiplo ZIP** (se l’estensione PHP Zip è disponibile)
 - **Asset** organizzati per **categoria** (tipo di materiale) e opzionalmente per **cartelle** gerarchiche (ordinamento nel Media Kit)
 - **Download sicuro** tramite proxy (nessun link diretto ai file) + ZIP multiplo con tracciamento per ogni file
 - **Tracking download** per ogni asset

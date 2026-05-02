@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.4] - 2026-05-02
+
+### Changed
+
+- **Media Kit (card)**: in cima a ogni card non vengono più mostrate **anteprime** (immagine in evidenza, allegato immagine o badge tipo file); viene mostrata l’area **categorie** (`fp_dmk_category`) con chip leggibili, ordinate per nome. Se l’asset non ha categorie assegnate, viene mostrato **Altro** (allineato al raggruppamento sotto «Materiali generali»).
+
 ## [1.20.3] - 2026-05-02
 
 ### Fixed

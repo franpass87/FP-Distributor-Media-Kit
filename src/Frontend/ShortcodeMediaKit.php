@@ -540,62 +540,43 @@ final class ShortcodeMediaKit {
 		return $keys;
 	}
 
-	private static function get_asset_file_mime( int $post_id ): string {
-		$file_id = (int) get_post_meta( $post_id, AssetManager::META_FILE_ID, true );
-		if ( $file_id <= 0 ) {
-			return '';
-		}
-		$mime = get_post_mime_type( $file_id );
-
-		return is_string( $mime ) ? $mime : '';
-	}
-
 	/**
-	 * Icona tipo file o immagine anteprima per la card.
+	 * Area superiore card: categorie tassonomia asset (nessuna anteprima file/immagine).
+	 *
+	 * @param \WP_Post $post Asset pubblicato.
+	 * @return string Markup con etichette leggibili; se nessun termine, stessa etichetta usata nel raggruppamento («Altro»).
 	 */
-	private static function render_card_thumb( \WP_Post $post ): string {
-		if ( has_post_thumbnail( $post->ID ) ) {
-			$img = get_the_post_thumbnail(
-				$post->ID,
-				'medium',
-				[
-					'class'   => 'fpdmk-card-thumb-img',
-					'loading' => 'lazy',
-					'alt'     => '',
-				]
-			);
-			return $img !== false && $img !== '' ? '<div class="fpdmk-card-thumb">' . $img . '</div>' : '';
-		}
-		$file_id = (int) get_post_meta( $post->ID, AssetManager::META_FILE_ID, true );
-		if ( $file_id > 0 && wp_attachment_is_image( $file_id ) ) {
-			$img = wp_get_attachment_image(
-				$file_id,
-				'medium',
-				false,
-				[
-					'class'   => 'fpdmk-card-thumb-img',
-					'loading' => 'lazy',
-					'alt'     => '',
-				]
-			);
-			return $img !== '' ? '<div class="fpdmk-card-thumb">' . $img . '</div>' : '';
-		}
+	private static function render_card_category_region( \WP_Post $post ): string {
+		$raw = get_the_terms( $post->ID, AssetManager::TAXONOMY );
+		$labels = [];
+		if ( is_array( $raw ) && ! is_wp_error( $raw ) ) {
+			usort(
+				$raw,
+				static function ( $a, $b ): int {
+					if ( ! $a instanceof \WP_Term || ! $b instanceof \WP_Term ) {
+						return 0;
+					}
 
-		$mime = self::get_asset_file_mime( $post->ID );
-		$kind = 'file';
-		if ( str_starts_with( $mime, 'image/' ) ) {
-			$kind = 'image';
-		} elseif ( $mime === 'application/pdf' ) {
-			$kind = 'pdf';
-		} elseif ( str_contains( $mime, 'word' ) || str_contains( $mime, 'document' ) || str_contains( $mime, 'text' ) ) {
-			$kind = 'doc';
-		} elseif ( str_starts_with( $mime, 'video/' ) ) {
-			$kind = 'video';
-		} elseif ( str_starts_with( $mime, 'audio/' ) ) {
-			$kind = 'audio';
+					return strcasecmp( $a->name, $b->name );
+				}
+			);
+			foreach ( $raw as $t ) {
+				if ( $t instanceof \WP_Term && $t->name !== '' ) {
+					$labels[] = $t->name;
+				}
+			}
 		}
+		if ( $labels === [] ) {
+			$labels[] = __( 'Altro', 'fp-dmk' );
+		}
+		$labels = array_values( array_unique( $labels ) );
+		$chips  = '';
+		foreach ( $labels as $name ) {
+			$chips .= '<span class="fpdmk-card-category-chip">' . esc_html( $name ) . '</span>';
+		}
+		$aria = esc_attr( implode( ', ', $labels ) );
 
-		return '<div class="fpdmk-card-thumb fpdmk-card-thumb--icon"><span class="fpdmk-card-thumb-icon fpdmk-card-thumb-icon--' . esc_attr( $kind ) . '" aria-hidden="true"></span></div>';
+		return '<div class="fpdmk-card-category" role="group" aria-label="' . esc_attr__( 'Categorie', 'fp-dmk' ) . ': ' . $aria . '">' . $chips . '</div>';
 	}
 
 	private static function render_card( \WP_Post $post, bool $zip_ok ): string {
@@ -605,7 +586,7 @@ final class ShortcodeMediaKit {
 		$lang_label = AssetManager::LANGUAGES[ $lang ] ?? $lang;
 
 		$html = '<article class="fpdmk-card fpdmk-card-asset">';
-		$html .= self::render_card_thumb( $post );
+		$html .= self::render_card_category_region( $post );
 		$html .= '<div class="fpdmk-card-body">';
 		if ( $zip_ok && $file_id > 0 ) {
 			$html .= '<div class="fpdmk-card-select">';
