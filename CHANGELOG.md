@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.3] - 2026-05-02
+
+### Fixed
+
+- **Media Kit (filtri)**: le opzioni **Cartella** e **Categoria** si popolano con `get_terms( … 'object_ids' => … )` sugli asset visibili (stesso ambito audience), invece di `get_the_terms` per ogni ID + seconda query su `slug` — così i dropdown riflettono le relazioni in database anche quando la cache per-post non espone i termini. Parametro categoria da shortcode/GET allineato a **`sanitize_title`** come in `AudienceService`.
+
 ## [1.20.2] - 2026-05-02
 
 ### Changed

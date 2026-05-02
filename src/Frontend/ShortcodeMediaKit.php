@@ -30,13 +30,13 @@ final class ShortcodeMediaKit {
 			return '<div class="fpdmk-media-kit fpdmk-ui"><p class="fpdmk-message fpdmk-message-warning">' . esc_html__( 'Il tuo account è in attesa di approvazione.', 'fp-dmk' ) . '</p></div>';
 		}
 
-		$filter_cat     = isset( $atts['category'] ) ? sanitize_text_field( $atts['category'] ) : '';
+		$filter_cat     = isset( $atts['category'] ) ? sanitize_title( (string) $atts['category'] ) : '';
 		$filter_lang    = isset( $atts['language'] ) ? sanitize_text_field( $atts['language'] ) : '';
 		$filter_folder  = isset( $atts['folder'] ) ? sanitize_title( $atts['folder'] ) : '';
 		$filter_search  = '';
 		$filter_sort    = 'title';
 		if ( $filter_cat === '' && isset( $_GET['fp_dmk_cat'] ) ) {
-			$filter_cat = sanitize_text_field( wp_unslash( $_GET['fp_dmk_cat'] ) );
+			$filter_cat = sanitize_title( wp_unslash( (string) $_GET['fp_dmk_cat'] ) );
 		}
 		if ( $filter_lang === '' && isset( $_GET['fp_dmk_lang'] ) ) {
 			$filter_lang = sanitize_text_field( wp_unslash( $_GET['fp_dmk_lang'] ) );
@@ -180,20 +180,7 @@ final class ShortcodeMediaKit {
 			$folder_for_select[] = $row;
 		}
 
-		$cat_slugs_seen = self::collect_category_slugs_from_post_ids( $ids_for_cat_options );
-		$terms          = [];
-		if ( $cat_slugs_seen !== [] ) {
-			$raw_terms = get_terms(
-				[
-					'taxonomy'   => AssetManager::TAXONOMY,
-					'hide_empty' => false,
-					'slug'       => $cat_slugs_seen,
-					'orderby'    => 'name',
-					'order'      => 'ASC',
-				]
-			);
-			$terms = is_array( $raw_terms ) ? $raw_terms : [];
-		}
+		$terms = self::get_category_terms_for_visible_assets( $ids_for_cat_options );
 		$allowed = AudienceService::get_allowed_category_slugs_for_user( $user_id );
 		if ( $allowed !== null && $allowed !== [] ) {
 			$terms = array_values(
@@ -454,19 +441,34 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * ID termini cartella (e antenati) usati dagli asset indicati.
+	 * ID termini cartella (e antenati) collegati agli asset indicati.
+	 *
+	 * Usa `get_terms( object_ids )` così i select riflettono le relazioni in DB anche quando
+	 * `get_the_terms` / cartella “primaria” non restituiscono dati coerenti per ogni post.
 	 *
 	 * @param list<int> $post_ids
 	 * @return list<int>
 	 */
 	private static function collect_folder_term_ids_from_post_ids( array $post_ids ): array {
+		if ( $post_ids === [] ) {
+			return [];
+		}
+		$folder_terms = get_terms(
+			[
+				'taxonomy'   => AssetManager::TAXONOMY_FOLDER,
+				'hide_empty' => false,
+				'object_ids' => $post_ids,
+			]
+		);
+		if ( ! is_array( $folder_terms ) || is_wp_error( $folder_terms ) ) {
+			return [];
+		}
 		$out = [];
-		foreach ( $post_ids as $pid ) {
-			$fterm = AssetManager::get_primary_folder_term_for_post( $pid );
-			if ( ! $fterm instanceof \WP_Term ) {
+		foreach ( $folder_terms as $t ) {
+			if ( ! $t instanceof \WP_Term ) {
 				continue;
 			}
-			$tid   = (int) $fterm->term_id;
+			$tid = (int) $t->term_id;
 			$out[] = $tid;
 			foreach ( get_ancestors( $tid, AssetManager::TAXONOMY_FOLDER, 'taxonomy' ) as $aid ) {
 				$out[] = (int) $aid;
@@ -477,26 +479,31 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * Slug categorie asset presenti sugli ID indicati.
+	 * Termini categoria asset da mostrare nel filtro (solo categorie effettivamente assegnate agli asset visibili).
 	 *
-	 * @param list<int> $post_ids
-	 * @return list<string>
+	 * @param list<int> $post_ids ID pubblicati nell’ambito audience (nessun filtro cartella/lingua/ricerca).
+	 * @return list<\WP_Term>
 	 */
-	private static function collect_category_slugs_from_post_ids( array $post_ids ): array {
-		$slugs = [];
-		foreach ( $post_ids as $pid ) {
-			$ts = get_the_terms( $pid, AssetManager::TAXONOMY );
-			if ( ! $ts || is_wp_error( $ts ) ) {
-				continue;
-			}
-			foreach ( $ts as $t ) {
-				if ( $t instanceof \WP_Term && $t->slug !== '' ) {
-					$slugs[] = $t->slug;
-				}
-			}
+	private static function get_category_terms_for_visible_assets( array $post_ids ): array {
+		if ( $post_ids === [] ) {
+			return [];
+		}
+		$raw = get_terms(
+			[
+				'taxonomy'   => AssetManager::TAXONOMY,
+				'hide_empty' => false,
+				'object_ids' => $post_ids,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			]
+		);
+		if ( ! is_array( $raw ) || is_wp_error( $raw ) ) {
+			return [];
 		}
 
-		return array_values( array_unique( $slugs ) );
+		return array_values(
+			array_filter( $raw, static fn( $t ): bool => $t instanceof \WP_Term && $t->slug !== '' )
+		);
 	}
 
 	/**
