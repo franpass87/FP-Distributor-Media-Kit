@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.20.0] - 2026-05-02
+
+### Added
+
+- **Media Kit (`[fp_dmk_media_kit]`)**: campo **ricerca** (`fp_dmk_q`) su titolo e meta descrizione; **ordinamento** (`fp_dmk_sort`: `title`, `date`, `lang` con ordinamento lingua in PHP per non escludere asset senza meta); **barra risultati** con conteggio; **anteprima** in card (immagine in evidenza, allegato immagine, oppure badge tipo PDF/DOC/VIDEO/…); **download ZIP** di più asset (POST `fp_dmk_bulk_zip`, nonce `fp_dmk_bulk_zip`, max **25** file, ogni file validato come il singolo download, `TrackingService::log` per ciascuno) tramite `BulkZipController` (richiede estensione **Zip** PHP).
+- **Bacheca WordPress**: widget **FP Media Kit — attività recente** (`DashboardWidget`) per chi ha `manage_fp_dmk` (download totali, utenti approvati, ultimi download, link a Report e Log).
+- **Login / Registrazione**: **toggle mostra/nascondi password**, indicatore **forza password** in registrazione, **footer** con link al sito e alla pagina Privacy (se configurata in WP).
+
+### Changed
+
+- Form filtri Media Kit: etichetta «Filtra e ordina», campo cerca a tutta larghezza griglia; messaggio dedicato se **nessun risultato** con filtri/ricerca attivi + pulsante reimposta.
+
+### Developer
+
+- Estensione Zip assente: il Media Kit mostra un avviso e nasconde le azioni bulk; `BulkZipController::is_supported()`.
+
 ## [1.19.6] - 2026-05-02
 
 ### Changed

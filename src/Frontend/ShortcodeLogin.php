@@ -57,7 +57,10 @@ final class ShortcodeLogin {
 		$html .= '</div>';
 		$html .= '<div class="fpdmk-field">';
 		$html .= '<label for="fp_dmk_login_password">' . esc_html__( 'Password', 'fp-dmk' ) . '</label>';
-		$html .= '<input type="password" id="fp_dmk_login_password" name="pwd" class="fpdmk-input" required autocomplete="current-password" aria-required="true">';
+		$html .= '<div class="fpdmk-password-wrap">';
+		$html .= '<input type="password" id="fp_dmk_login_password" name="pwd" class="fpdmk-input fpdmk-password-input" required autocomplete="current-password" aria-required="true">';
+		$html .= '<button type="button" class="fpdmk-btn-password-toggle" data-target="fp_dmk_login_password" aria-expanded="false" aria-label="' . esc_attr__( 'Mostra password', 'fp-dmk' ) . '">' . esc_html__( 'Mostra', 'fp-dmk' ) . '</button>';
+		$html .= '</div>';
 		$html .= '</div>';
 		$html .= '<div class="fpdmk-field fpdmk-field-checkbox">';
 		$html .= '<label class="fpdmk-checkbox-label"><input type="checkbox" name="rememberme" value="1" class="fpdmk-checkbox"> ' . esc_html__( 'Ricordami', 'fp-dmk' ) . '</label>';
@@ -78,6 +81,13 @@ final class ShortcodeLogin {
 		$html .= '</div>';
 		$html .= '<p class="fpdmk-hint fpdmk-hint-reset">' . esc_html__( 'Riceverai un\'email per reimpostare la password. Dopo il reset potrai accedere da questa pagina.', 'fp-dmk' ) . '</p>';
 		$html .= '</form>';
+		$html .= '<nav class="fpdmk-form-footer" aria-label="' . esc_attr__( 'Collegamenti utili', 'fp-dmk' ) . '">';
+		$html .= '<a href="' . esc_url( home_url( '/' ) ) . '" class="fpdmk-link fpdmk-link-muted">' . esc_html__( 'Torna al sito', 'fp-dmk' ) . '</a>';
+		$privacy_url = function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '';
+		if ( is_string( $privacy_url ) && $privacy_url !== '' ) {
+			$html .= ' <span class="fpdmk-form-footer-sep">·</span> <a href="' . esc_url( $privacy_url ) . '" class="fpdmk-link fpdmk-link-muted">' . esc_html__( 'Privacy', 'fp-dmk' ) . '</a>';
+		}
+		$html .= '</nav>';
 		$html .= '</div>';
 
 		return $html;

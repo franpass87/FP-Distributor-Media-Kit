@@ -66,8 +66,12 @@ final class ShortcodeRegister {
 		$password_hint = __( 'Minimo 8 caratteri, con maiuscola, minuscola e numero.', 'fp-dmk' );
 		$html .= '<div class="fpdmk-field">';
 		$html .= '<label for="fp_dmk_reg_password">' . esc_html__( 'Password', 'fp-dmk' ) . ' <span class="required">*</span></label>';
-		$html .= '<input type="password" id="fp_dmk_reg_password" name="password" class="fpdmk-input" required minlength="8" placeholder="' . esc_attr__( 'Minimo 8 caratteri', 'fp-dmk' ) . '" aria-describedby="fp_dmk_reg_password_hint">';
+		$html .= '<div class="fpdmk-password-wrap">';
+		$html .= '<input type="password" id="fp_dmk_reg_password" name="password" class="fpdmk-input fpdmk-password-input" required minlength="8" placeholder="' . esc_attr__( 'Minimo 8 caratteri', 'fp-dmk' ) . '" aria-describedby="fp_dmk_reg_password_hint fp_dmk_reg_password_strength">';
+		$html .= '<button type="button" class="fpdmk-btn-password-toggle" data-target="fp_dmk_reg_password" aria-expanded="false" aria-label="' . esc_attr__( 'Mostra password', 'fp-dmk' ) . '">' . esc_html__( 'Mostra', 'fp-dmk' ) . '</button>';
+		$html .= '</div>';
 		$html .= '<span id="fp_dmk_reg_password_hint" class="fpdmk-hint">' . esc_html( $password_hint ) . '</span>';
+		$html .= '<div id="fp_dmk_reg_password_strength" class="fpdmk-password-strength" aria-live="polite"></div>';
 		$html .= '</div>';
 		if ( AudienceService::is_audience_enabled() ) {
 			$segments = AudienceService::get_segments();
@@ -95,6 +99,13 @@ final class ShortcodeRegister {
 		}
 		$html .= '</div>';
 		$html .= '</form>';
+		$html .= '<nav class="fpdmk-form-footer" aria-label="' . esc_attr__( 'Collegamenti utili', 'fp-dmk' ) . '">';
+		$html .= '<a href="' . esc_url( home_url( '/' ) ) . '" class="fpdmk-link fpdmk-link-muted">' . esc_html__( 'Torna al sito', 'fp-dmk' ) . '</a>';
+		$privacy_url = function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '';
+		if ( is_string( $privacy_url ) && $privacy_url !== '' ) {
+			$html .= ' <span class="fpdmk-form-footer-sep">·</span> <a href="' . esc_url( $privacy_url ) . '" class="fpdmk-link fpdmk-link-muted">' . esc_html__( 'Privacy', 'fp-dmk' ) . '</a>';
+		}
+		$html .= '</nav>';
 		$html .= '</div>';
 
 		return $html;

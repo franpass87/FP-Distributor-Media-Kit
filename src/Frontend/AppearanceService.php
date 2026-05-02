@@ -84,8 +84,23 @@ final class AppearanceService {
 		wp_enqueue_style( 'fp-dmk-frontend', FP_DMK_URL . 'assets/css/frontend.css', [], FP_DMK_VERSION );
 		wp_add_inline_style( 'fp-dmk-frontend', self::get_custom_css() );
 		wp_enqueue_script( 'fp-dmk-frontend', FP_DMK_URL . 'assets/js/frontend.js', [], FP_DMK_VERSION, true );
-		wp_localize_script( 'fp-dmk-frontend', 'fpDmkI18n', [
-			'loading' => __( 'Invio in corso...', 'fp-dmk' ),
-		] );
+		wp_localize_script(
+			'fp-dmk-frontend',
+			'fpDmkI18n',
+			[
+				'loading'           => __( 'Invio in corso...', 'fp-dmk' ),
+				'bulkZipPreparing'  => __( 'Creazione archivio…', 'fp-dmk' ),
+				'bulkZipNone'       => __( 'Seleziona almeno un file.', 'fp-dmk' ),
+				'bulkZipTooMany'    => __( 'Hai superato il numero massimo di file selezionabili.', 'fp-dmk' ),
+				'bulkZipDisabled'   => __( 'Download ZIP non disponibile.', 'fp-dmk' ),
+				'showPassword'      => __( 'Mostra password', 'fp-dmk' ),
+				'hidePassword'      => __( 'Nascondi password', 'fp-dmk' ),
+				'pwdToggleShow'     => __( 'Mostra', 'fp-dmk' ),
+				'pwdToggleHide'     => __( 'Nascondi', 'fp-dmk' ),
+				'pwdStrengthWeak'   => __( 'Forza password: debole', 'fp-dmk' ),
+				'pwdStrengthFair'   => __( 'Forza password: discreta', 'fp-dmk' ),
+				'pwdStrengthGood'   => __( 'Forza password: buona', 'fp-dmk' ),
+			]
+		);
 	}
 }

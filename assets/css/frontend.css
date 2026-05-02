@@ -561,3 +561,210 @@
     border-bottom: 1px solid #e2e8f0;
     color: #334155;
 }
+
+/* Toolbar risultati + bulk ZIP */
+.fpdmk-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 0.85rem 1rem;
+    background: #f8fafc;
+    border: 1px solid var(--fpdmk-card-border, #e5e7eb);
+    border-radius: var(--fpdmk-card-radius, 14px);
+}
+
+.fpdmk-results-count {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.fpdmk-bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem 1.25rem;
+}
+
+.fpdmk-bulk-select-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+}
+
+.fpdmk-bulk-select-all input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--fpdmk-input-focus, #667eea);
+}
+
+.fpdmk-bulk-unavailable {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+}
+
+.fpdmk-filters-grid .fpdmk-filter-field-wide {
+    grid-column: 1 / -1;
+}
+
+/* Anteprima card */
+.fpdmk-card-asset > .fpdmk-card-thumb {
+    margin: -1.25rem -1.35rem 1rem;
+    border-radius: var(--fpdmk-card-radius, 14px) var(--fpdmk-card-radius, 14px) 0 0;
+    overflow: hidden;
+    background: #f1f5f9;
+    max-height: 180px;
+}
+
+.fpdmk-card-thumb-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+}
+
+.fpdmk-card-thumb--icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    max-height: 140px;
+    background: linear-gradient(145deg, #eef2ff, #f8fafc);
+}
+
+.fpdmk-card-thumb-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.fpdmk-card-thumb-icon--pdf {
+    background: #dc2626;
+}
+.fpdmk-card-thumb-icon--pdf::before {
+    content: "PDF";
+}
+
+.fpdmk-card-thumb-icon--image {
+    background: #7c3aed;
+}
+.fpdmk-card-thumb-icon--image::before {
+    content: "IMG";
+}
+
+.fpdmk-card-thumb-icon--video {
+    background: #2563eb;
+}
+.fpdmk-card-thumb-icon--video::before {
+    content: "VID";
+}
+
+.fpdmk-card-thumb-icon--audio {
+    background: #0d9488;
+}
+.fpdmk-card-thumb-icon--audio::before {
+    content: "AUD";
+}
+
+.fpdmk-card-thumb-icon--doc {
+    background: #ca8a04;
+}
+.fpdmk-card-thumb-icon--doc::before {
+    content: "DOC";
+}
+
+.fpdmk-card-thumb-icon--file {
+    background: #64748b;
+}
+.fpdmk-card-thumb-icon--file::before {
+    content: "FILE";
+}
+
+.fpdmk-card-select {
+    margin: 0 0 0.5rem;
+}
+
+.fpdmk-card-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--fpdmk-input-focus, #667eea);
+    vertical-align: middle;
+}
+
+/* Password + footer form */
+.fpdmk-password-wrap {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.fpdmk-password-wrap .fpdmk-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.fpdmk-btn-password-toggle {
+    flex: 0 0 auto;
+    padding: 0 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--fpdmk-radius, 10px);
+    border: 2px solid var(--fpdmk-input-border, #e5e7eb);
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fpdmk-btn-password-toggle:hover {
+    border-color: var(--fpdmk-input-focus, #667eea);
+    background: #f8fafc;
+}
+
+.fpdmk-form-footer {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--fpdmk-card-border, #e5e7eb);
+    font-size: 0.875rem;
+}
+
+.fpdmk-form-footer-sep {
+    color: #cbd5e1;
+}
+
+.fpdmk-password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    min-height: 1.25em;
+}
+
+.fpdmk-password-strength--weak {
+    color: #dc2626;
+}
+
+.fpdmk-password-strength--fair {
+    color: #ca8a04;
+}
+
+.fpdmk-password-strength--good {
+    color: #16a34a;
+}

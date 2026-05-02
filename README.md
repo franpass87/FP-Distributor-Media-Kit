@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.19.6-blue)
+![Version](https://img.shields.io/badge/version-1.20.0-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -8,9 +8,9 @@ Area riservata per distributori: registrazione, approvazione admin, download ass
 
 - **Registrazione utenti** (frontend) con approvazione admin obbligatoria
 - **Login/Logout** dedicato
-- **Media Kit** protetto: solo utenti approvati
+- **Media Kit** protetto: solo utenti approvati; **ricerca** titolo/descrizione, **ordinamento** (titolo, data, lingua), conteggio risultati, **anteprime** (immagine allegata o tipo file), **download multiplo ZIP** (se l’estensione PHP Zip è disponibile)
 - **Asset** organizzati per **categoria** (tipo di materiale) e opzionalmente per **cartelle** gerarchiche (ordinamento nel Media Kit)
-- **Download sicuro** tramite proxy (nessun link diretto ai file)
+- **Download sicuro** tramite proxy (nessun link diretto ai file) + ZIP multiplo con tracciamento per ogni file
 - **Tracking download** per ogni asset
 - **Lista utenti** con tutti i distributori, filtro stato e azioni Approva/Revoca
 - **Report** con statistiche generali, attività per utente (cosa scaricano) e per asset (chi scarica)
@@ -47,7 +47,7 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 |-----------|-------------|
 | `[fp_dmk_register]` | Form registrazione (email, password, nome; se abilitato: tipo di accesso) |
 | `[fp_dmk_login]` | Form login |
-| `[fp_dmk_media_kit]` | Griglia asset per cartella e categoria (solo utenti approvati); attributi opzionali: `category`, `language`, `folder` (slug cartella) |
+| `[fp_dmk_media_kit]` | Griglia asset per cartella e categoria (solo utenti approvati); filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q` (ricerca), `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi shortcode opzionali: `category`, `language`, `folder` |
 
 ## Pagine da configurare
 
@@ -73,10 +73,10 @@ Dopo aver creato le pagine, configurale in **FP Media Kit → Impostazioni**.
 fp-dmk-capabilities.php   # elenco capability (bootstrap + uninstall)
 src/
 ├── Core/Plugin.php
-├── Admin/AssetManager (CPT, categorie `fp_dmk_category`, cartelle `fp_dmk_folder`), UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage
+├── Admin/AssetManager (CPT, categorie `fp_dmk_category`, cartelle `fp_dmk_folder`), UserApprovalPage, UsersListPage, SettingsPage, NotifyUsersPage, DashboardWidget (bacheca)
 ├── User/RegistrationHandler, ApprovalService, AudienceService
 ├── Frontend/ShortcodeMediaKit, ShortcodeLogin, ShortcodeRegister, RestrictedContent
-├── Download/ProxyController, TrackingService
+├── Download/ProxyController, BulkZipController, TrackingService
 └── Email/NotificationService
 ```
 

@@ -6,6 +6,7 @@ namespace FP\DistributorMediaKit\Core;
 
 use FP\DistributorMediaKit\Admin\AssetManager;
 use FP\DistributorMediaKit\Admin\BulkUploadPage;
+use FP\DistributorMediaKit\Admin\DashboardWidget;
 use FP\DistributorMediaKit\Admin\DownloadsLogPage;
 use FP\DistributorMediaKit\Admin\NotifyUsersPage;
 use FP\DistributorMediaKit\Admin\ReportsPage;
@@ -14,6 +15,7 @@ use FP\DistributorMediaKit\Admin\UserApprovalPage;
 use FP\DistributorMediaKit\Admin\UsersListPage;
 use FP\DistributorMediaKit\Cron\DailyDownloadReportCron;
 use FP\DistributorMediaKit\Cron\PurgeDownloadsCron;
+use FP\DistributorMediaKit\Download\BulkZipController;
 use FP\DistributorMediaKit\Download\ProxyController;
 use FP\DistributorMediaKit\Frontend\RestrictedContent;
 use FP\DistributorMediaKit\Frontend\ShortcodeLogin;
@@ -52,6 +54,7 @@ final class Plugin {
 		add_action( 'init', [ ProxyController::class, 'register_rewrite' ], 5 );
 		add_filter( 'query_vars', [ ProxyController::class, 'add_query_vars' ] );
 		add_action( 'template_redirect', [ ProxyController::class, 'serve_download' ], 1 );
+		BulkZipController::init();
 
 		// Admin
 		if ( is_admin() ) {
@@ -64,6 +67,7 @@ final class Plugin {
 			new NotifyUsersPage();
 			new DownloadsLogPage();
 			new BulkUploadPage();
+			new DashboardWidget();
 		}
 
 		// Cron pulizia log e report giornaliero download

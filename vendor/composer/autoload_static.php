@@ -23,14 +23,19 @@ class ComposerStaticInit488c20eed7d619142a46cfda433c3e99
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'FP\\DistributorMediaKit\\Admin\\AssetManager' => __DIR__ . '/../..' . '/src/Admin/AssetManager.php',
+        'FP\\DistributorMediaKit\\Admin\\BulkUploadPage' => __DIR__ . '/../..' . '/src/Admin/BulkUploadPage.php',
         'FP\\DistributorMediaKit\\Admin\\CptBanner' => __DIR__ . '/../..' . '/src/Admin/CptBanner.php',
+        'FP\\DistributorMediaKit\\Admin\\DashboardWidget' => __DIR__ . '/../..' . '/src/Admin/DashboardWidget.php',
         'FP\\DistributorMediaKit\\Admin\\DownloadsLogPage' => __DIR__ . '/../..' . '/src/Admin/DownloadsLogPage.php',
         'FP\\DistributorMediaKit\\Admin\\NotifyUsersPage' => __DIR__ . '/../..' . '/src/Admin/NotifyUsersPage.php',
         'FP\\DistributorMediaKit\\Admin\\ReportsPage' => __DIR__ . '/../..' . '/src/Admin/ReportsPage.php',
         'FP\\DistributorMediaKit\\Admin\\SettingsPage' => __DIR__ . '/../..' . '/src/Admin/SettingsPage.php',
         'FP\\DistributorMediaKit\\Admin\\UserApprovalPage' => __DIR__ . '/../..' . '/src/Admin/UserApprovalPage.php',
+        'FP\\DistributorMediaKit\\Admin\\UsersListPage' => __DIR__ . '/../..' . '/src/Admin/UsersListPage.php',
         'FP\\DistributorMediaKit\\Core\\Plugin' => __DIR__ . '/../..' . '/src/Core/Plugin.php',
+        'FP\\DistributorMediaKit\\Cron\\DailyDownloadReportCron' => __DIR__ . '/../..' . '/src/Cron/DailyDownloadReportCron.php',
         'FP\\DistributorMediaKit\\Cron\\PurgeDownloadsCron' => __DIR__ . '/../..' . '/src/Cron/PurgeDownloadsCron.php',
+        'FP\\DistributorMediaKit\\Download\\BulkZipController' => __DIR__ . '/../..' . '/src/Download/BulkZipController.php',
         'FP\\DistributorMediaKit\\Download\\ProxyController' => __DIR__ . '/../..' . '/src/Download/ProxyController.php',
         'FP\\DistributorMediaKit\\Download\\TrackingService' => __DIR__ . '/../..' . '/src/Download/TrackingService.php',
         'FP\\DistributorMediaKit\\Email\\NotificationService' => __DIR__ . '/../..' . '/src/Email/NotificationService.php',
@@ -41,6 +46,8 @@ class ComposerStaticInit488c20eed7d619142a46cfda433c3e99
         'FP\\DistributorMediaKit\\Frontend\\ShortcodeRegister' => __DIR__ . '/../..' . '/src/Frontend/ShortcodeRegister.php',
         'FP\\DistributorMediaKit\\Report\\ReportService' => __DIR__ . '/../..' . '/src/Report/ReportService.php',
         'FP\\DistributorMediaKit\\User\\ApprovalService' => __DIR__ . '/../..' . '/src/User/ApprovalService.php',
+        'FP\\DistributorMediaKit\\User\\AudienceService' => __DIR__ . '/../..' . '/src/User/AudienceService.php',
+        'FP\\DistributorMediaKit\\User\\MailApprovalController' => __DIR__ . '/../..' . '/src/User/MailApprovalController.php',
         'FP\\DistributorMediaKit\\User\\RegistrationHandler' => __DIR__ . '/../..' . '/src/User/RegistrationHandler.php',
     );
 
