@@ -533,26 +533,7 @@ final class ShortcodeMediaKit {
 	 * @return list<\WP_Term>
 	 */
 	private static function get_category_terms_for_visible_assets( array $post_ids ): array {
-		if ( $post_ids === [] ) {
-			return [];
-		}
-		$raw = get_terms(
-			[
-				'taxonomy'         => AssetManager::TAXONOMY,
-				'hide_empty'       => false,
-				'object_ids'       => $post_ids,
-				'orderby'          => 'name',
-				'order'            => 'ASC',
-				'suppress_filters' => true,
-			]
-		);
-		if ( ! is_array( $raw ) || is_wp_error( $raw ) ) {
-			return [];
-		}
-
-		return array_values(
-			array_filter( $raw, static fn( $t ): bool => $t instanceof \WP_Term && $t->slug !== '' )
-		);
+		return AssetManager::get_distinct_category_terms_for_post_ids( $post_ids );
 	}
 
 	/**

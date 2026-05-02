@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.20.10] - 2026-05-02
+
+### Fixed
+
+- **Media Kit — filtro Categoria**: il select mostrava solo «Tutte le categorie» perché `get_terms( object_ids )` non restituiva i termini in alcuni contesti; ora l’elenco è costruito con **`AssetManager::get_distinct_category_terms_for_post_ids()`** (query su `term_relationships` / `term_taxonomy`, come per i termini per singolo asset), con chunk sugli ID post.
+
 ## [1.20.9] - 2026-05-02
 
 ### Added

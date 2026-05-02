@@ -581,6 +581,82 @@ final class AssetManager {
 	}
 
 	/**
+	 * Termini `fp_dmk_category` distinti usati da almeno uno degli asset indicati (lettura SQL).
+	 *
+	 * Per i filtri dello shortcode Media Kit `get_terms( object_ids )` può restituire un elenco vuoto
+	 * in alcuni contesti; questa query legge direttamente `term_relationships` / `term_taxonomy` / `terms`.
+	 *
+	 * @param list<int> $post_ids ID post (`fp_dmk_asset`).
+	 * @return list<\WP_Term>
+	 */
+	public static function get_distinct_category_terms_for_post_ids( array $post_ids ): array {
+		$post_ids = array_values(
+			array_unique(
+				array_filter(
+					array_map( static fn( $x ): int => absint( $x ), $post_ids ),
+					static fn( int $id ): bool => $id > 0
+				)
+			)
+		);
+		if ( $post_ids === [] ) {
+			return [];
+		}
+
+		global $wpdb;
+		$tax    = self::TAXONOMY;
+		$by_tid = [];
+
+		foreach ( array_chunk( $post_ids, 400 ) as $chunk ) {
+			$placeholders = implode( ',', array_fill( 0, count( $chunk ), '%d' ) );
+			$sql          = "SELECT DISTINCT t.term_id, t.name, t.slug, tt.term_taxonomy_id, tt.parent, tt.count
+				FROM {$wpdb->term_relationships} AS tr
+				INNER JOIN {$wpdb->term_taxonomy} AS tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+				INNER JOIN {$wpdb->terms} AS t ON t.term_id = tt.term_id
+				WHERE tr.object_id IN ($placeholders)";
+			$prepare      = array_merge( [ $tax ], $chunk );
+			$rows         = $wpdb->get_results( $wpdb->prepare( $sql, $prepare ), ARRAY_A );
+			if ( ! is_array( $rows ) ) {
+				continue;
+			}
+			foreach ( $rows as $r ) {
+				if ( ! is_array( $r ) ) {
+					continue;
+				}
+				$tid = isset( $r['term_id'] ) ? (int) $r['term_id'] : 0;
+				if ( $tid <= 0 || isset( $by_tid[ $tid ] ) ) {
+					continue;
+				}
+				$slug = (string) ( $r['slug'] ?? '' );
+				if ( $slug === '' ) {
+					continue;
+				}
+				$by_tid[ $tid ] = new \WP_Term(
+					(object) [
+						'term_id'          => $tid,
+						'name'             => (string) ( $r['name'] ?? '' ),
+						'slug'             => $slug,
+						'taxonomy'         => $tax,
+						'term_taxonomy_id' => (int) ( $r['term_taxonomy_id'] ?? 0 ),
+						'parent'           => (int) ( $r['parent'] ?? 0 ),
+						'count'            => (int) ( $r['count'] ?? 0 ),
+						'filter'           => 'raw',
+					]
+				);
+			}
+		}
+
+		$out = array_values( $by_tid );
+		usort(
+			$out,
+			static function ( \WP_Term $a, \WP_Term $b ): int {
+				return strcasecmp( $a->name, $b->name );
+			}
+		);
+
+		return $out;
+	}
+
+	/**
 	 * Etichetta con percorso (Genitore › Figlio) per ordinamento e filtri.
 	 */
 	public static function get_folder_breadcrumb_label( \WP_Term $term ): string {
