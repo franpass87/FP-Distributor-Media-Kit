@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.5] - 2026-05-02
+
+### Fixed
+
+- **Shortcode Media Kit**: le opzioni dei select **Cartella** e **Categoria** non usano più `get_terms( hide_empty => true )` (il conteggio WordPress è solo sulle assegnazioni dirette, quindi cartelle padre e categorie realmente usate dagli asset potevano risultare assenti). Le opzioni sono costruite dagli **ID asset** visibili all’utente (stesse regole audience): cartelle con **antenati** per gerarchia; categorie dagli slug presenti su quegli asset. Con filtro categoria GET attivo, l’elenco cartelle si restringe agli asset di quella categoria.
+
 ## [1.19.4] - 2026-05-02
 
 ### Changed

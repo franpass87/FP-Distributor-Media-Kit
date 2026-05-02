@@ -114,9 +114,39 @@ final class ShortcodeMediaKit {
 		$folder_order = self::ordered_folder_keys( array_keys( $by_folder ) );
 
 		$current_url = get_permalink();
-		$terms       = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => true ] );
-		$terms       = is_array( $terms ) ? $terms : [];
-		$allowed     = AudienceService::get_allowed_category_slugs_for_user( $user_id );
+
+		// Opzioni select: non usare get_terms( hide_empty => true ) — il count WP è solo sulle
+		// assegnazioni dirette; cartelle padre e categorie non collegate agli asset risultano «vuote».
+		$ids_for_cat_options   = self::query_visible_asset_ids_for_filters( $user_id, '' );
+		$ids_for_folder_options = ( $filter_cat !== '' )
+			? self::query_visible_asset_ids_for_filters( $user_id, $filter_cat )
+			: $ids_for_cat_options;
+
+		$folder_ids_for_select = self::collect_folder_term_ids_from_post_ids( $ids_for_folder_options );
+		$folder_for_select     = [];
+		foreach ( AssetManager::get_folder_terms_hierarchical_options() as $row ) {
+			$t = $row['term'];
+			if ( ! $t instanceof \WP_Term || ! in_array( (int) $t->term_id, $folder_ids_for_select, true ) ) {
+				continue;
+			}
+			$folder_for_select[] = $row;
+		}
+
+		$cat_slugs_seen = self::collect_category_slugs_from_post_ids( $ids_for_cat_options );
+		$terms          = [];
+		if ( $cat_slugs_seen !== [] ) {
+			$raw_terms = get_terms(
+				[
+					'taxonomy'   => AssetManager::TAXONOMY,
+					'hide_empty' => false,
+					'slug'       => $cat_slugs_seen,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+				]
+			);
+			$terms = is_array( $raw_terms ) ? $raw_terms : [];
+		}
+		$allowed = AudienceService::get_allowed_category_slugs_for_user( $user_id );
 		if ( $allowed !== null && $allowed !== [] ) {
 			$terms = array_values(
 				array_filter(
@@ -126,30 +156,6 @@ final class ShortcodeMediaKit {
 			);
 		} elseif ( $allowed !== null && $allowed === [] ) {
 			$terms = [];
-		}
-
-		$folder_terms_all = get_terms(
-			[
-				'taxonomy'   => AssetManager::TAXONOMY_FOLDER,
-				'hide_empty' => true,
-				'orderby'    => 'name',
-				'order'      => 'ASC',
-			]
-		);
-		$folder_terms_all = is_array( $folder_terms_all ) ? $folder_terms_all : [];
-		$ids_with_posts   = [];
-		foreach ( $folder_terms_all as $x ) {
-			if ( $x instanceof \WP_Term ) {
-				$ids_with_posts[] = (int) $x->term_id;
-			}
-		}
-		$folder_for_select = [];
-		foreach ( AssetManager::get_folder_terms_hierarchical_options() as $row ) {
-			$t = $row['term'];
-			if ( ! $t instanceof \WP_Term || ! in_array( (int) $t->term_id, $ids_with_posts, true ) ) {
-				continue;
-			}
-			$folder_for_select[] = $row;
 		}
 
 		$has_active_filters = $filter_folder !== '' || $filter_cat !== '' || $filter_lang !== '';
@@ -256,6 +262,91 @@ final class ShortcodeMediaKit {
 		wp_reset_postdata();
 
 		return $html;
+	}
+
+	/**
+	 * ID degli asset pubblicati da considerare per le opzioni dei filtri (nessun filtro cartella/lingua).
+	 *
+	 * @param string $filter_cat_slug Slug categoria da combinare con le regole audience (vuoto = tutte le categorie consentite).
+	 * @return list<int>
+	 */
+	private static function query_visible_asset_ids_for_filters( int $user_id, string $filter_cat_slug ): array {
+		$effective = AudienceService::get_effective_category_slugs_for_query( $user_id, $filter_cat_slug );
+		if ( $effective !== null && $effective === [] ) {
+			return [];
+		}
+		$args = [
+			'post_type'        => AssetManager::CPT,
+			'post_status'      => 'publish',
+			'posts_per_page'   => -1,
+			'fields'           => 'ids',
+			'orderby'          => 'title',
+			'order'            => 'ASC',
+			'no_found_rows'    => true,
+		];
+		if ( $effective !== null ) {
+			$args['tax_query'] = [
+				[
+					'taxonomy' => AssetManager::TAXONOMY,
+					'field'    => 'slug',
+					'terms'    => $effective,
+					'operator' => 'IN',
+				],
+			];
+		}
+		$q = new \WP_Query( $args );
+		$ids = $q->posts ?? [];
+		if ( ! is_array( $ids ) ) {
+			return [];
+		}
+
+		return array_values( array_map( 'intval', array_filter( $ids, static fn( $x ): bool => (int) $x > 0 ) ) );
+	}
+
+	/**
+	 * ID termini cartella (e antenati) usati dagli asset indicati.
+	 *
+	 * @param list<int> $post_ids
+	 * @return list<int>
+	 */
+	private static function collect_folder_term_ids_from_post_ids( array $post_ids ): array {
+		$out = [];
+		foreach ( $post_ids as $pid ) {
+			$fterm = AssetManager::get_primary_folder_term_for_post( $pid );
+			if ( ! $fterm instanceof \WP_Term ) {
+				continue;
+			}
+			$tid = (int) $fterm->term_id;
+			$out[] = $tid;
+			foreach ( get_ancestors( $tid, AssetManager::TAXONOMY_FOLDER, 'taxonomy' ) as $aid ) {
+				$out[] = (int) $aid;
+			}
+		}
+
+		return array_values( array_unique( array_filter( $out, static fn( int $x ): bool => $x > 0 ) ) );
+	}
+
+	/**
+	 * Slug categorie asset presenti sugli ID indicati.
+	 *
+	 * @param list<int> $post_ids
+	 * @return list<string>
+	 */
+	private static function collect_category_slugs_from_post_ids( array $post_ids ): array {
+		$slugs = [];
+		foreach ( $post_ids as $pid ) {
+			$ts = get_the_terms( $pid, AssetManager::TAXONOMY );
+			if ( ! $ts || is_wp_error( $ts ) ) {
+				continue;
+			}
+			foreach ( $ts as $t ) {
+				if ( $t instanceof \WP_Term && $t->slug !== '' ) {
+					$slugs[] = $t->slug;
+				}
+			}
+		}
+
+		return array_values( array_unique( $slugs ) );
 	}
 
 	/**
