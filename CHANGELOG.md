@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.6] - 2026-05-14
+
+### Fixed
+
+- **Media Kit (filtri)**: cartella, categoria e lingua usano le stesse relazioni SQL dell’elenco asset; i dropdown si popolano dagli asset visibili e il filtro categoria non restituisce più elenchi vuoti incoerenti.
+
 ## [1.21.5] - 2026-05-14
 
 ### Added

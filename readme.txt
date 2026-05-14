@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: media kit, distributor, download, private area, user approval
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.21.5
+Stable tag: 1.21.6
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -32,6 +32,9 @@ Plugin per creare un'area riservata "Media Kit" dove i distributori approvati po
 Shortcode: [fp_dmk_register], [fp_dmk_register_it], [fp_dmk_register_en], [fp_dmk_login], [fp_dmk_login_it], [fp_dmk_login_en], [fp_dmk_media_kit], [fp_dmk_media_kit_it], [fp_dmk_media_kit_en] (default e _it = italiano; _en = interfaccia inglese)
 
 == Changelog ==
+
+= 1.21.6 =
+* Fixed: filtri Media Kit — cartella/categoria/lingua allineati all’elenco asset e dropdown popolati correttamente.
 
 = 1.21.5 =
 * Added: tipi di accesso — etichette IT/EN in impostazioni e in registrazione EN.

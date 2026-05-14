@@ -75,43 +75,6 @@ final class ShortcodeMediaKit {
 		];
 		self::apply_sort_to_query_args( $query_args, $filter_sort );
 
-		$effective_cats = AudienceService::get_effective_category_slugs_for_query( $user_id, $filter_cat );
-		if ( $effective_cats !== null && $effective_cats === [] ) {
-			$query_args['post__in'] = [ 0 ];
-		} else {
-			$tax_queries = [];
-			if ( $effective_cats !== null ) {
-				$tax_queries[] = [
-					'taxonomy' => AssetManager::TAXONOMY,
-					'field'    => 'slug',
-					'terms'    => $effective_cats,
-					'operator' => 'IN',
-				];
-			}
-			if ( $filter_folder !== '' ) {
-				$tax_queries[] = [
-					'taxonomy' => AssetManager::TAXONOMY_FOLDER,
-					'field'    => 'slug',
-					'terms'    => [ $filter_folder ],
-				];
-			}
-			if ( count( $tax_queries ) > 1 ) {
-				$tax_queries['relation'] = 'AND';
-			}
-			if ( $tax_queries !== [] ) {
-				$query_args['tax_query'] = $tax_queries;
-			}
-		}
-
-		if ( $filter_lang !== '' ) {
-			$query_args['meta_query'] = [
-				[
-					'key'   => AssetManager::META_LANGUAGE,
-					'value' => $filter_lang,
-				],
-			];
-		}
-
 		self::$media_kit_search_like = null;
 		$search_filter_active = false;
 		if ( $filter_search !== '' ) {
@@ -131,7 +94,18 @@ final class ShortcodeMediaKit {
 			}
 		}
 
-		if ( $filter_sort === 'lang' && is_array( $posts ) && $posts !== [] ) {
+		if ( ! is_array( $posts ) ) {
+			$posts = [];
+		}
+
+		$posts = self::filter_posts_for_audience( $posts, $user_id );
+		$posts_for_cat_options    = $posts;
+		$posts_for_folder_options = self::filter_posts_by_category_slug( $posts, $filter_cat, $user_id );
+		$posts                    = self::filter_posts_by_category_slug( $posts, $filter_cat, $user_id );
+		$posts                    = self::filter_posts_by_folder_slug( $posts, $filter_folder );
+		$posts                    = self::filter_posts_by_language( $posts, $filter_lang );
+
+		if ( $filter_sort === 'lang' && $posts !== [] ) {
 			usort(
 				$posts,
 				static function ( $a, $b ): int {
@@ -179,10 +153,8 @@ final class ShortcodeMediaKit {
 
 		$current_url = get_permalink();
 
-		$ids_for_cat_options    = self::query_visible_asset_ids_for_filters( $user_id, '' );
-		$ids_for_folder_options = ( $filter_cat !== '' )
-			? self::query_visible_asset_ids_for_filters( $user_id, $filter_cat )
-			: $ids_for_cat_options;
+		$ids_for_cat_options    = self::collect_post_ids( $posts_for_cat_options );
+		$ids_for_folder_options = self::collect_post_ids( $posts_for_folder_options );
 
 		$folder_ids_for_select = self::collect_folder_term_ids_from_post_ids( $ids_for_folder_options );
 		$folder_for_select     = [];
@@ -456,42 +428,135 @@ final class ShortcodeMediaKit {
 	}
 
 	/**
-	 * ID degli asset pubblicati da considerare per le opzioni dei filtri (nessun filtro cartella/lingua).
-	 *
-	 * @param string $filter_cat_slug Slug categoria da combinare con le regole audience (vuoto = tutte le categorie consentite).
+	 * @param list<\WP_Post> $posts
 	 * @return list<int>
 	 */
-	private static function query_visible_asset_ids_for_filters( int $user_id, string $filter_cat_slug ): array {
+	private static function collect_post_ids( array $posts ): array {
+		$ids = [];
+		foreach ( $posts as $post ) {
+			if ( $post instanceof \WP_Post && $post->ID > 0 ) {
+				$ids[] = (int) $post->ID;
+			}
+		}
+
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * @param list<\WP_Post> $posts
+	 * @return list<\WP_Post>
+	 */
+	private static function filter_posts_for_audience( array $posts, int $user_id ): array {
+		if ( ! AudienceService::is_audience_enabled() || AudienceService::user_is_audience_staff( $user_id ) ) {
+			return $posts;
+		}
+
+		$allowed = AudienceService::get_allowed_category_slugs_for_user( $user_id );
+		if ( $allowed === null ) {
+			return $posts;
+		}
+		if ( $allowed === [] ) {
+			return [];
+		}
+
+		return array_values(
+			array_filter(
+				$posts,
+				static function ( $post ) use ( $user_id ): bool {
+					if ( ! $post instanceof \WP_Post ) {
+						return false;
+					}
+
+					return AudienceService::user_can_access_asset( $user_id, $post->ID );
+				}
+			)
+		);
+	}
+
+	/**
+	 * @param list<\WP_Post> $posts
+	 * @return list<\WP_Post>
+	 */
+	private static function filter_posts_by_category_slug( array $posts, string $filter_cat_slug, int $user_id ): array {
+		$filter_cat_slug = sanitize_title( $filter_cat_slug );
+		if ( $filter_cat_slug === '' ) {
+			return $posts;
+		}
+
 		$effective = AudienceService::get_effective_category_slugs_for_query( $user_id, $filter_cat_slug );
 		if ( $effective !== null && $effective === [] ) {
 			return [];
 		}
-		$args = [
-			'post_type'      => AssetManager::CPT,
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'no_found_rows'  => true,
-		];
-		if ( $effective !== null ) {
-			$args['tax_query'] = [
-				[
-					'taxonomy' => AssetManager::TAXONOMY,
-					'field'    => 'slug',
-					'terms'    => $effective,
-					'operator' => 'IN',
-				],
-			];
-		}
-		$q   = new \WP_Query( $args );
-		$ids = $q->posts ?? [];
-		if ( ! is_array( $ids ) ) {
+		if ( $effective !== null && ! in_array( $filter_cat_slug, $effective, true ) ) {
 			return [];
 		}
 
-		return array_values( array_map( 'intval', array_filter( $ids, static fn( $x ): bool => (int) $x > 0 ) ) );
+		return array_values(
+			array_filter(
+				$posts,
+				static function ( $post ) use ( $filter_cat_slug ): bool {
+					if ( ! $post instanceof \WP_Post ) {
+						return false;
+					}
+					foreach ( AssetManager::get_asset_category_terms( $post->ID ) as $term ) {
+						if ( $term instanceof \WP_Term && $term->slug === $filter_cat_slug ) {
+							return true;
+						}
+					}
+
+					return false;
+				}
+			)
+		);
+	}
+
+	/**
+	 * @param list<\WP_Post> $posts
+	 * @return list<\WP_Post>
+	 */
+	private static function filter_posts_by_folder_slug( array $posts, string $filter_folder_slug ): array {
+		$filter_folder_slug = sanitize_title( $filter_folder_slug );
+		if ( $filter_folder_slug === '' ) {
+			return $posts;
+		}
+
+		return array_values(
+			array_filter(
+				$posts,
+				static function ( $post ) use ( $filter_folder_slug ): bool {
+					if ( ! $post instanceof \WP_Post ) {
+						return false;
+					}
+					$folder = AssetManager::get_primary_folder_term_for_post( $post->ID );
+
+					return $folder instanceof \WP_Term && $folder->slug === $filter_folder_slug;
+				}
+			)
+		);
+	}
+
+	/**
+	 * @param list<\WP_Post> $posts
+	 * @return list<\WP_Post>
+	 */
+	private static function filter_posts_by_language( array $posts, string $filter_lang ): array {
+		$filter_lang = sanitize_text_field( $filter_lang );
+		if ( $filter_lang === '' ) {
+			return $posts;
+		}
+
+		return array_values(
+			array_filter(
+				$posts,
+				static function ( $post ) use ( $filter_lang ): bool {
+					if ( ! $post instanceof \WP_Post ) {
+						return false;
+					}
+
+					return (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true ) === $filter_lang;
+				}
+			)
+		);
 	}
 
 	/**

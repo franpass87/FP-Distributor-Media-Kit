@@ -502,10 +502,12 @@ final class AssetManager {
 		if ( $post_id <= 0 ) {
 			return null;
 		}
-		$terms = get_the_terms( $post_id, self::TAXONOMY_FOLDER );
-		if ( ! $terms || is_wp_error( $terms ) ) {
+
+		$terms = self::get_asset_folder_terms( $post_id );
+		if ( $terms === [] ) {
 			return null;
 		}
+
 		$best   = null;
 		$best_d = -1;
 		foreach ( $terms as $t ) {
@@ -518,7 +520,67 @@ final class AssetManager {
 				$best   = $t;
 			}
 		}
+
 		return $best;
+	}
+
+	/**
+	 * Termini `fp_dmk_folder` assegnati all’asset (lettura SQL, come le categorie).
+	 *
+	 * @return list<\WP_Term>
+	 */
+	public static function get_asset_folder_terms( int $post_id ): array {
+		if ( $post_id <= 0 ) {
+			return [];
+		}
+
+		global $wpdb;
+		$tax  = self::TAXONOMY_FOLDER;
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT t.term_id, t.name, t.slug, tt.term_taxonomy_id, tt.parent, tt.count
+				FROM {$wpdb->term_relationships} AS tr
+				INNER JOIN {$wpdb->term_taxonomy} AS tt
+					ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = %s
+				INNER JOIN {$wpdb->terms} AS t ON t.term_id = tt.term_id
+				WHERE tr.object_id = %d
+				ORDER BY t.name ASC",
+				$tax,
+				$post_id
+			),
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) || $rows === [] ) {
+			return [];
+		}
+
+		$out  = [];
+		$seen = [];
+		foreach ( $rows as $r ) {
+			if ( ! is_array( $r ) ) {
+				continue;
+			}
+			$tid = isset( $r['term_id'] ) ? (int) $r['term_id'] : 0;
+			if ( $tid <= 0 || isset( $seen[ $tid ] ) ) {
+				continue;
+			}
+			$seen[ $tid ] = true;
+			$out[]        = new \WP_Term(
+				(object) [
+					'term_id'          => $tid,
+					'name'             => (string) ( $r['name'] ?? '' ),
+					'slug'             => (string) ( $r['slug'] ?? '' ),
+					'taxonomy'         => $tax,
+					'term_taxonomy_id' => (int) ( $r['term_taxonomy_id'] ?? 0 ),
+					'parent'           => (int) ( $r['parent'] ?? 0 ),
+					'count'            => (int) ( $r['count'] ?? 0 ),
+					'filter'           => 'raw',
+				]
+			);
+		}
+
+		return $out;
 	}
 
 	/**
