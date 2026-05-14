@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.10] - 2026-05-14
+
+### Fixed
+
+- **Media Kit (elenco)**: revoca del filtro automatico per lingua pagina; gli asset restano visibili su IT e EN, mentre gli shortcode `*_en` traducono solo l’interfaccia.
+
 ## [1.21.9] - 2026-05-14
 
 ### Changed

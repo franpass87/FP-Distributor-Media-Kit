@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.21.9-blue)
+![Version](https://img.shields.io/badge/version-1.21.10-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -51,9 +51,9 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 | `[fp_dmk_login]` | Form login (italiano; stesso output di `_it`) |
 | `[fp_dmk_login_it]` | Form login — interfaccia italiana esplicita |
 | `[fp_dmk_login_en]` | Form login — interfaccia inglese |
-| `[fp_dmk_media_kit]` | Griglia asset (italiano; stesso output di `_it`); elenco limitato agli asset IT salvo filtro lingua; filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |
-| `[fp_dmk_media_kit_it]` | Media Kit — interfaccia italiana esplicita; asset IT |
-| `[fp_dmk_media_kit_en]` | Media Kit — interfaccia inglese; asset EN |
+| `[fp_dmk_media_kit]` | Griglia asset (italiano; stesso output di `_it`); filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |
+| `[fp_dmk_media_kit_it]` | Media Kit — interfaccia italiana esplicita |
+| `[fp_dmk_media_kit_en]` | Media Kit — interfaccia inglese |
 
 ## Pagine da configurare
 

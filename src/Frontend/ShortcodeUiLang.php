@@ -108,13 +108,6 @@ final class ShortcodeUiLang {
 	];
 
 	/**
-	 * Lingua predefinita degli asset in elenco (allineata allo shortcode IT/EN).
-	 */
-	public static function default_asset_language(): string {
-		return self::is_english_ui() ? 'en' : 'it';
-	}
-
-	/**
 	 * True durante il rendering degli shortcode `*_en` (anche per stringhe JS in enqueue).
 	 */
 	public static function is_english_ui(): bool {
