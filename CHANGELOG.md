@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.7] - 2026-05-14
+
+### Changed
+
+- **Media Kit (accordion)**: il blocco «Materiali generali» / «General materials» resta aperto al caricamento; le altre cartelle e le sottosezioni per categoria partono chiuse.
+
 ## [1.21.6] - 2026-05-14
 
 ### Fixed

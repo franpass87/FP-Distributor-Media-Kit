@@ -290,11 +290,17 @@ final class ShortcodeMediaKit {
 			$folder_btn_id   = self::accordion_el_id( 'fpdmk-folderbtn-' );
 			$folder_panel_id = self::accordion_el_id( 'fpdmk-folderpanel-' );
 
+			$folder_open       = $is_uncategorized;
+			$folder_btn_class  = 'fpdmk-accordion-trigger fpdmk-accordion-trigger--folder';
+			if ( ! $folder_open ) {
+				$folder_btn_class .= ' is-collapsed';
+			}
+
 			$html .= '<div class="fpdmk-folder-block' . ( $is_uncategorized ? ' fpdmk-folder-block--uncategorized' : '' ) . '">';
 			$html .= '<div class="fpdmk-folder-head">';
 			$html .= '<div class="fpdmk-folder-head-row">';
 			$html .= '<h3 class="fpdmk-folder-title" id="' . esc_attr( $folder_title_id ) . '">' . esc_html( $folder_title ) . '</h3>';
-			$html .= '<button type="button" class="fpdmk-accordion-trigger fpdmk-accordion-trigger--folder is-collapsed" id="' . esc_attr( $folder_btn_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $folder_panel_id ) . '" aria-labelledby="' . esc_attr( $folder_title_id ) . '" title="' . esc_attr__( 'Espandi o comprimi cartella', 'fp-dmk' ) . '">';
+			$html .= '<button type="button" class="' . esc_attr( $folder_btn_class ) . '" id="' . esc_attr( $folder_btn_id ) . '" aria-expanded="' . ( $folder_open ? 'true' : 'false' ) . '" aria-controls="' . esc_attr( $folder_panel_id ) . '" aria-labelledby="' . esc_attr( $folder_title_id ) . '" title="' . esc_attr__( 'Espandi o comprimi cartella', 'fp-dmk' ) . '">';
 			$html .= '<span class="fpdmk-accordion-icon" aria-hidden="true"></span>';
 			$html .= '<span class="fpdmk-sr-only">' . esc_html__( 'Espandi o comprimi cartella', 'fp-dmk' ) . '</span>';
 			$html .= '</button>';
@@ -303,7 +309,7 @@ final class ShortcodeMediaKit {
 				$html .= '<p class="fpdmk-folder-hint">' . esc_html__( 'Materiali non assegnati a una cartella nel catalogo: sono comunque disponibili per il download.', 'fp-dmk' ) . '</p>';
 			}
 			$html .= '</div>';
-			$html .= '<div id="' . esc_attr( $folder_panel_id ) . '" class="fpdmk-folder-panel" role="region" hidden>';
+			$html .= '<div id="' . esc_attr( $folder_panel_id ) . '" class="fpdmk-folder-panel" role="region"' . ( $folder_open ? '' : ' hidden' ) . '>';
 
 			foreach ( $block['by_category'] as $cat_data ) {
 				$sec_title_id = self::accordion_el_id( 'fpdmk-sectitle-' );
