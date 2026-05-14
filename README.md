@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.21.10-blue)
+![Version](https://img.shields.io/badge/version-1.21.11-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -45,19 +45,19 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 
 | Shortcode | Descrizione |
 |-----------|-------------|
-| `[fp_dmk_register]` | Form registrazione (italiano; stesso output di `_it`) |
-| `[fp_dmk_register_it]` | Form registrazione — interfaccia italiana esplicita |
-| `[fp_dmk_register_en]` | Form registrazione — interfaccia inglese (stringhe inline + JS) |
-| `[fp_dmk_login]` | Form login (italiano; stesso output di `_it`) |
-| `[fp_dmk_login_it]` | Form login — interfaccia italiana esplicita |
-| `[fp_dmk_login_en]` | Form login — interfaccia inglese |
-| `[fp_dmk_media_kit]` | Griglia asset (italiano; stesso output di `_it`); filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |
-| `[fp_dmk_media_kit_it]` | Media Kit — interfaccia italiana esplicita |
-| `[fp_dmk_media_kit_en]` | Media Kit — interfaccia inglese |
+| `[fp_dmk_register]` | Form registrazione; interfaccia IT/EN in base alla lingua pagina (Polylang/WPML, URL `/en/…`, locale) |
+| `[fp_dmk_register_it]` | Form registrazione — interfaccia italiana forzata |
+| `[fp_dmk_register_en]` | Form registrazione — interfaccia inglese forzata |
+| `[fp_dmk_login]` | Form login; stessa logica lingua pagina degli shortcode senza suffisso |
+| `[fp_dmk_login_it]` | Form login — interfaccia italiana forzata |
+| `[fp_dmk_login_en]` | Form login — interfaccia inglese forzata |
+| `[fp_dmk_media_kit]` | Griglia asset; stessa logica lingua pagina; filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |
+| `[fp_dmk_media_kit_it]` | Media Kit — interfaccia italiana forzata |
+| `[fp_dmk_media_kit_en]` | Media Kit — interfaccia inglese forzata |
 
 ## Pagine da configurare
 
-1. **Pagina Media Kit**: inserisci `[fp_dmk_media_kit]` (oppure `[fp_dmk_media_kit_it]` / `[fp_dmk_media_kit_en]` sulla versione lingua della pagina)
+1. **Pagina Media Kit**: inserisci `[fp_dmk_media_kit]` (oppure `[fp_dmk_media_kit_it]` / `[fp_dmk_media_kit_en]` per forzare la lingua dell’interfaccia)
 2. **Pagina Login**: inserisci `[fp_dmk_login]` oppure `[fp_dmk_login_it]` / `[fp_dmk_login_en]`
 3. **Pagina Registrazione**: inserisci `[fp_dmk_register]` oppure `[fp_dmk_register_it]` / `[fp_dmk_register_en]`
 

@@ -79,10 +79,31 @@ final class Plugin {
 		RegistrationHandler::init();
 		MailApprovalController::init();
 
-		// Frontend shortcodes (default = italiano; suffissi _it / _en per pagine bilingue)
-		add_shortcode( 'fp_dmk_register', [ ShortcodeRegister::class, 'render' ] );
-		add_shortcode( 'fp_dmk_login', [ ShortcodeLogin::class, 'render' ] );
-		add_shortcode( 'fp_dmk_media_kit', [ ShortcodeMediaKit::class, 'render' ] );
+		// Frontend shortcodes (default = lingua pagina; suffissi _it / _en per forzare IT/EN)
+		add_shortcode(
+			'fp_dmk_register',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::render_for_page_ui_language(
+					static fn(): string => ShortcodeRegister::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
+		add_shortcode(
+			'fp_dmk_login',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::render_for_page_ui_language(
+					static fn(): string => ShortcodeLogin::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
+		add_shortcode(
+			'fp_dmk_media_kit',
+			static function ( $atts = [] ): string {
+				return ShortcodeUiLang::render_for_page_ui_language(
+					static fn(): string => ShortcodeMediaKit::render( ShortcodeUiLang::normalize_atts( $atts ) )
+				);
+			}
+		);
 		add_shortcode(
 			'fp_dmk_register_it',
 			static function ( $atts = [] ): string {

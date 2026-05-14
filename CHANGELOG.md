@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.11] - 2026-05-14
+
+### Added
+
+- **Shortcode frontend**: login, registrazione e Media Kit senza suffisso rilevano la lingua della pagina (Polylang/WPML, prefisso URL `/en/…`, locale WordPress) e mostrano l’interfaccia tradotta; `_it` e `_en` restano override espliciti.
+
 ## [1.21.10] - 2026-05-14
 
 ### Fixed

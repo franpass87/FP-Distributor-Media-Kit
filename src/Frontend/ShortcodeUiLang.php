@@ -115,6 +115,71 @@ final class ShortcodeUiLang {
 	}
 
 	/**
+	 * Esegue una callback adattando l'interfaccia alla lingua della pagina corrente.
+	 *
+	 * @param callable(): string $callback
+	 */
+	public static function render_for_page_ui_language( callable $callback ): string {
+		if ( self::detect_page_english_ui() ) {
+			return self::with_english_ui( $callback );
+		}
+
+		return $callback();
+	}
+
+	/**
+	 * Rileva se la pagina corrente va mostrata con interfaccia inglese.
+	 */
+	public static function detect_page_english_ui(): bool {
+		$override = apply_filters( 'fp_dmk_shortcode_use_english_ui', null );
+		if ( is_bool( $override ) ) {
+			return $override;
+		}
+
+		if ( function_exists( 'pll_current_language' ) ) {
+			$lang = pll_current_language( 'slug' );
+			if ( is_string( $lang ) && $lang !== '' ) {
+				return $lang === 'en';
+			}
+		}
+
+		$wpml_lang = apply_filters( 'wpml_current_language', null );
+		if ( is_string( $wpml_lang ) && $wpml_lang !== '' ) {
+			return $wpml_lang === 'en';
+		}
+
+		if ( is_singular() && function_exists( 'pll_get_post_language' ) ) {
+			$post_id = get_queried_object_id();
+			if ( $post_id > 0 ) {
+				$lang = pll_get_post_language( $post_id, 'slug' );
+				if ( is_string( $lang ) && $lang !== '' ) {
+					return $lang === 'en';
+				}
+			}
+		}
+
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		if ( $request_uri !== '' ) {
+			$path = wp_parse_url( $request_uri, PHP_URL_PATH );
+			if ( is_string( $path ) && $path !== '' && preg_match( '#(^|/)(en|eng|english)(/|$)#i', $path ) ) {
+				return true;
+			}
+		}
+
+		if ( is_singular() ) {
+			$page_uri = get_page_uri( get_queried_object_id() );
+			if ( is_string( $page_uri ) && ( $page_uri === 'en' || str_starts_with( $page_uri, 'en/' ) ) ) {
+				return true;
+			}
+		}
+
+		$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+		$locale = strtolower( strtok( (string) $locale, '_' ) );
+
+		return $locale === 'en';
+	}
+
+	/**
 	 * Esegue una callback con interfaccia inglese (filtro gettext sul dominio fp-dmk).
 	 *
 	 * @param callable(): string $callback

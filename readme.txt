@@ -4,7 +4,7 @@ Contributors: franpass87
 Tags: media kit, distributor, download, private area, user approval
 Requires at least: 6.0
 Tested up to: 6.7
-Stable tag: 1.21.10
+Stable tag: 1.21.11
 Requires PHP: 8.0
 License: Proprietary
 License URI: https://francescopasseri.com
@@ -29,9 +29,12 @@ Plugin per creare un'area riservata "Media Kit" dove i distributori approvati po
 3. Configura le pagine in FP Media Kit → Impostazioni
 4. Inserisci gli shortcode nelle pagine create
 
-Shortcode: [fp_dmk_register], [fp_dmk_register_it], [fp_dmk_register_en], [fp_dmk_login], [fp_dmk_login_it], [fp_dmk_login_en], [fp_dmk_media_kit], [fp_dmk_media_kit_it], [fp_dmk_media_kit_en] (default e _it = italiano; _en = interfaccia inglese)
+Shortcode: [fp_dmk_register], [fp_dmk_register_it], [fp_dmk_register_en], [fp_dmk_login], [fp_dmk_login_it], [fp_dmk_login_en], [fp_dmk_media_kit], [fp_dmk_media_kit_it], [fp_dmk_media_kit_en] (senza suffisso = lingua pagina; _it / _en forzano l’interfaccia)
 
 == Changelog ==
+
+= 1.21.11 =
+* Added: shortcode senza suffisso — interfaccia IT/EN in base alla lingua pagina (Polylang/WPML, URL `/en/…`, locale).
 
 = 1.21.10 =
 * Fixed: Media Kit — catalogo asset comune su IT e EN; gli shortcode `*_en` localizzano solo etichette e testi UI.
