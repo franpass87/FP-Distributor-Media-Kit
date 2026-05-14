@@ -81,7 +81,8 @@ final class ShortcodeRegister {
 				$html .= '<select id="fp_dmk_reg_segment" name="fp_dmk_segment" class="fpdmk-select" required>';
 				$html .= '<option value="">' . esc_html__( '— Seleziona —', 'fp-dmk' ) . '</option>';
 				foreach ( $segments as $row ) {
-					$html .= '<option value="' . esc_attr( $row['slug'] ) . '">' . esc_html( $row['label'] ) . '</option>';
+					$segment_label = ShortcodeUiLang::translate_audience_segment_label( $row['slug'], $row['label'] );
+					$html .= '<option value="' . esc_attr( $row['slug'] ) . '">' . esc_html( $segment_label ) . '</option>';
 				}
 				$html .= '</select>';
 				$html .= '<span class="fpdmk-hint">' . esc_html__( 'Il materiale visibile dipende dal tipo scelto e dalla configurazione del sito.', 'fp-dmk' ) . '</span>';

@@ -54,6 +54,8 @@ final class ShortcodeUiLang {
 		'Minimo 8 caratteri'                                    => 'At least 8 characters',
 		'Tipo di accesso'                                       => 'Access type',
 		'— Seleziona —'                                         => '— Select —',
+		'Distributore'                                          => 'Distributor',
+		'Giornalista'                                           => 'Journalist',
 		'Il materiale visibile dipende dal tipo scelto e dalla configurazione del sito.' => 'Visible materials depend on the selected type and site configuration.',
 		'Registrati'                                            => 'Register',
 		'Hai già un account? Accedi'                            => 'Already have an account? Sign in',
@@ -145,5 +147,40 @@ final class ShortcodeUiLang {
 			return self::EN_MAP[ $text ];
 		}
 		return is_string( $translation ) ? $translation : (string) $translation;
+	}
+
+	/**
+	 * Etichetta segmento audience per shortcode EN (slug + label da impostazioni).
+	 */
+	public static function translate_audience_segment_label( string $slug, string $label ): string {
+		if ( ! self::is_english_ui() ) {
+			return $label;
+		}
+
+		$slug = sanitize_key( $slug );
+		$defaults = [
+			'distributor'  => 'Distributor',
+			'journalist'   => 'Journalist',
+			'distributore' => 'Distributor',
+			'giornalista'  => 'Journalist',
+		];
+
+		if ( isset( $defaults[ $slug ] ) ) {
+			$translated = $defaults[ $slug ];
+		} elseif ( isset( self::EN_MAP[ $label ] ) ) {
+			$translated = self::EN_MAP[ $label ];
+		} else {
+			$translated = $label;
+		}
+
+		/**
+		 * Personalizza l’etichetta di un segmento audience in interfaccia inglese.
+		 *
+		 * @param string $translated Etichetta proposta.
+		 * @param string $slug       Slug segmento.
+		 * @param string $label      Etichetta configurata in impostazioni.
+		 * @param string $locale     Codice locale UI (`en`).
+		 */
+		return (string) apply_filters( 'fp_dmk_audience_segment_label', $translated, $slug, $label, 'en' );
 	}
 }

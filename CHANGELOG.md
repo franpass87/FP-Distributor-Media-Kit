@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.2] - 2026-05-14
+
+### Fixed
+
+- **Registrazione EN**: le etichette dei tipi di accesso (es. Distributore / Giornalista) nel select rispettano l’interfaccia inglese degli shortcode `*_en` (slug, mappa UI e filtro `fp_dmk_audience_segment_label`).
+- **CTA frontend**: testo bianco su hover/focus/active anche per i link CTA (es. Download nel Media Kit), evitando conflitti con i colori del tema quando i bottoni primari sono neri.
+
 ## [1.21.1] - 2026-05-02
 
 ### Changed

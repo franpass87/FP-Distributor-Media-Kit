@@ -220,10 +220,24 @@
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
 }
 
-.fpdmk-btn-primary:hover {
+.fpdmk-btn-primary:hover,
+.fpdmk-btn-primary:focus,
+.fpdmk-btn-primary:focus-visible,
+.fpdmk-btn-primary:active {
     opacity: 0.95;
     transform: translateY(-1px);
     box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+    color: #fff;
+}
+
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary,
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary:hover,
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary:focus,
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary:focus-visible,
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary:active,
+.fpdmk-ui a.fpdmk-btn.fpdmk-btn-primary:visited {
+    color: #fff !important;
+    text-decoration: none;
 }
 
 .fpdmk-btn-secondary {
