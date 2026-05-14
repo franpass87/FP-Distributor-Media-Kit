@@ -324,31 +324,69 @@ a.fpdmk-btn {
 
 .fpdmk-toggle-row {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 18px;
+}
+
+.fpdmk-toggle-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--fpdms-border-light);
+}
+
+.fpdmk-toggle-stack--solo {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.fpdmk-toggle-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .fpdmk-toggle-info strong { display: block; }
-.fpdmk-toggle-info span { font-size: 13px; color: var(--fpdms-text-light); }
+.fpdmk-toggle-info span { display: block; font-size: 13px; color: var(--fpdms-text-light); }
+
+.fpdmk-field.fpdmk-toggle-row > label.fpdmk-toggle {
+    flex-shrink: 0;
+    align-self: center;
+    margin: 0;
+    font-weight: 500;
+}
 
 .fpdmk-toggle {
     position: relative;
     display: inline-block;
     width: 48px;
     height: 26px;
+    flex-shrink: 0;
 }
 
-.fpdmk-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+.fpdmk-toggle input[type="checkbox"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 .fpdmk-toggle-slider {
     position: absolute;
     cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--fpdms-border);
+    inset: 0;
+    background: #d1d5db;
+    border: 1px solid #cbd5e1;
     border-radius: var(--radius-pill);
     transition: var(--transition);
 }
@@ -358,20 +396,26 @@ a.fpdmk-btn {
     position: absolute;
     height: 20px;
     width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background: white;
+    left: 2px;
+    top: 2px;
+    background: #fff;
     border-radius: 50%;
     transition: var(--transition);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
 }
 
 .fpdmk-toggle input:checked + .fpdmk-toggle-slider {
     background: var(--fpdms-primary);
+    border-color: var(--fpdms-primary);
 }
 
 .fpdmk-toggle input:checked + .fpdmk-toggle-slider:before {
     transform: translateX(22px);
+}
+
+.fpdmk-toggle input:focus-visible + .fpdmk-toggle-slider {
+    outline: 2px solid var(--fpdms-primary);
+    outline-offset: 2px;
 }
 
 .fpdmk-file-preview { display: flex; align-items: center; gap: 10px; }

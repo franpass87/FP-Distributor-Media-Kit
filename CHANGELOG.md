@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.4] - 2026-05-14
+
+### Fixed
+
+- **Impostazioni → Email**: toggle allineati in elenco dedicato (non più nella griglia campi) e stile switch coerente con WordPress admin.
+
 ## [1.21.3] - 2026-05-14
 
 ### Added

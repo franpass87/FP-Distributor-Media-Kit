@@ -259,6 +259,18 @@ final class SettingsPage {
 							<label for="email_from_name"><?php esc_html_e( 'Nome mittente', 'fp-dmk' ); ?></label>
 							<input type="text" id="email_from_name" name="email_from_name" class="regular-text" value="<?php echo esc_attr( $opts['email_from_name'] ?: get_bloginfo( 'name' ) ); ?>">
 						</div>
+						<div class="fpdmk-field fpdmk-field-fw">
+							<label for="admin_notify_email"><?php esc_html_e( 'Email notifiche amministratore', 'fp-dmk' ); ?></label>
+							<input type="text" id="admin_notify_email" name="admin_notify_email" class="regular-text" value="<?php echo esc_attr( (string) ( $opts['admin_notify_email'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'admin_email' ) ); ?>">
+							<span class="fpdmk-hint"><?php esc_html_e( 'Destinatari per nuove registrazioni in attesa e per il report giornaliero download (più indirizzi separati da virgola). Se vuoto, viene usata l\'email amministratore del sito.', 'fp-dmk' ); ?></span>
+						</div>
+						<div class="fpdmk-field">
+							<label for="purge_days"><?php esc_html_e( 'Pulizia log download (giorni)', 'fp-dmk' ); ?></label>
+							<input type="number" id="purge_days" name="purge_days" min="0" max="3650" value="<?php echo esc_attr( $opts['purge_days'] ?? 0 ); ?>">
+							<span class="fpdmk-hint"><?php esc_html_e( 'Elimina i record più vecchi di N giorni. 0 = nessuna pulizia automatica.', 'fp-dmk' ); ?></span>
+						</div>
+					</div>
+					<div class="fpdmk-toggle-stack">
 						<?php if ( defined( 'FP_FPMAIL_VERSION' ) ) : ?>
 						<div class="fpdmk-field fpdmk-toggle-row">
 							<div class="fpdmk-toggle-info">
@@ -267,7 +279,7 @@ final class SettingsPage {
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="use_fpmail_from" value="1" <?php checked( ! empty( $opts['use_fpmail_from'] ) ); ?>>
-								<span class="fpdmk-toggle-slider"></span>
+								<span class="fpdmk-toggle-slider" aria-hidden="true"></span>
 							</label>
 						</div>
 						<?php endif; ?>
@@ -278,13 +290,8 @@ final class SettingsPage {
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="auto_notify" value="1" <?php checked( $opts['auto_notify'] ); ?>>
-								<span class="fpdmk-toggle-slider"></span>
+								<span class="fpdmk-toggle-slider" aria-hidden="true"></span>
 							</label>
-						</div>
-						<div class="fpdmk-field">
-							<label for="admin_notify_email"><?php esc_html_e( 'Email notifiche amministratore', 'fp-dmk' ); ?></label>
-							<input type="text" id="admin_notify_email" name="admin_notify_email" class="regular-text" value="<?php echo esc_attr( (string) ( $opts['admin_notify_email'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'admin_email' ) ); ?>">
-							<span class="fpdmk-hint"><?php esc_html_e( 'Destinatari per nuove registrazioni in attesa e per il report giornaliero download (più indirizzi separati da virgola). Se vuoto, viene usata l\'email amministratore del sito.', 'fp-dmk' ); ?></span>
 						</div>
 						<div class="fpdmk-field fpdmk-toggle-row">
 							<div class="fpdmk-toggle-info">
@@ -293,7 +300,7 @@ final class SettingsPage {
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="notify_pending_registration" value="1" <?php checked( ! empty( $opts['notify_pending_registration'] ) ); ?>>
-								<span class="fpdmk-toggle-slider"></span>
+								<span class="fpdmk-toggle-slider" aria-hidden="true"></span>
 							</label>
 						</div>
 						<div class="fpdmk-field fpdmk-toggle-row">
@@ -303,13 +310,8 @@ final class SettingsPage {
 							</div>
 							<label class="fpdmk-toggle">
 								<input type="checkbox" name="daily_download_report" value="1" <?php checked( ! empty( $opts['daily_download_report'] ) ); ?>>
-								<span class="fpdmk-toggle-slider"></span>
+								<span class="fpdmk-toggle-slider" aria-hidden="true"></span>
 							</label>
-						</div>
-						<div class="fpdmk-field">
-							<label for="purge_days"><?php esc_html_e( 'Pulizia log download (giorni)', 'fp-dmk' ); ?></label>
-							<input type="number" id="purge_days" name="purge_days" min="0" max="3650" value="<?php echo esc_attr( $opts['purge_days'] ?? 0 ); ?>">
-							<span class="fpdmk-hint"><?php esc_html_e( 'Elimina i record più vecchi di N giorni. 0 = nessuna pulizia automatica.', 'fp-dmk' ); ?></span>
 						</div>
 					</div>
 				</div>
@@ -323,15 +325,17 @@ final class SettingsPage {
 					</div>
 				</div>
 				<div class="fpdmk-card-body">
-					<div class="fpdmk-field fpdmk-toggle-row">
-						<div class="fpdmk-toggle-info">
-							<strong><?php esc_html_e( 'Abilita tipi di accesso', 'fp-dmk' ); ?></strong>
-							<span><?php esc_html_e( 'In registrazione compare la scelta del tipo; puoi limitare le categorie di asset per tipo. Staff (admin, editori, gestori Media Kit) vede sempre tutto.', 'fp-dmk' ); ?></span>
+					<div class="fpdmk-toggle-stack fpdmk-toggle-stack--solo">
+						<div class="fpdmk-field fpdmk-toggle-row">
+							<div class="fpdmk-toggle-info">
+								<strong><?php esc_html_e( 'Abilita tipi di accesso', 'fp-dmk' ); ?></strong>
+								<span><?php esc_html_e( 'In registrazione compare la scelta del tipo; puoi limitare le categorie di asset per tipo. Staff (admin, editori, gestori Media Kit) vede sempre tutto.', 'fp-dmk' ); ?></span>
+							</div>
+							<label class="fpdmk-toggle">
+								<input type="checkbox" name="audience_enabled" value="1" <?php checked( ! empty( $opts['audience_enabled'] ) ); ?>>
+								<span class="fpdmk-toggle-slider" aria-hidden="true"></span>
+							</label>
 						</div>
-						<label class="fpdmk-toggle">
-							<input type="checkbox" name="audience_enabled" value="1" <?php checked( ! empty( $opts['audience_enabled'] ) ); ?>>
-							<span class="fpdmk-toggle-slider"></span>
-						</label>
 					</div>
 					<p class="description fpdmk-mb"><?php esc_html_e( 'Definisci slug (solo lettere minuscole, numeri, trattini) e etichetta. Aggiungi righe lasciando l’ultima vuota per nuovi tipi.', 'fp-dmk' ); ?></p>
 					<table class="fpdmk-table fpdmk-mb">
