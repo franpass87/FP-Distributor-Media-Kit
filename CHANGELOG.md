@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.8] - 2026-05-14
+
+### Changed
+
+- **Media Kit (elenco)**: se una cartella contiene una sola categoria, i file compaiono direttamente sotto la cartella senza un secondo accordion con lo stesso titolo.
+
 ## [1.21.7] - 2026-05-14
 
 ### Changed

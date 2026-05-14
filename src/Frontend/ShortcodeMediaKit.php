@@ -311,7 +311,21 @@ final class ShortcodeMediaKit {
 			$html .= '</div>';
 			$html .= '<div id="' . esc_attr( $folder_panel_id ) . '" class="fpdmk-folder-panel" role="region"' . ( $folder_open ? '' : ' hidden' ) . '>';
 
-			foreach ( $block['by_category'] as $cat_data ) {
+			$category_sections = array_values( $block['by_category'] );
+			$flatten_category  = count( $category_sections ) === 1;
+
+			foreach ( $category_sections as $cat_data ) {
+				if ( $flatten_category ) {
+					$html .= '<div class="fpdmk-asset-list" role="list">';
+					foreach ( $cat_data['items'] as $post ) {
+						if ( $post instanceof \WP_Post ) {
+							$html .= self::render_asset_list_row( $post, $zip_ok );
+						}
+					}
+					$html .= '</div>';
+					continue;
+				}
+
 				$sec_title_id = self::accordion_el_id( 'fpdmk-sectitle-' );
 				$sec_btn_id   = self::accordion_el_id( 'fpdmk-secbtn-' );
 				$sec_panel_id = self::accordion_el_id( 'fpdmk-secpanel-' );
