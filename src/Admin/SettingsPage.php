@@ -79,7 +79,9 @@ final class SettingsPage {
 		$opts['email_from_name'] = isset( $_POST['email_from_name'] ) ? sanitize_text_field( wp_unslash( $_POST['email_from_name'] ) ) : '';
 		$opts['use_fpmail_from'] = ! empty( $_POST['use_fpmail_from'] );
 		$opts['auto_notify']     = ! empty( $_POST['auto_notify'] );
-		$opts['admin_notify_email'] = isset( $_POST['admin_notify_email'] ) ? sanitize_email( wp_unslash( $_POST['admin_notify_email'] ) ) : '';
+		$opts['admin_notify_email'] = isset( $_POST['admin_notify_email'] )
+			? \FP\DistributorMediaKit\Email\NotificationService::sanitize_recipient_list( (string) wp_unslash( $_POST['admin_notify_email'] ) )
+			: '';
 		$opts['notify_pending_registration'] = ! empty( $_POST['notify_pending_registration'] );
 		$opts['daily_download_report']      = ! empty( $_POST['daily_download_report'] );
 		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
@@ -281,8 +283,8 @@ final class SettingsPage {
 						</div>
 						<div class="fpdmk-field">
 							<label for="admin_notify_email"><?php esc_html_e( 'Email notifiche amministratore', 'fp-dmk' ); ?></label>
-							<input type="email" id="admin_notify_email" name="admin_notify_email" class="regular-text" value="<?php echo esc_attr( (string) ( $opts['admin_notify_email'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'admin_email' ) ); ?>">
-							<span class="fpdmk-hint"><?php esc_html_e( 'Destinatario per nuove registrazioni in attesa e per il report giornaliero download. Se vuoto, viene usata l\'email amministratore del sito.', 'fp-dmk' ); ?></span>
+							<input type="text" id="admin_notify_email" name="admin_notify_email" class="regular-text" value="<?php echo esc_attr( (string) ( $opts['admin_notify_email'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'admin_email' ) ); ?>">
+							<span class="fpdmk-hint"><?php esc_html_e( 'Destinatari per nuove registrazioni in attesa e per il report giornaliero download (più indirizzi separati da virgola). Se vuoto, viene usata l\'email amministratore del sito.', 'fp-dmk' ); ?></span>
 						</div>
 						<div class="fpdmk-field fpdmk-toggle-row">
 							<div class="fpdmk-toggle-info">

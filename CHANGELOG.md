@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.3] - 2026-05-14
+
+### Added
+
+- **Email notifiche amministratore**: supporto a più destinatari nello stesso campo, separati da virgola (registrazioni in attesa e report download giornaliero).
+
 ## [1.21.2] - 2026-05-14
 
 ### Fixed

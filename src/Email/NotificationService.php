@@ -31,13 +31,52 @@ final class NotificationService {
 	}
 
 	/**
-	 * Email destinatario notifiche admin (registrazioni in attesa, report giornaliero).
+	 * Normalizza un elenco destinatari (virgola, punto e virgola o spazi).
 	 */
-	public static function get_admin_notification_email(): string {
+	public static function sanitize_recipient_list( string $raw ): string {
+		$parts  = preg_split( '/[,\s;]+/', $raw, -1, PREG_SPLIT_NO_EMPTY );
+		$parts  = is_array( $parts ) ? $parts : [];
+		$emails = [];
+
+		foreach ( $parts as $part ) {
+			$email = sanitize_email( (string) $part );
+			if ( $email !== '' && is_email( $email ) ) {
+				$emails[] = $email;
+			}
+		}
+
+		return implode( ', ', array_values( array_unique( $emails ) ) );
+	}
+
+	/**
+	 * Destinatari notifiche admin (registrazioni in attesa, report giornaliero).
+	 *
+	 * @return list<string>
+	 */
+	public static function get_admin_notification_emails(): array {
 		$opts = get_option( 'fp_dmk_settings', [] );
 		$opts = is_array( $opts ) ? $opts : [];
-		$to   = isset( $opts['admin_notify_email'] ) ? sanitize_email( (string) $opts['admin_notify_email'] ) : '';
-		return is_email( $to ) ? $to : (string) get_bloginfo( 'admin_email' );
+		$raw  = isset( $opts['admin_notify_email'] ) ? (string) $opts['admin_notify_email'] : '';
+		$list = self::sanitize_recipient_list( $raw );
+		if ( $list !== '' ) {
+			return array_values(
+				array_filter(
+					array_map( 'trim', explode( ',', $list ) ),
+					static fn( string $email ): bool => is_email( $email )
+				)
+			);
+		}
+
+		$fallback = sanitize_email( (string) get_bloginfo( 'admin_email' ) );
+
+		return is_email( $fallback ) ? [ $fallback ] : [];
+	}
+
+	/**
+	 * Destinatario/i per wp_mail (stringa con virgole).
+	 */
+	public static function get_admin_notification_email(): string {
+		return implode( ', ', self::get_admin_notification_emails() );
 	}
 
 	/**
@@ -63,7 +102,7 @@ final class NotificationService {
 			return;
 		}
 		$to = self::get_admin_notification_email();
-		if ( ! is_email( $to ) ) {
+		if ( $to === '' ) {
 			return;
 		}
 
@@ -113,7 +152,7 @@ final class NotificationService {
 			return;
 		}
 		$to = self::get_admin_notification_email();
-		if ( ! is_email( $to ) ) {
+		if ( $to === '' ) {
 			return;
 		}
 
