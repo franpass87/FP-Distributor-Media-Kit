@@ -43,15 +43,22 @@ final class ShortcodeMediaKit {
 		}
 
 		$filter_cat     = isset( $atts['category'] ) ? sanitize_title( (string) $atts['category'] ) : '';
-		$filter_lang    = isset( $atts['language'] ) ? sanitize_text_field( $atts['language'] ) : '';
-		$filter_folder  = isset( $atts['folder'] ) ? sanitize_title( $atts['folder'] ) : '';
+		$filter_lang    = '';
+		$filter_lang_explicit = false;
+		if ( isset( $atts['language'] ) && (string) $atts['language'] !== '' ) {
+			$filter_lang          = sanitize_text_field( (string) $atts['language'] );
+			$filter_lang_explicit = true;
+		} elseif ( array_key_exists( 'fp_dmk_lang', $_GET ) ) {
+			$filter_lang          = sanitize_text_field( wp_unslash( (string) $_GET['fp_dmk_lang'] ) );
+			$filter_lang_explicit = true;
+		} else {
+			$filter_lang = ShortcodeUiLang::default_asset_language();
+		}
+		$filter_folder  = isset( $atts['folder'] ) ? sanitize_title( (string) $atts['folder'] ) : '';
 		$filter_search  = '';
 		$filter_sort    = 'title';
 		if ( $filter_cat === '' && isset( $_GET['fp_dmk_cat'] ) ) {
 			$filter_cat = sanitize_title( wp_unslash( (string) $_GET['fp_dmk_cat'] ) );
-		}
-		if ( $filter_lang === '' && isset( $_GET['fp_dmk_lang'] ) ) {
-			$filter_lang = sanitize_text_field( wp_unslash( $_GET['fp_dmk_lang'] ) );
 		}
 		if ( $filter_folder === '' && isset( $_GET['fp_dmk_folder'] ) ) {
 			$filter_folder = sanitize_title( wp_unslash( (string) $_GET['fp_dmk_folder'] ) );
@@ -99,9 +106,9 @@ final class ShortcodeMediaKit {
 		}
 
 		$posts = self::filter_posts_for_audience( $posts, $user_id );
-		$posts_for_cat_options    = $posts;
-		$posts_for_folder_options = self::filter_posts_by_category_slug( $posts, $filter_cat, $user_id );
-		$posts                    = self::filter_posts_by_category_slug( $posts, $filter_cat, $user_id );
+		$posts_for_cat_options    = self::filter_posts_by_language( $posts, $filter_lang );
+		$posts_for_folder_options = self::filter_posts_by_category_slug( $posts_for_cat_options, $filter_cat, $user_id );
+		$posts                    = self::filter_posts_by_category_slug( $posts_for_cat_options, $filter_cat, $user_id );
 		$posts                    = self::filter_posts_by_folder_slug( $posts, $filter_folder );
 		$posts                    = self::filter_posts_by_language( $posts, $filter_lang );
 
@@ -179,7 +186,7 @@ final class ShortcodeMediaKit {
 			$terms = [];
 		}
 
-		$has_active_filters = $filter_folder !== '' || $filter_cat !== '' || $filter_lang !== ''
+		$has_active_filters = $filter_folder !== '' || $filter_cat !== '' || $filter_lang_explicit
 			|| $filter_search !== '' || $filter_sort !== 'title';
 
 		$post_count = count( $posts );
@@ -555,6 +562,12 @@ final class ShortcodeMediaKit {
 		);
 	}
 
+	private static function get_post_language_code( int $post_id ): string {
+		$lang = (string) get_post_meta( $post_id, AssetManager::META_LANGUAGE, true );
+
+		return $lang !== '' ? $lang : 'it';
+	}
+
 	/**
 	 * @param list<\WP_Post> $posts
 	 * @return list<\WP_Post>
@@ -573,7 +586,7 @@ final class ShortcodeMediaKit {
 						return false;
 					}
 
-					return (string) get_post_meta( $post->ID, AssetManager::META_LANGUAGE, true ) === $filter_lang;
+					return self::get_post_language_code( $post->ID ) === $filter_lang;
 				}
 			)
 		);

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.9] - 2026-05-14
+
+### Changed
+
+- **Media Kit (elenco)**: le pagine con shortcode italiano mostrano per default solo asset IT; quelle con shortcode inglese solo asset EN. Il filtro «Tutte le lingue» resta disponibile per vedere l’intero catalogo.
+
 ## [1.21.8] - 2026-05-14
 
 ### Changed
