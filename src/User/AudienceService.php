@@ -40,9 +40,9 @@ final class AudienceService {
 	}
 
 	/**
-	 * Segmenti configurati (slug + etichetta).
+	 * Segmenti configurati (slug + etichette IT/EN).
 	 *
-	 * @return list<array{slug: string, label: string}>
+	 * @return list<array{slug: string, label: string, label_en: string}>
 	 */
 	public static function get_segments(): array {
 		$raw = self::get_settings()['audience_segments'] ?? [];
@@ -62,10 +62,54 @@ final class AudienceService {
 			if ( $label === '' ) {
 				$label = $slug;
 			}
-			$out[] = [ 'slug' => $slug, 'label' => $label ];
+			$label_en = isset( $row['label_en'] ) ? sanitize_text_field( (string) $row['label_en'] ) : '';
+			$out[]    = [
+				'slug'     => $slug,
+				'label'    => $label,
+				'label_en' => $label_en,
+			];
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Etichetta segmento per interfaccia IT o EN.
+	 *
+	 * @param array{slug?: string, label?: string, label_en?: string} $segment
+	 */
+	public static function get_segment_display_label( array $segment, bool $english_ui = false ): string {
+		$slug = isset( $segment['slug'] ) ? sanitize_key( (string) $segment['slug'] ) : '';
+		$label = isset( $segment['label'] ) ? sanitize_text_field( (string) $segment['label'] ) : '';
+		if ( $label === '' && $slug !== '' ) {
+			$label = $slug;
+		}
+		if ( ! $english_ui ) {
+			return $label;
+		}
+
+		$label_en = isset( $segment['label_en'] ) ? sanitize_text_field( (string) $segment['label_en'] ) : '';
+		if ( $label_en !== '' ) {
+			$translated = $label_en;
+		} else {
+			$defaults = [
+				'distributor'  => 'Distributor',
+				'journalist'   => 'Journalist',
+				'distributore' => 'Distributor',
+				'giornalista'  => 'Journalist',
+			];
+			$translated = $defaults[ $slug ] ?? $label;
+		}
+
+		/**
+		 * Personalizza l’etichetta di un segmento audience in interfaccia inglese.
+		 *
+		 * @param string $translated Etichetta proposta.
+		 * @param string $slug       Slug segmento.
+		 * @param string $label      Etichetta italiana configurata.
+		 * @param string $locale     Codice locale UI (`en`).
+		 */
+		return (string) apply_filters( 'fp_dmk_audience_segment_label', $translated, $slug, $label, 'en' );
 	}
 
 	/**

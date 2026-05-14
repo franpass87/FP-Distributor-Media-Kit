@@ -27,8 +27,8 @@ final class SettingsPage {
 		'purge_days'                   => 0,
 		'audience_enabled'             => false,
 		'audience_segments'            => [
-			[ 'slug' => 'distributor', 'label' => 'Distributore' ],
-			[ 'slug' => 'journalist', 'label' => 'Giornalista' ],
+			[ 'slug' => 'distributor', 'label' => 'Distributore', 'label_en' => 'Distributor' ],
+			[ 'slug' => 'journalist', 'label' => 'Giornalista', 'label_en' => 'Journalist' ],
 		],
 		'audience_segment_categories'  => [],
 		// Aspetto frontend
@@ -86,8 +86,9 @@ final class SettingsPage {
 		$opts['daily_download_report']      = ! empty( $_POST['daily_download_report'] );
 		$opts['purge_days'] = isset( $_POST['purge_days'] ) ? absint( $_POST['purge_days'] ) : 0;
 
-		$seg_slugs  = isset( $_POST['audience_seg_slug'] ) ? (array) wp_unslash( $_POST['audience_seg_slug'] ) : [];
-		$seg_labels = isset( $_POST['audience_seg_label'] ) ? (array) wp_unslash( $_POST['audience_seg_label'] ) : [];
+		$seg_slugs     = isset( $_POST['audience_seg_slug'] ) ? (array) wp_unslash( $_POST['audience_seg_slug'] ) : [];
+		$seg_labels    = isset( $_POST['audience_seg_label'] ) ? (array) wp_unslash( $_POST['audience_seg_label'] ) : [];
+		$seg_labels_en = isset( $_POST['audience_seg_label_en'] ) ? (array) wp_unslash( $_POST['audience_seg_label_en'] ) : [];
 		$segments_parsed = [];
 		foreach ( $seg_slugs as $idx => $raw_slug ) {
 			$slug = sanitize_key( is_string( $raw_slug ) ? $raw_slug : '' );
@@ -99,7 +100,13 @@ final class SettingsPage {
 			if ( $label === '' ) {
 				$label = $slug;
 			}
-			$segments_parsed[] = [ 'slug' => $slug, 'label' => $label ];
+			$label_en_raw = isset( $seg_labels_en[ $idx ] ) ? (string) $seg_labels_en[ $idx ] : '';
+			$label_en     = sanitize_text_field( $label_en_raw );
+			$segments_parsed[] = [
+				'slug'     => $slug,
+				'label'    => $label,
+				'label_en' => $label_en,
+			];
 		}
 		$audience_on = ! empty( $_POST['audience_enabled'] );
 		if ( $audience_on && $segments_parsed === [] ) {
@@ -171,7 +178,7 @@ final class SettingsPage {
 		$opts = wp_parse_args( get_option( self::OPTION_KEY, [] ), self::DEFAULTS );
 		$pages = get_pages( [ 'sort_column' => 'post_title' ] );
 		$seg_form_rows = isset( $opts['audience_segments'] ) && is_array( $opts['audience_segments'] ) ? $opts['audience_segments'] : [];
-		$seg_form_rows[] = [ 'slug' => '', 'label' => '' ];
+		$seg_form_rows[] = [ 'slug' => '', 'label' => '', 'label_en' => '' ];
 		$matrix_segments = \FP\DistributorMediaKit\User\AudienceService::get_segments();
 		$cat_map         = isset( $opts['audience_segment_categories'] ) && is_array( $opts['audience_segment_categories'] ) ? $opts['audience_segment_categories'] : [];
 		$asset_terms     = get_terms( [ 'taxonomy' => AssetManager::TAXONOMY, 'hide_empty' => false ] );
@@ -337,23 +344,26 @@ final class SettingsPage {
 							</label>
 						</div>
 					</div>
-					<p class="description fpdmk-mb"><?php esc_html_e( 'Definisci slug (solo lettere minuscole, numeri, trattini) e etichetta. Aggiungi righe lasciando l’ultima vuota per nuovi tipi.', 'fp-dmk' ); ?></p>
+					<p class="description fpdmk-mb"><?php esc_html_e( 'Definisci slug (solo lettere minuscole, numeri, trattini) e etichette IT/EN mostrate in registrazione. Aggiungi righe lasciando l’ultima vuota per nuovi tipi.', 'fp-dmk' ); ?></p>
 					<table class="fpdmk-table fpdmk-mb">
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Slug', 'fp-dmk' ); ?></th>
-								<th><?php esc_html_e( 'Etichetta', 'fp-dmk' ); ?></th>
+								<th><?php esc_html_e( 'Etichetta (IT)', 'fp-dmk' ); ?></th>
+								<th><?php esc_html_e( 'Etichetta (EN)', 'fp-dmk' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach ( $seg_form_rows as $row ) : ?>
 								<?php
-								$rslug = isset( $row['slug'] ) ? sanitize_key( (string) $row['slug'] ) : '';
-								$rlab  = isset( $row['label'] ) ? (string) $row['label'] : '';
+								$rslug    = isset( $row['slug'] ) ? sanitize_key( (string) $row['slug'] ) : '';
+								$rlab     = isset( $row['label'] ) ? (string) $row['label'] : '';
+								$rlab_en  = isset( $row['label_en'] ) ? (string) $row['label_en'] : '';
 								?>
 								<tr>
 									<td><input type="text" name="audience_seg_slug[]" class="regular-text" value="<?php echo esc_attr( $rslug ); ?>" pattern="[a-z0-9\-]+" placeholder="es. journalist"></td>
 									<td><input type="text" name="audience_seg_label[]" class="regular-text" value="<?php echo esc_attr( $rlab ); ?>" placeholder="<?php esc_attr_e( 'Nome visualizzato', 'fp-dmk' ); ?>"></td>
+									<td><input type="text" name="audience_seg_label_en[]" class="regular-text" value="<?php echo esc_attr( $rlab_en ); ?>" placeholder="<?php esc_attr_e( 'Displayed name', 'fp-dmk' ); ?>"></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

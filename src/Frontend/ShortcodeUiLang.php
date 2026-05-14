@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace FP\DistributorMediaKit\Frontend;
 
+use FP\DistributorMediaKit\User\AudienceService;
+
 /**
  * Supporto shortcode IT/EN per login, registrazione e Media Kit (mappa inglese via filtro gettext).
  *
@@ -152,35 +154,18 @@ final class ShortcodeUiLang {
 	/**
 	 * Etichetta segmento audience per shortcode EN (slug + label da impostazioni).
 	 */
-	public static function translate_audience_segment_label( string $slug, string $label ): string {
+	public static function translate_audience_segment_label( string $slug, string $label, string $label_en = '' ): string {
 		if ( ! self::is_english_ui() ) {
 			return $label;
 		}
 
-		$slug = sanitize_key( $slug );
-		$defaults = [
-			'distributor'  => 'Distributor',
-			'journalist'   => 'Journalist',
-			'distributore' => 'Distributor',
-			'giornalista'  => 'Journalist',
-		];
-
-		if ( isset( $defaults[ $slug ] ) ) {
-			$translated = $defaults[ $slug ];
-		} elseif ( isset( self::EN_MAP[ $label ] ) ) {
-			$translated = self::EN_MAP[ $label ];
-		} else {
-			$translated = $label;
-		}
-
-		/**
-		 * Personalizza l’etichetta di un segmento audience in interfaccia inglese.
-		 *
-		 * @param string $translated Etichetta proposta.
-		 * @param string $slug       Slug segmento.
-		 * @param string $label      Etichetta configurata in impostazioni.
-		 * @param string $locale     Codice locale UI (`en`).
-		 */
-		return (string) apply_filters( 'fp_dmk_audience_segment_label', $translated, $slug, $label, 'en' );
+		return AudienceService::get_segment_display_label(
+			[
+				'slug'     => $slug,
+				'label'    => $label,
+				'label_en' => $label_en,
+			],
+			true
+		);
 	}
 }

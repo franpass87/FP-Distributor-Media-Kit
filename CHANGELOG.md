@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.5] - 2026-05-14
+
+### Added
+
+- **Tipi di accesso (audience)**: in impostazioni etichette separate IT/EN per ogni segmento; la registrazione EN usa l’etichetta inglese configurata.
+
 ## [1.21.4] - 2026-05-14
 
 ### Fixed
