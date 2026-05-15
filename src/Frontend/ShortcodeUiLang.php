@@ -15,6 +15,9 @@ final class ShortcodeUiLang {
 
 	private static bool $english_ui = false;
 
+	/** @var bool Filtri gettext/ngettext registrati una sola volta. */
+	private static bool $frontend_domain_filters_registered = false;
+
 	/** @var array<string, string> msgid italiano => inglese */
 	private const EN_MAP = [
 		// Login
@@ -216,11 +219,52 @@ final class ShortcodeUiLang {
 	}
 
 	/**
-	 * Esegue una callback con interfaccia inglese (filtro gettext sul dominio fp-dmk).
+	 * Registra filtri che mantengono i msgid italiani sul frontend quando l'UI non è in inglese.
 	 *
-	 * @param callable(): string $callback
+	 * Se il sito WordPress è in en_US, un file .mo (es. Loco Translate) può tradurre tutto il dominio
+	 * `fp-dmk` in inglese anche sulle pagine italiane: qui si ripristina il testo sorgente italiano.
 	 */
-	public static function with_english_ui( callable $callback ): string {
+	public static function register_frontend_textdomain_filters(): void {
+		if ( self::$frontend_domain_filters_registered ) {
+			return;
+		}
+		self::$frontend_domain_filters_registered = true;
+		add_filter( 'gettext', [ self::class, 'filter_gettext_preserve_fp_dmk_msgids' ], 5, 3 );
+		add_filter( 'ngettext', [ self::class, 'filter_ngettext_preserve_fp_dmk_msgids' ], 5, 5 );
+	}
+
+	/**
+	 * @param mixed $translation Traduzione corrente (da .mo).
+	 */
+	public static function filter_gettext_preserve_fp_dmk_msgids( $translation, string $text, string $domain ): string {
+		if ( $domain !== 'fp-dmk' || is_admin() ) {
+			return is_string( $translation ) ? $translation : (string) $translation;
+		}
+		if ( self::$english_ui ) {
+			return is_string( $translation ) ? $translation : (string) $translation;
+		}
+
+		return $text;
+	}
+
+	/**
+	 * @param mixed $translation Traduzione corrente (da .mo).
+	 * @param mixed $single      Singolare msgid.
+	 * @param mixed $plural      Plurale msgid.
+	 */
+	public static function filter_ngettext_preserve_fp_dmk_msgids( $translation, $single, $plural, int $number, string $domain ): string {
+		if ( $domain !== 'fp-dmk' || is_admin() ) {
+			return is_string( $translation ) ? $translation : (string) $translation;
+		}
+		if ( self::$english_ui ) {
+			return is_string( $translation ) ? $translation : (string) $translation;
+		}
+		$s = is_string( $single ) ? $single : (string) $single;
+		$p = is_string( $plural ) ? $plural : (string) $plural;
+
+		return $number === 1 ? $s : $p;
+	}
+
 		self::$english_ui = true;
 		add_filter( 'gettext', [ self::class, 'filter_gettext' ], 10, 3 );
 		try {

@@ -50,6 +50,7 @@ final class Plugin {
 	 */
 	public function init(): void {
 		load_plugin_textdomain( 'fp-dmk', false, dirname( FP_DMK_BASENAME ) . '/languages' );
+		ShortcodeUiLang::register_frontend_textdomain_filters();
 
 		// Download proxy (prima di template_redirect per catch early)
 		add_action( 'init', [ ProxyController::class, 'register_rewrite' ], 5 );

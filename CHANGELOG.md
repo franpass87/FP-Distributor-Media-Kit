@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.14] - 2026-05-15
+
+### Fixed
+
+- **Traduzioni frontend**: filtri `gettext` / `ngettext` a priorità bassa sul dominio `fp-dmk` che ripristinano i msgid italiani quando l’UI non è in inglese, così un file `.mo` generato per `en_US` (es. Loco Translate) non mostra più login/Media Kit in inglese sulle pagine italiane.
+
 ## [1.21.13] - 2026-05-15
 
 ### Fixed
