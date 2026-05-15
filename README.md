@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.21.15-blue)
+![Version](https://img.shields.io/badge/version-1.21.16-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
@@ -45,10 +45,10 @@ Alla **disattivazione** del plugin le capability del Media Kit vengono rimosse d
 
 | Shortcode | Descrizione |
 |-----------|-------------|
-| `[fp_dmk_register]` | Form registrazione; interfaccia IT/EN in base alla lingua pagina (Polylang/WPML, URL `/en/…`, locale) |
+| `[fp_dmk_register]` | Form registrazione; interfaccia IT/EN in base alla lingua pagina (WPML, Polylang, URL `/en/…`, TranslatePress se senza WPML/Polylang) |
 | `[fp_dmk_register_it]` | Form registrazione — interfaccia italiana forzata |
 | `[fp_dmk_register_en]` | Form registrazione — interfaccia inglese forzata |
-| `[fp_dmk_login]` | Form login; stessa logica lingua pagina degli shortcode senza suffisso |
+| `[fp_dmk_login]` | Form login; stessa logica lingua pagina (WPML, Polylang, …) |
 | `[fp_dmk_login_it]` | Form login — interfaccia italiana forzata |
 | `[fp_dmk_login_en]` | Form login — interfaccia inglese forzata |
 | `[fp_dmk_media_kit]` | Griglia asset; stessa logica lingua pagina; filtri GET: `fp_dmk_folder`, `fp_dmk_cat`, `fp_dmk_lang`, `fp_dmk_q`, `fp_dmk_sort` (`title` \| `date` \| `lang`); attributi: `category`, `language`, `folder` |

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.16] - 2026-05-15
+
+### Improved
+
+- **Lingua interfaccia shortcode (WPML)**: priorità a WPML (lingua del post, poi lingua corrente via SitePress / filtri WPML); TranslatePress usato solo se né WPML né Polylang risultano attivi.
+
 ## [1.21.15] - 2026-05-15
 
 ### Fixed

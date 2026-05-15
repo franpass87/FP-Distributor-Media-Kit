@@ -8,6 +8,7 @@ use FP\DistributorMediaKit\User\AudienceService;
 
 /**
  * Supporto shortcode IT/EN per login, registrazione e Media Kit (mappa inglese via filtro gettext).
+ * Rilevamento lingua pagina: WPML, Polylang, URL, TranslatePress (solo se né WPML né Polylang attivi).
  *
  * @package FP\DistributorMediaKit\Frontend
  */
@@ -139,7 +140,26 @@ final class ShortcodeUiLang {
 			return $override;
 		}
 
-		// Polylang: lingua del post (singolare), poi corrente, poi cookie — prima di TranslatePress (spesso en_US anche in vista IT).
+		$wpml_active = defined( 'ICL_SITEPRESS_VERSION' ) || class_exists( 'SitePress', false );
+
+		// WPML: lingua del post (affidabile in singolare), poi lingua corrente della richiesta.
+		if ( $wpml_active ) {
+			if ( is_singular() ) {
+				$post_id = get_queried_object_id();
+				if ( $post_id > 0 ) {
+					$wpml_post = self::get_wpml_post_language_code( $post_id );
+					if ( is_string( $wpml_post ) && $wpml_post !== '' ) {
+						return self::slug_implies_english_ui( $wpml_post );
+					}
+				}
+			}
+			$wpml_cur = self::get_wpml_current_language_code();
+			if ( is_string( $wpml_cur ) && $wpml_cur !== '' ) {
+				return self::slug_implies_english_ui( $wpml_cur );
+			}
+		}
+
+		// Polylang: lingua del post (singolare), poi corrente, poi cookie — prima di TranslatePress.
 		if ( function_exists( 'pll_get_post_language' ) && is_singular() ) {
 			$post_id = get_queried_object_id();
 			if ( $post_id > 0 ) {
@@ -164,14 +184,6 @@ final class ShortcodeUiLang {
 			}
 		}
 
-		// WPML: solo se il core è effettivamente caricato (evita falsi positivi da filtri di terze parti).
-		if ( defined( 'ICL_SITEPRESS_VERSION' ) || class_exists( 'SitePress', false ) ) {
-			$wpml_lang = apply_filters( 'wpml_current_language', null );
-			if ( is_string( $wpml_lang ) && $wpml_lang !== '' ) {
-				return self::slug_implies_english_ui( $wpml_lang );
-			}
-		}
-
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
 		if ( $request_uri !== '' ) {
 			$path = wp_parse_url( $request_uri, PHP_URL_PATH );
@@ -187,19 +199,56 @@ final class ShortcodeUiLang {
 			}
 		}
 
-		// TranslatePress: solo se Polylang non ha indicato una lingua corrente (evita en_US falso su pagine IT con entrambi i plugin).
-		if ( function_exists( 'trp_get_locale' ) ) {
-			$pll_current = function_exists( 'pll_current_language' ) ? pll_current_language( 'slug' ) : false;
-			$pll_slug    = is_string( $pll_current ) ? $pll_current : '';
-			if ( $pll_slug === '' ) {
-				$trp = strtolower( strtok( (string) trp_get_locale(), '_' ) );
+		// TranslatePress: solo senza WPML né Polylang (evita en_US falso su siti WPML).
+		if ( function_exists( 'trp_get_locale' ) && ! $wpml_active && ! function_exists( 'pll_current_language' ) ) {
+			$trp = strtolower( strtok( (string) trp_get_locale(), '_' ) );
 
-				return $trp === 'en';
-			}
+			return $trp === 'en';
 		}
 
 		// Non usare determine_locale(): su molti siti bilingue resta en_US anche per pagine IT → interfaccia errata.
 		return false;
+	}
+
+	/**
+	 * Codice lingua WPML della richiesta corrente.
+	 */
+	private static function get_wpml_current_language_code(): ?string {
+		if ( ! defined( 'ICL_SITEPRESS_VERSION' ) && ! class_exists( 'SitePress', false ) ) {
+			return null;
+		}
+		global $sitepress;
+		if ( is_object( $sitepress ) && method_exists( $sitepress, 'get_current_language' ) ) {
+			$code = $sitepress->get_current_language();
+			if ( is_string( $code ) && $code !== '' ) {
+				return $code;
+			}
+		}
+		$filtered = apply_filters( 'wpml_current_language', null );
+		if ( is_string( $filtered ) && $filtered !== '' ) {
+			return $filtered;
+		}
+		if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
+			$icl = ICL_LANGUAGE_CODE;
+			if ( is_string( $icl ) && $icl !== '' ) {
+				return $icl;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Codice lingua WPML associato al post (traduzione corrente).
+	 */
+	private static function get_wpml_post_language_code( int $post_id ): ?string {
+		$details = apply_filters( 'wpml_post_language_details', null, $post_id );
+		if ( ! is_array( $details ) ) {
+			return null;
+		}
+		$code = $details['language_code'] ?? null;
+
+		return is_string( $code ) && $code !== '' ? $code : null;
 	}
 
 	/**
