@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.13] - 2026-05-15
+
+### Fixed
+
+- **Lingua interfaccia**: con TranslatePress + Polylang, `trp_get_locale()` non ha più priorità sulla lingua Polylang (evitava login/Media Kit in inglese su URL italiani).
+- **Redirect login**: `redirect_to` verso il Media Kit passa a `add_query_arg` senza `urlencode` manuale (WordPress codifica già; niente doppia codifica).
+
 ## [1.21.12] - 2026-05-15
 
 ### Fixed

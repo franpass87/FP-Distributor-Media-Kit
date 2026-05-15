@@ -136,14 +136,7 @@ final class ShortcodeUiLang {
 			return $override;
 		}
 
-		// TranslatePress (locale tipo en_US / it_IT).
-		if ( function_exists( 'trp_get_locale' ) ) {
-			$trp = strtolower( strtok( (string) trp_get_locale(), '_' ) );
-
-			return $trp === 'en';
-		}
-
-		// Polylang: preferisci la lingua del post (affidabile in singolare), poi quella corrente / cookie.
+		// Polylang: lingua del post (singolare), poi corrente, poi cookie — prima di TranslatePress (spesso en_US anche in vista IT).
 		if ( function_exists( 'pll_get_post_language' ) && is_singular() ) {
 			$post_id = get_queried_object_id();
 			if ( $post_id > 0 ) {
@@ -179,7 +172,7 @@ final class ShortcodeUiLang {
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
 		if ( $request_uri !== '' ) {
 			$path = wp_parse_url( $request_uri, PHP_URL_PATH );
-			if ( is_string( $path ) && $path !== '' && preg_match( '#(^|/)(en|eng|english)(/|$)#i', $path ) ) {
+			if ( is_string( $path ) && $path !== '' && self::path_has_english_language_segment( $path ) ) {
 				return true;
 			}
 		}
@@ -191,8 +184,26 @@ final class ShortcodeUiLang {
 			}
 		}
 
+		// TranslatePress: solo se Polylang non ha indicato una lingua corrente (evita en_US falso su pagine IT con entrambi i plugin).
+		if ( function_exists( 'trp_get_locale' ) ) {
+			$pll_current = function_exists( 'pll_current_language' ) ? pll_current_language( 'slug' ) : false;
+			$pll_slug    = is_string( $pll_current ) ? $pll_current : '';
+			if ( $pll_slug === '' ) {
+				$trp = strtolower( strtok( (string) trp_get_locale(), '_' ) );
+
+				return $trp === 'en';
+			}
+		}
+
 		// Non usare determine_locale(): su molti siti bilingue resta en_US anche per pagine IT → interfaccia errata.
 		return false;
+	}
+
+	/**
+	 * Segmento lingua nell'URL (es. /en/, /en-gb/) — path senza query.
+	 */
+	private static function path_has_english_language_segment( string $path ): bool {
+		return (bool) preg_match( '#(^|/)(en|eng|english)(/|$)#i', $path );
 	}
 
 	/**

@@ -28,7 +28,7 @@ final class RestrictedContent {
 		if ( ! is_user_logged_in() ) {
 			$login_page = (int) get_option( 'fp_dmk_login_page', 0 );
 			$redirect = $login_page > 0 ? get_permalink( $login_page ) : home_url( '/' );
-			$redirect = add_query_arg( 'redirect_to', urlencode( get_permalink( $media_kit_page ) ), $redirect );
+			$redirect = add_query_arg( 'redirect_to', get_permalink( $media_kit_page ), $redirect );
 			wp_safe_redirect( $redirect );
 			exit;
 		}
