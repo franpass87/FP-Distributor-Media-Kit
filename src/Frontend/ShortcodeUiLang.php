@@ -265,6 +265,12 @@ final class ShortcodeUiLang {
 		return $number === 1 ? $s : $p;
 	}
 
+	/**
+	 * Esegue una callback con interfaccia inglese (filtro gettext sul dominio fp-dmk).
+	 *
+	 * @param callable(): string $callback
+	 */
+	public static function with_english_ui( callable $callback ): string {
 		self::$english_ui = true;
 		add_filter( 'gettext', [ self::class, 'filter_gettext' ], 10, 3 );
 		try {

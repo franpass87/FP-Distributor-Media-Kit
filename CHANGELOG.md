@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.15] - 2026-05-15
+
+### Fixed
+
+- **Sintassi PHP**: ripristinata la firma di `with_english_ui()` rimossa per errore in 1.21.14 (il plugin non caricava).
+
 ## [1.21.14] - 2026-05-15
 
 ### Fixed
