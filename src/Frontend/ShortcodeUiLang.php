@@ -140,6 +140,12 @@ final class ShortcodeUiLang {
 			return $override;
 		}
 
+		// Segnale più affidabile: lingua effettiva della richiesta/pagina (es. html lang = it-IT/en-US).
+		$request_lang = self::get_request_language_code();
+		if ( is_string( $request_lang ) && $request_lang !== '' ) {
+			return self::slug_implies_english_ui( $request_lang );
+		}
+
 		$wpml_active = defined( 'ICL_SITEPRESS_VERSION' ) || class_exists( 'SitePress', false );
 
 		// WPML: lingua del post (affidabile in singolare), poi lingua corrente della richiesta.
@@ -208,6 +214,29 @@ final class ShortcodeUiLang {
 
 		// Non usare determine_locale(): su molti siti bilingue resta en_US anche per pagine IT → interfaccia errata.
 		return false;
+	}
+
+	/**
+	 * Codice lingua della richiesta corrente da locale WordPress (es. `it`, `en`).
+	 */
+	private static function get_request_language_code(): ?string {
+		$locale = '';
+		if ( function_exists( 'determine_locale' ) ) {
+			$locale = (string) determine_locale();
+		}
+		if ( $locale === '' && function_exists( 'get_locale' ) ) {
+			$locale = (string) get_locale();
+		}
+		if ( $locale === '' ) {
+			return null;
+		}
+
+		$locale = strtolower( $locale );
+		if ( preg_match( '/^([a-z]{2,3})([_-]|$)/', $locale, $m ) ) {
+			return $m[1];
+		}
+
+		return null;
 	}
 
 	/**

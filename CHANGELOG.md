@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.17] - 2026-05-15
+
+### Fixed
+
+- **Lingua interfaccia shortcode**: aggiunto controllo iniziale sulla lingua effettiva della richiesta (`determine_locale`/`get_locale`), così le pagine italiane non finiscono in inglese quando WPML restituisce segnali incoerenti.
+
 ## [1.21.16] - 2026-05-15
 
 ### Improved

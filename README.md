@@ -1,6 +1,6 @@
 # FP Distributor Media Kit
 
-![Version](https://img.shields.io/badge/version-1.21.16-blue)
+![Version](https://img.shields.io/badge/version-1.21.17-blue)
 
 Area riservata per distributori: registrazione, approvazione admin, download asset protetti e notifiche email.
 
