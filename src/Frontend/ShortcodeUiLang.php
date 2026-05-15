@@ -136,25 +136,43 @@ final class ShortcodeUiLang {
 			return $override;
 		}
 
-		if ( function_exists( 'pll_current_language' ) ) {
-			$lang = pll_current_language( 'slug' );
-			if ( is_string( $lang ) && $lang !== '' ) {
-				return $lang === 'en';
-			}
+		// TranslatePress (locale tipo en_US / it_IT).
+		if ( function_exists( 'trp_get_locale' ) ) {
+			$trp = strtolower( strtok( (string) trp_get_locale(), '_' ) );
+
+			return $trp === 'en';
 		}
 
-		$wpml_lang = apply_filters( 'wpml_current_language', null );
-		if ( is_string( $wpml_lang ) && $wpml_lang !== '' ) {
-			return $wpml_lang === 'en';
-		}
-
-		if ( is_singular() && function_exists( 'pll_get_post_language' ) ) {
+		// Polylang: preferisci la lingua del post (affidabile in singolare), poi quella corrente / cookie.
+		if ( function_exists( 'pll_get_post_language' ) && is_singular() ) {
 			$post_id = get_queried_object_id();
 			if ( $post_id > 0 ) {
 				$lang = pll_get_post_language( $post_id, 'slug' );
 				if ( is_string( $lang ) && $lang !== '' ) {
-					return $lang === 'en';
+					return self::slug_implies_english_ui( $lang );
 				}
+			}
+		}
+
+		if ( function_exists( 'pll_current_language' ) ) {
+			$lang = pll_current_language( 'slug' );
+			if ( is_string( $lang ) && $lang !== '' ) {
+				return self::slug_implies_english_ui( $lang );
+			}
+		}
+
+		if ( isset( $_COOKIE['pll_language'] ) ) {
+			$cookie_lang = sanitize_text_field( wp_unslash( (string) $_COOKIE['pll_language'] ) );
+			if ( $cookie_lang !== '' ) {
+				return self::slug_implies_english_ui( $cookie_lang );
+			}
+		}
+
+		// WPML: solo se il core è effettivamente caricato (evita falsi positivi da filtri di terze parti).
+		if ( defined( 'ICL_SITEPRESS_VERSION' ) || class_exists( 'SitePress', false ) ) {
+			$wpml_lang = apply_filters( 'wpml_current_language', null );
+			if ( is_string( $wpml_lang ) && $wpml_lang !== '' ) {
+				return self::slug_implies_english_ui( $wpml_lang );
 			}
 		}
 
@@ -173,10 +191,17 @@ final class ShortcodeUiLang {
 			}
 		}
 
-		$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
-		$locale = strtolower( strtok( (string) $locale, '_' ) );
+		// Non usare determine_locale(): su molti siti bilingue resta en_US anche per pagine IT → interfaccia errata.
+		return false;
+	}
 
-		return $locale === 'en';
+	/**
+	 * Slug lingua (Polylang/WPML/cookie) → interfaccia inglese del plugin.
+	 */
+	private static function slug_implies_english_ui( string $slug ): bool {
+		$slug = strtolower( trim( $slug ) );
+
+		return $slug === 'en' || str_starts_with( $slug, 'en_' ) || str_starts_with( $slug, 'en-' );
 	}
 
 	/**

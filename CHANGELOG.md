@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.21.12] - 2026-05-15
+
+### Fixed
+
+- **Lingua interfaccia shortcode**: rimosso il fallback su `determine_locale()` (spesso `en_US` anche sulle pagine italiane); aggiunti TranslatePress, cookie Polylang e controllo WPML solo con SitePress attivo; slug `en`, `en_*`, `en-*` per l’inglese.
+
 ## [1.21.11] - 2026-05-14
 
 ### Added
